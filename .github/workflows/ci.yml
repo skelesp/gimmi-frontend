@@ -29,4 +29,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # Met --code-coverage; faalt onder de drempels in karma.conf.js (sc-2979).
       - run: npm run test:ci
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage
+          path: coverage/gimmi
+          if-no-files-found: ignore
