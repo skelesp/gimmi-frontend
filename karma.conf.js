@@ -19,13 +19,12 @@ module.exports = function (config) {
       dir: require('path').join(__dirname, './coverage/gimmi'),
       reports: ['html', 'lcovonly', 'text-summary'],
       fixWebpackSourcePaths: true,
-      // Ondergrens (sc-2979). Alleen verhogen, nooit verlagen. Nulmeting 11-10-2026 was
-      // 33/2/27/26 (statements/branches/functions/lines) met 16 lege specs.
-      // Let op: istanbul telt enkel bestanden die een spec importeert; ongeteste bestanden
-      // tellen (nog) niet mee, dus het echte percentage over de hele app ligt lager.
+      // Ondergrens (sc-2979). Alleen verhogen, nooit verlagen. Telt alle bronbestanden in src/app
+      // (src/test.ts laadt ze ook zonder spec). Nulmeting over de hele app, 11-10-2026: 28/16/13/22
+      // (statements/branches/functions/lines).
       thresholds: {
         emitWarning: false,
-        global: { statements: 59, branches: 50, functions: 53, lines: 55 }
+        global: { statements: 27, branches: 16, functions: 13, lines: 21 }
       }
     },
     // 'coverage-istanbul' staat er expliciet in: anders voegt de CLI bij --code-coverage
