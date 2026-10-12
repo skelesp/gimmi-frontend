@@ -4,8 +4,8 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { environment } from 'src/environments/environment';
 import { CloudinaryService } from './cloudinary.service';
 
-// Afbeeldingen via de eigen API (sc-1999, sc-2358, sc-2364, sc-2618). De upload-widget zelf
-// laadt een extern script en valt buiten deze tests.
+// Afbeeldingen via de eigen API (sc-1999, sc-2358, sc-2364, sc-2618), en het laden van de
+// upload-widget: het externe script zelf wordt nooit echt opgehaald.
 describe('CloudinaryService', () => {
   const api = environment.apiUrl;
   let service: CloudinaryService;
@@ -95,5 +95,47 @@ describe('CloudinaryService', () => {
     const postfix = environment.cloudinary.temporaryImagePostfix;
     expect(service.isTemporaryImage({ publicId: 'w1-123' + postfix, version: '1' })).toBeTrue();
     expect(service.isTemporaryImage({ publicId: 'w1', version: '1' })).toBeFalse();
+  });
+
+  describe('createUploadWidget', () => {
+    const widgetUrl = 'https://widget.cloudinary.com/v2.0/global/all.js';
+    let echteCloudinary: any;
+
+    beforeEach(() => {
+      echteCloudinary = (window as any).cloudinary;
+      (window as any).cloudinary = { createUploadWidget: jasmine.createSpy('createUploadWidget').and.returnValue('widget') };
+    });
+
+    afterEach(() => {
+      (window as any).cloudinary = echteCloudinary;
+      document.querySelectorAll(`script[src="${widgetUrl}"]`).forEach(s => s.remove());
+    });
+
+    it('script nog niet geladen: voegt het één keer toe en maakt de widget zodra het geladen is', () => {
+      const appendChild = spyOn(document.body, 'appendChild').and.callFake((s: any) => s);
+      const callback = () => {};
+      let widget: any;
+      service.createUploadWidget({ cloud_name: 'x' }, callback).subscribe(w => widget = w);
+
+      const script = appendChild.calls.mostRecent().args[0] as HTMLScriptElement;
+      expect(script.src).toBe(widgetUrl);
+      expect(script.type).toBe('text/javascript');
+      expect(widget).toBeUndefined();
+
+      script.dispatchEvent(new Event('load'));
+      expect((window as any).cloudinary.createUploadWidget).toHaveBeenCalledWith({ cloud_name: 'x' }, callback);
+      expect(widget).toBe('widget');
+    });
+
+    it('script al aanwezig: geen tweede script, meteen de widget', () => {
+      const bestaand = document.createElement('script');
+      bestaand.setAttribute('src', widgetUrl);
+      document.head.appendChild(bestaand);
+      const appendChild = spyOn(document.body, 'appendChild').and.callThrough();
+      let widget: any;
+      service.createUploadWidget({}, () => {}).subscribe(w => widget = w);
+      expect(appendChild).not.toHaveBeenCalled();
+      expect(widget).toBe('widget');
+    });
   });
 });
