@@ -18,10 +18,23 @@ module.exports = function (config) {
     coverageIstanbulReporter: {
       dir: require('path').join(__dirname, './coverage/gimmi'),
       reports: ['html', 'lcovonly', 'text-summary'],
-      fixWebpackSourcePaths: true
+      fixWebpackSourcePaths: true,
+      // Ondergrens (sc-2979). Alleen verhogen, nooit verlagen. Telt alle bronbestanden in src/app
+      // (src/test.ts laadt ze ook zonder spec). Nulmeting over de hele app, 11-10-2026: 28/16/13/22
+      // (statements/branches/functions/lines).
+      thresholds: {
+        emitWarning: false,
+        global: { statements: 82, branches: 78, functions: 75, lines: 80 }
+      }
     },
-    reporters: ['progress', 'kjhtml'],
+    // 'coverage-istanbul' staat er expliciet in: anders voegt de CLI bij --code-coverage
+    // 'coverage' toe (karma-coverage), en die plugin gebruiken we niet.
+    reporters: ['progress', 'kjhtml', 'coverage-istanbul'],
     port: 9876,
+    // Vast op IPv4: met Node 22 luistert "localhost" op ::1, terwijl Chrome naar 127.0.0.1 gaat
+    // en dan nooit verbindt ("has not captured in 60000 ms").
+    listenAddress: '127.0.0.1',
+    hostname: '127.0.0.1',
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,

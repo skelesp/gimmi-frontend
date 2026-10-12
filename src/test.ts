@@ -25,3 +25,8 @@ getTestBed().initTestEnvironment(
 const context = require.context('./', true, /\.spec\.ts$/);
 // And load the modules.
 context.keys().map(context);
+
+// Laad ook alle bronbestanden van de app, zodat de coverage bestanden zonder spec meetelt
+// als 0% in plaats van ze over te slaan (sc-2979).
+const sources = require.context('./app', true, /^(?!.*\.spec\.ts$).*\.ts$/);
+sources.keys().map(sources);
