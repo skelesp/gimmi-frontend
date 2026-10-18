@@ -5,7 +5,8 @@ import { Account, createWish, input, login, newUserPage, register, wishAction, w
 // Flows rond het beheren van wensen en navigeren, naast de zes kernflows (sc-2979):
 // personen zoeken (sc-1988, sc-2033), reservatie verwijderen (sc-2515), wens kopiëren
 // naar de eigen lijst (sc-2348), wens verwijderen (sc-1981), uitloggen (sc-1987),
-// wachtwoord vergeten (sc-2004), paginatitel en footer (sc-2027, sc-2575).
+// wachtwoord vergeten (sc-2004), paginatitel en footer (sc-2027, sc-2575), afbeelding
+// zoeken en een eigen foto opladen (sc-3028).
 // Serieel, met eigen gebruikers die afterAll weer opruimt (zelfde naamregels als e2e:cleanup).
 
 const runId = `${Date.now().toString(36)}w`;
@@ -14,6 +15,9 @@ const owner: Account = { firstName: 'Smoke', lastName: 'Eigenaar', email: `smoke
 const giver: Account = { firstName: 'Smoke', lastName: 'Gever', email: `smoke+giver-${runId}@gimmi.be`, password };
 const wensA = `Smoke reserveer ${runId}`;
 const wensB = `Smoke kopie ${runId}`;
+
+// Een rode PNG van 16x16 voor de foto-upload (sc-3028).
+const rodePng = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAFklEQVR4nGO4Y+pKEmIY1TCqYfhqAABoxFYQwMZTpQAAAABJRU5ErkJggg==';
 
 function overEenWeek(): string {
   const d = new Date();
@@ -42,6 +46,57 @@ test.describe('wensbeheer en navigatie', () => {
     await register(page, owner);
     await createWish(page, wensA);
     await createWish(page, wensB);
+    await context.close();
+  });
+
+  // Afbeeldingskiezer (sc-3028). Vaste titel: de backend bewaart zoekresultaten een dag per
+  // zoekterm, dus Brave rekent hooguit één zoekopdracht per dag voor deze test.
+  test('afbeelding zoeken en toevoegen aan een nieuwe wens', async ({ browser }) => {
+    const { context, page } = await newUserPage(browser);
+    await login(page, owner);
+    await page.getByText('Voeg wens toe').click();
+    const dialog = page.getByRole('dialog');
+    await dialog.locator('#wishTitle').fill('Smoke fiets');
+    await dialog.getByRole('button', { name: 'Kies afbeelding' }).click();
+
+    const kiezer = dialog.locator('#afbeeldingskiezer');
+    await expect(kiezer.getByRole('searchbox')).toHaveValue('Smoke fiets');
+    const resultaten = kiezer.locator('button.resultaat');
+    await expect(resultaten.first()).toBeVisible({ timeout: 15_000 });
+
+    // Een bronsite kan weigeren (sc-2960): dan een melding en het volgende resultaat proberen.
+    let gelukt = false;
+    for (let i = 0; i < Math.min(await resultaten.count(), 6) && !gelukt; i++) {
+      await resultaten.nth(i).click();
+      await expect(resultaten.nth(i).locator('.spinner-border')).toHaveCount(0, { timeout: 20_000 });
+      gelukt = await kiezer.count() === 0;
+      if (!gelukt) await expect(kiezer.getByRole('alert')).toBeVisible();
+    }
+    expect(gelukt, 'minstens één van de eerste zoekresultaten kan opgeladen worden').toBeTruthy();
+
+    await expect(dialog.locator('gimmi-image-view img')).not.toHaveAttribute('src', /wish_images\/default/);
+    await dialog.locator('button[type="submit"]').click();
+    await expect(dialog).toBeHidden();
+    await expect(wishCard(page, 'Smoke fiets').locator('img').first()).not.toHaveAttribute('src', /wish_images\/default/);
+    await context.close();
+  });
+
+  test('een eigen foto opladen bij een nieuwe wens', async ({ browser }) => {
+    const { context, page } = await newUserPage(browser);
+    await login(page, owner);
+    await page.getByText('Voeg wens toe').click();
+    const dialog = page.getByRole('dialog');
+    await dialog.locator('#wishTitle').fill('Smoke foto');
+    await dialog.getByRole('button', { name: 'Kies afbeelding' }).click();
+    await dialog.getByRole('tab', { name: 'Foto / bestand' }).click();
+    await dialog.locator('input[data-testid="bestand-kiezen"]').setInputFiles({
+      name: 'foto.png', mimeType: 'image/png', buffer: Buffer.from(rodePng, 'base64')
+    });
+    await expect(dialog.locator('#afbeeldingskiezer')).toHaveCount(0, { timeout: 20_000 });
+    await expect(dialog.locator('gimmi-image-view img')).not.toHaveAttribute('src', /wish_images\/default/);
+    await dialog.locator('button[type="submit"]').click();
+    await expect(dialog).toBeHidden();
+    await expect(wishCard(page, 'Smoke foto').locator('img').first()).not.toHaveAttribute('src', /wish_images\/default/);
     await context.close();
   });
 

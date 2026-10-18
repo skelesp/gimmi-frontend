@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 import { CloudinaryModule, CloudinaryConfiguration } from '@cloudinary/angular-5.x';
 import * as Cloudinary from "cloudinary-core";
@@ -11,6 +12,7 @@ import { ImageViewComponent } from './components/image-view/image-view.component
   declarations: [ImageUploadComponent, ImageViewComponent],
   imports: [
     CommonModule,
+    FormsModule,
     CloudinaryModule.forRoot(Cloudinary, {
       cloud_name: environment.cloudinary.cloud_name,
       upload_preset: environment.cloudinary.uploadPreset,
