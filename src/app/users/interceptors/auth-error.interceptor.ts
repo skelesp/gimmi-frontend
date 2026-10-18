@@ -27,14 +27,18 @@ export class AuthErrorInterceptor implements HttpInterceptor {
         if ([401, 403].indexOf(err.status) !== -1){
           switch (err.status) {
             case 401:
-              // No notification when login call failed.
-              if (request.url.indexOf("api/authenticate") === -1) {
-                this.notificationService.showNotification(
-                  "Voor het uitvoeren van deze actie moet u ingelogd zijn.",
-                  "error",
-                  "Login vereist"
-                  );
-                }
+              // Failed login call: the login screen shows its own error. Don't navigate and don't
+              // remember the login page as attemptedUrl, or the next successful login redirects
+              // back to the login page.
+              if (request.url.indexOf("api/authenticate") !== -1) {
+                return throwError(err);
+              }
+
+              this.notificationService.showNotification(
+                "Voor het uitvoeren van deze actie moet u ingelogd zijn.",
+                "error",
+                "Login vereist"
+                );
 
               // Handle current user
               let queryParams = {};
@@ -45,7 +49,10 @@ export class AuthErrorInterceptor implements HttpInterceptor {
               }
               
               // Navigate to login
-              this.userService.attemptedUrl = this.router.url;
+              // Never return to a login/register page after authentication.
+              if (!this.router.url.startsWith('/users/')) {
+                this.userService.attemptedUrl = this.router.url;
+              }
               this.router.navigate(['users/login'], {queryParams: queryParams});
               break;
             case 403:

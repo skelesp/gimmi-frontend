@@ -38,12 +38,17 @@ export async function register(page: Page, account: Account): Promise<void> {
 
 export async function login(page: Page, account: Account): Promise<void> {
   await page.goto('/users/login');
+  await submitLogin(page, account);
+  await expect(page).toHaveURL(`/people/${account.id}`);
+}
+
+// Vult het loginformulier in en klikt op Login, zonder op het resultaat te wachten.
+export async function submitLogin(page: Page, account: Account): Promise<void> {
   await input(page, 'Email (login)').fill(account.email);
   await input(page, 'Wachtwoord').fill(account.password);
   // De loginknop wordt pas actief als het formulier "touched" is.
   await input(page, 'Wachtwoord').blur();
   await page.getByRole('button', { name: 'Login', exact: true }).click();
-  await expect(page).toHaveURL(`/people/${account.id}`);
 }
 
 export async function createWish(page: Page, title: string, price = '25'): Promise<void> {
