@@ -100,6 +100,14 @@ describe('ImageUploadComponent', () => {
       expect(fixture.nativeElement.textContent).toContain('Zoekresultaten van Brave Search');
     });
 
+    it('een thumbnail die niet laadt, verdwijnt uit het raster', () => {
+      maak({ zoekterm: 'fiets' });
+      klikKnop('Kies afbeelding');
+      alle('.resultaat img')[0].dispatchEvent(new Event('error'));
+      fixture.detectChanges();
+      expect((alle('.resultaat img') as HTMLImageElement[]).map(i => i.alt)).toEqual(['Fiets 2']);
+    });
+
     it('zonder titel: niet zoeken, wel een hint', () => {
       maak({ zoekterm: '' });
       klikKnop('Kies afbeelding');

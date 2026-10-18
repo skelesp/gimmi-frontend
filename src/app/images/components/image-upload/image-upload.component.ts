@@ -144,6 +144,11 @@ export class ImageUploadComponent implements OnInit, OnDestroy {
     this.laadOp(resultaat.url, resultaat.url);
   }
 
+  /** Een thumbnail die niet laadt, zou alleen zijn alt-tekst tonen: weg uit het raster. */
+  verwijderResultaat(resultaat: IImageSearchResult): void {
+    this.resultaten = this.resultaten.filter(r => r !== resultaat);
+  }
+
   async bestandGekozen(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const bestand = input.files && input.files[0];

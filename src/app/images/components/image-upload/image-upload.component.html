@@ -51,7 +51,8 @@
                         [disabled]="!!bezigMet || mislukt.has(r.url)"
                         [title]="r.title + (r.source ? ' (' + r.source + ')' : '')"
                         (click)="kies(r)">
-                    <img [src]="r.thumbnail" [alt]="r.title" loading="lazy" referrerpolicy="no-referrer" />
+                    <img [src]="r.thumbnail" [alt]="r.title" loading="lazy" referrerpolicy="no-referrer"
+                         (error)="verwijderResultaat(r)" />
                     <span *ngIf="bezigMet === r.url" class="spinner-border spinner-border-sm text-light" role="status">
                         <span class="sr-only">Bezig met opladen</span>
                     </span>
