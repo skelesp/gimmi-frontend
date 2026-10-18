@@ -33,20 +33,24 @@
                                 formControlName="price" />
                     </div>
                 </div>
-                <div class="form-group mt-2">
-                    <gimmi-image-upload 
-                        [tempPublicId_prefix]="currentUser.id"
-                        (imageUploaded)="updateWishImage($event)"
-                    ></gimmi-image-upload>
-                </div>
             </div>
             <div class="col-5">
                 <div class="form-group">
-                    <gimmi-image-view 
+                    <gimmi-image-view
                         class="img-fluid rounded float-right"
                         [image]="wishForm.get('image').value"
                     ></gimmi-image-view>
                 </div>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Volle breedte: de kiezer klapt hier open met zijn zoekresultaten (sc-3028) -->
+            <div class="form-group col-12">
+                <gimmi-image-upload
+                    [tempPublicId_prefix]="currentUser.id"
+                    [searchTerm]="wishForm.get('title').value"
+                    (imageUploaded)="updateWishImage($event)"
+                ></gimmi-image-upload>
             </div>
         </div>
         <div class="row">
