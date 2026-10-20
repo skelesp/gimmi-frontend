@@ -51,10 +51,21 @@ describe('AuthErrorInterceptor', () => {
     expect(users.logout).not.toHaveBeenCalled();
   });
 
-  it('401 op de loginaanroep zelf: geen melding (het loginscherm toont zijn eigen fout)', () => {
-    vraag('/api/authenticate', 401);
+  it('401 op de loginaanroep zelf: geen melding, geen navigatie, loginpagina niet onthouden', () => {
+    // Anders stuurt de volgende geslaagde login je terug naar het loginscherm.
+    router.url = '/users/login';
+    const fout = vraag('/api/authenticate', 401);
+    expect(fout.status).toBe(401);
     expect(notifications.showNotification).not.toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(users.attemptedUrl).toBeNull();
+  });
+
+  it('401 vanop een /users/-pagina: die pagina niet als terugkeer-URL onthouden', () => {
+    router.url = '/users/register';
+    vraag('/api/people', 401);
+    expect(users.attemptedUrl).toBeNull();
+    expect(router.navigate).toHaveBeenCalledWith(['users/login'], { queryParams: {} });
   });
 
   it('403: melding over ontbrekende rechten, geen navigatie', () => {

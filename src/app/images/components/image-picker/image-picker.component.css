@@ -1,0 +1,40 @@
+.raster {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: .5rem;
+}
+
+.resultaat {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: .25rem;
+    overflow: hidden;
+    background: #fff;
+    cursor: pointer;
+}
+.resultaat:hover:not(:disabled),
+.resultaat:focus-visible {
+    border-color: #dc3545;
+    outline: none;
+}
+.resultaat img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.resultaat:disabled {
+    cursor: default;
+}
+.resultaat.mislukt img {
+    opacity: .3;
+}
+.resultaat.bezig img {
+    filter: brightness(.5);
+}
+.resultaat .spinner-border {
+    position: absolute;
+    top: calc(50% - 1rem);
+    left: calc(50% - 1rem);
+}

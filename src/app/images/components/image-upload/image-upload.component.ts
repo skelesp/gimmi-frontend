@@ -1,72 +1,56 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { NotificationService } from 'src/app/shared/services/notification.service';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { environment } from 'src/environments/environment';
 import { CloudinaryService } from '../../services/cloudinary.service';
+import { IGekozenAfbeelding, ImagePickerComponent } from '../image-picker/image-picker.component';
 
+/**
+ * Knop "Kies afbeelding": opent de afbeeldingskiezer als popup (sc-3028) en geeft de
+ * opgeladen afbeelding door. Sluit de wens-popup (deze component verdwijnt), dan sluit
+ * de kiezer mee en breekt een lopende upload af (was sc-1391). Wie de pagina verlaat,
+ * sluit alle popups via de ModalsClosedGuard.
+ */
 @Component({
   selector: 'gimmi-image-upload',
-  templateUrl: './image-upload.component.html',
-  styleUrls: ['./image-upload.component.css']
+  templateUrl: './image-upload.component.html'
 })
-export class ImageUploadComponent implements OnInit {
-  @Input() publicId : string;
+export class ImageUploadComponent implements OnInit, OnDestroy {
+  @Input() publicId: string;
   @Input() tempPublicId_prefix: string = "";
   @Input() tempPublicId_postfix: string = environment.cloudinary.temporaryImagePostfix;
+  @Input() searchTerm: string = "";
 
   @Output() imageUploaded: EventEmitter<IWishImage> = new EventEmitter();
-  private uploadWidget : any = null;
-  private uploadWidgetConfig: any = {
-    cloud_name: environment.cloudinary.cloud_name,
-    uploadPreset: environment.cloudinary.uploadPreset,
-    api_key: environment.cloudinary.apiKey,
-    secure: true,
-    language: "nl",
-    sources: ['local', 'image_search', 'url'],
-    defaultSource: "image_search",
-    googleApiKey: environment.googleApi.googleApiKey,
-    resourceType: "image",
-    multiple: false,
-    theme: "minimal",
-    showPoweredBy: false, //Note: Supported only for paid Cloudinary accounts and requires some time for cache expiration.
-    showAdvancedOptions: false,
-    showCompletedButton: false,
-    text: environment.cloudinary.uploadWidget.text
-  };
+  /** Komt vlak vóór imageUploaded: een URL of data-URI die de browser meteen kan tonen. */
+  @Output() previewChanged: EventEmitter<string> = new EventEmitter();
 
-  constructor( 
-    private cloudinaryService : CloudinaryService,
-    private notificationService : NotificationService) { }
+  private doelPublicId: string;
+  private kiezer: NgbModalRef = null;
+
+  constructor(
+    private cloudinaryService: CloudinaryService,
+    private modalService: NgbModal) { }
 
   ngOnInit(): void {
-    this.uploadWidgetConfig.uploadSignature = this.cloudinaryService.getSignature.bind(this.cloudinaryService);
-    this.uploadWidgetConfig.publicId = this.publicId ? this.publicId : this.cloudinaryService.generateRandomPublicId(this.tempPublicId_prefix, this.tempPublicId_postfix);
-
-    this.cloudinaryService.createUploadWidget(
-      this.uploadWidgetConfig,
-      (error, result) => {
-        if (error) {
-          console.error(error);
-          this.uploadWidget.close({ quiet: true });
-          this.notificationService.showNotification(
-            "De afbeelding kon niet opgeladen worden, probeer het opnieuw.",
-            'error',
-            'Afbeelding niet opgeladen'
-          )
-          return;
-        } else if (result && result.event === "success") {
-          this.imageUploaded.emit({
-            publicId: result.info.public_id,
-            version: result.info.version
-          });
-          this.uploadWidget.close({ quiet: true });
-        }
-      }
-    ).subscribe(widget => this.uploadWidget = widget);
+    this.doelPublicId = this.publicId ? this.publicId : this.cloudinaryService.generateRandomPublicId(this.tempPublicId_prefix, this.tempPublicId_postfix);
   }
 
-  openUploadWidget() {
-    this.uploadWidget.open();
+  openKiezer(): void {
+    this.kiezer = this.modalService.open(ImagePickerComponent, { size: 'lg', scrollable: true, ariaLabelledBy: 'kiezer-titel' });
+    this.kiezer.componentInstance.publicId = this.doelPublicId;
+    this.kiezer.componentInstance.searchTerm = this.searchTerm;
+    this.kiezer.result.then(
+      (gekozen: IGekozenAfbeelding) => {
+        this.kiezer = null;
+        this.previewChanged.emit(gekozen.voorvertoning);
+        this.imageUploaded.emit(gekozen.afbeelding);
+      },
+      () => { this.kiezer = null; }   // geannuleerd of weggeklikt
+    );
   }
 
+  ngOnDestroy(): void {
+    this.kiezer?.dismiss('Wens-popup gesloten');
+  }
 }

@@ -1,115 +1,113 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
-import { NotificationService } from 'src/app/shared/services/notification.service';
 import { environment } from 'src/environments/environment';
 import { CloudinaryService } from '../../services/cloudinary.service';
+import { ImagePickerComponent } from '../image-picker/image-picker.component';
 import { ImageUploadComponent } from './image-upload.component';
 
-// De Cloudinary upload-widget (sc-1999, sc-2358). De widget zelf is een extern script; hier
-// wordt nagebootst wat het teruggeeft, zodat vastligt hoe de app hem opzet en zijn
-// resultaat verwerkt.
+// De knop "Kies afbeelding" opent de afbeeldingskiezer als popup (sc-3028).
 describe('ImageUploadComponent', () => {
   let fixture: ComponentFixture<ImageUploadComponent>;
   let component: ImageUploadComponent;
   let cloudinary: jasmine.SpyObj<CloudinaryService>;
-  let notifications: jasmine.SpyObj<NotificationService>;
-  let widget: jasmine.SpyObj<{ open: () => void; close: (o: any) => void }>;
-  let config: any;
-  let terugroep: (error: any, result: any) => void;
+  let modalService: jasmine.SpyObj<NgbModal>;
+  let kiezer: { componentInstance: any, result: Promise<any>, dismiss: jasmine.Spy };
+  let sluit: (waarde: any) => void;
+  let annuleer: (reden: any) => void;
+  let opgeladen: jasmine.Spy;
 
-  function maak(opties: { publicId?: string; prefix?: string } = {}) {
+  function maak(opties: { publicId?: string; prefix?: string; zoekterm?: string } = {}) {
     fixture = TestBed.createComponent(ImageUploadComponent);
     component = fixture.componentInstance;
     if (opties.publicId) component.publicId = opties.publicId;
     if (opties.prefix) component.tempPublicId_prefix = opties.prefix;
+    if (opties.zoekterm) component.searchTerm = opties.zoekterm;
+    opgeladen = jasmine.createSpy('imageUploaded');
+    component.imageUploaded.subscribe(opgeladen);
     fixture.detectChanges();
+  }
+  function klikKnop() {
+    const knop: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+    expect(knop.textContent).toContain('Kies afbeelding');
+    knop.click();
   }
 
   beforeEach(async () => {
-    widget = jasmine.createSpyObj('widget', ['open', 'close']);
-    cloudinary = jasmine.createSpyObj<CloudinaryService>('CloudinaryService', ['createUploadWidget', 'generateRandomPublicId', 'getSignature']);
+    cloudinary = jasmine.createSpyObj<CloudinaryService>('CloudinaryService', ['generateRandomPublicId']);
     cloudinary.generateRandomPublicId.and.returnValue('ria-4242_temp');
-    cloudinary.createUploadWidget.and.callFake((data, cb) => { config = data; terugroep = cb; return of(widget); });
-    notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['showNotification']);
+    modalService = jasmine.createSpyObj<NgbModal>('NgbModal', ['open']);
+    modalService.open.and.callFake(() => {
+      kiezer = {
+        componentInstance: {},
+        result: new Promise((ok, nok) => { sluit = ok; annuleer = nok; }),
+        dismiss: jasmine.createSpy('dismiss')
+      };
+      return kiezer as unknown as NgbModalRef;
+    });
     await TestBed.configureTestingModule({
       declarations: [ImageUploadComponent],
       providers: [
         { provide: CloudinaryService, useValue: cloudinary },
-        { provide: NotificationService, useValue: notifications }
+        { provide: NgbModal, useValue: modalService }
       ]
     }).compileComponents();
   });
 
-  it('zet de widget op: Nederlands, één afbeelding, bronnen lokaal, zoeken en url', () => {
-    maak();
-    expect(config.language).toBe('nl');
-    expect(config.multiple).toBeFalse();
-    expect(config.resourceType).toBe('image');
-    expect(config.sources).toEqual(['local', 'image_search', 'url']);
-    expect(config.defaultSource).toBe('image_search');
-    expect(config.cloud_name).toBe(environment.cloudinary.cloud_name);
-    expect(config.uploadPreset).toBe(environment.cloudinary.uploadPreset);
-    expect(config.googleApiKey).toBe(environment.googleApi.googleApiKey);
-    expect(config.secure).toBeTrue();
-  });
-
-  it('ondertekent uploads via de API (getSignature van de service)', () => {
-    maak();
-    const callback = jasmine.createSpy();
-    config.uploadSignature(callback, { timestamp: 1 });
-    expect(cloudinary.getSignature).toHaveBeenCalledWith(callback, { timestamp: 1 });
-    expect(cloudinary.getSignature.calls.mostRecent().object).toBe(cloudinary);
-  });
-
-  it('zonder publicId: tijdelijke naam met prefix en de _temp-postfix', () => {
-    maak({ prefix: 'ria' });
+  it('opent de kiezer als grote popup met de tijdelijke naam en de titel als zoekterm', () => {
+    maak({ prefix: 'ria', zoekterm: 'Rode fiets' });
+    klikKnop();
+    expect(modalService.open).toHaveBeenCalledWith(ImagePickerComponent, { size: 'lg', scrollable: true, ariaLabelledBy: 'kiezer-titel' });
     expect(cloudinary.generateRandomPublicId).toHaveBeenCalledWith('ria', environment.cloudinary.temporaryImagePostfix);
-    expect(config.publicId).toBe('ria-4242_temp');
+    expect(kiezer.componentInstance.publicId).toBe('ria-4242_temp');
+    expect(kiezer.componentInstance.searchTerm).toBe('Rode fiets');
   });
 
   it('met publicId: die naam, geen tijdelijke', () => {
     maak({ publicId: 'wish_images/w1' });
-    expect(config.publicId).toBe('wish_images/w1');
+    klikKnop();
+    expect(kiezer.componentInstance.publicId).toBe('wish_images/w1');
     expect(cloudinary.generateRandomPublicId).not.toHaveBeenCalled();
   });
 
-  it('de knop "Kies afbeelding" opent de widget', () => {
-    maak();
-    const knop: HTMLButtonElement = fixture.nativeElement.querySelector('button');
-    expect(knop.textContent).toContain('Kies afbeelding');
-    knop.click();
-    expect(widget.open).toHaveBeenCalled();
+  it('de titel op het moment van openen telt, niet die bij het aanmaken', () => {
+    maak({ zoekterm: 'fiets' });
+    component.searchTerm = 'step';
+    klikKnop();
+    expect(kiezer.componentInstance.searchTerm).toBe('step');
   });
 
-  it('geslaagde upload: geeft publicId en versie door en sluit de widget stil', () => {
+  it('kiezer sluit met een afbeelding: eerst de voorvertoning, dan de afbeelding', fakeAsync(() => {
     maak();
-    const opgeladen = jasmine.createSpy('imageUploaded');
-    component.imageUploaded.subscribe(opgeladen);
-    terugroep(null, { event: 'success', info: { public_id: 'ria-4242_temp', version: 1700000000 } });
-    expect(opgeladen).toHaveBeenCalledWith({ publicId: 'ria-4242_temp', version: 1700000000 });
-    expect(widget.close).toHaveBeenCalledWith({ quiet: true });
-  });
+    const volgorde: string[] = [];
+    component.previewChanged.subscribe(v => volgorde.push('voorvertoning ' + v));
+    component.imageUploaded.subscribe(a => volgorde.push('afbeelding ' + a.publicId));
+    klikKnop();
+    sluit({ afbeelding: { publicId: 'ria-4242_temp', version: '5' }, voorvertoning: 'data:image/jpeg;base64,AAA' });
+    tick();
+    expect(opgeladen).toHaveBeenCalledWith({ publicId: 'ria-4242_temp', version: '5' });
+    expect(volgorde).toEqual(['voorvertoning data:image/jpeg;base64,AAA', 'afbeelding ria-4242_temp']);
+  }));
 
-  it('andere gebeurtenissen van de widget (openen, wachtrij, ...): niets', () => {
+  it('kiezer geannuleerd: niets doorgegeven, en bij het sluiten van de wens-popup niets meer te sluiten', fakeAsync(() => {
     maak();
-    const opgeladen = jasmine.createSpy('imageUploaded');
-    component.imageUploaded.subscribe(opgeladen);
-    terugroep(null, { event: 'queues-start', info: {} });
-    terugroep(null, null);
+    klikKnop();
+    annuleer('Cancel');
+    tick();
     expect(opgeladen).not.toHaveBeenCalled();
-    expect(widget.close).not.toHaveBeenCalled();
+    fixture.destroy();
+    expect(kiezer.dismiss).not.toHaveBeenCalled();
+  }));
+
+  it('de wens-popup sluit terwijl de kiezer open is: de kiezer sluit mee (sc-1391)', () => {
+    maak();
+    klikKnop();
+    fixture.destroy();
+    expect(kiezer.dismiss).toHaveBeenCalledWith('Wens-popup gesloten');
   });
 
-  it('fout: widget dicht, melding voor de gebruiker, geen afbeelding doorgegeven', () => {
-    spyOn(console, 'error');
+  it('zonder geopende kiezer: sluiten van de wens-popup gaat gewoon', () => {
     maak();
-    const opgeladen = jasmine.createSpy('imageUploaded');
-    component.imageUploaded.subscribe(opgeladen);
-    terugroep({ status: 'Upload mislukt' }, null);
-    expect(widget.close).toHaveBeenCalledWith({ quiet: true });
-    expect(notifications.showNotification).toHaveBeenCalledWith(
-      'De afbeelding kon niet opgeladen worden, probeer het opnieuw.', 'error', 'Afbeelding niet opgeladen');
-    expect(opgeladen).not.toHaveBeenCalled();
+    expect(() => fixture.destroy()).not.toThrow();
   });
 });

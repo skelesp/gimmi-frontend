@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { deleteAccount, smokePassword } from './helpers/api';
-import { Account, login, newUserPage, register, wishCard } from './helpers/flows';
+import { Account, login, newUserPage, register, submitLogin, wishCard } from './helpers/flows';
 
 // Smoketests voor de zes kernflows. De tests bouwen op elkaar (de wens die in
 // test 3 wordt aangemaakt, wordt in test 4 gereserveerd), dus ze draaien serieel
@@ -41,6 +41,18 @@ test.describe('kernflows', () => {
     const { context, page } = await newUserPage(browser);
     await login(page, owner);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(`${owner.firstName} ${owner.lastName}`);
+    await context.close();
+  });
+
+  test('2b. inloggen na een fout wachtwoord', async ({ browser }) => {
+    // Een mislukte poging mag de terugkeer-URL niet op het loginscherm zetten; anders bleef je
+    // na de geslaagde tweede poging op /users/login staan.
+    const { context, page } = await newUserPage(browser);
+    await page.goto('/users/login');
+    await submitLogin(page, { ...owner, password: `${owner.password}-fout` });
+    await expect(page.getByText('De combinatie emailadres / wachtwoord is niet correct.')).toBeVisible();
+    await submitLogin(page, owner);
+    await expect(page).toHaveURL(`/people/${owner.id}`);
     await context.close();
   });
 
