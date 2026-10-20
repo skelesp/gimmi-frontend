@@ -1,21 +1,7 @@
-.kiezer .nav-link {
-    padding: .25rem .6rem;
-    font-size: .875rem;
-    background: none;
-    border-top-left-radius: .25rem;
-    border-top-right-radius: .25rem;
-}
-.kiezer .nav-link:not(.active) {
-    border-color: transparent;
-    color: #dc3545;
-}
-
 .raster {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-    gap: .4rem;
-    max-height: 320px;
-    overflow-y: auto;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: .5rem;
 }
 
 .resultaat {
@@ -25,7 +11,7 @@
     border: 2px solid transparent;
     border-radius: .25rem;
     overflow: hidden;
-    background: #f1f1f1;
+    background: #fff;
     cursor: pointer;
 }
 .resultaat:hover:not(:disabled),
@@ -49,6 +35,6 @@
 }
 .resultaat .spinner-border {
     position: absolute;
-    top: calc(50% - .5rem);
-    left: calc(50% - .5rem);
+    top: calc(50% - 1rem);
+    left: calc(50% - 1rem);
 }
