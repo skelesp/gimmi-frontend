@@ -47,6 +47,21 @@ describe('ImageViewComponent', () => {
     expect(img().classList).toContain('beeld');
   });
 
+  it('tijdens het laden een vlak in 3:2 (klasse laden), daarna de eigen hoogte; een ander beeld laadt opnieuw', () => {
+    toon({ key: 'wishes/a.jpg', url: 'https://img-test.gimmi.be/wishes/a.jpg' });
+    expect(img().classList).toContain('laden');
+    img().dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    expect(img().classList).not.toContain('laden');
+    expect(img().classList).toContain('beeld');
+    expect(getComputedStyle(img()).aspectRatio).toBe('auto');
+
+    toon({ key: 'wishes/a.jpg', url: 'https://img-test.gimmi.be/wishes/a.jpg' });
+    expect(img().classList).not.toContain('laden');   // zelfde beeld: blijft geladen
+    toon({ key: 'wishes/b.jpg', url: 'https://img-test.gimmi.be/wishes/b.jpg' });
+    expect(img().classList).toContain('laden');
+  });
+
   it('nog niet gemigreerd Cloudinary-beeld: rechtstreeks van Cloudinary', () => {
     toon({ publicId: 'wish_images/w1', version: '3' });
     expect(img().getAttribute('src')).toMatch(/^https:\/\/res\.cloudinary\.com\/\w+\/image\/upload\/f_auto,c_limit,w_640\/v3\/wish_images\/w1$/);

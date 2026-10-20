@@ -1,7 +1,9 @@
-/* Vaste verhouding (die van de standaardafbeelding): de plaats ligt vast voor het beeld geladen is. */
+/* Volle breedte en de eigen hoogte van het beeld: zo blijft het raster van wenskaarten verspringen. */
 .beeld {
     width: 100%;
-    aspect-ratio: 3 / 2;
-    object-fit: contain;
     background-color: #f8f9fa;
+}
+/* Tot het beeld er is: een vlak in de verhouding van de standaardafbeelding, geen kaart zonder hoogte. */
+.laden {
+    aspect-ratio: 3 / 2;
 }

@@ -5,8 +5,9 @@ import { ImageService, STANDAARD_AFBEELDING } from '../../services/image.service
 /**
  * Toont de afbeelding van een wens (sc-2911): een gewone <img> met srcset, zodat de browser
  * een passende breedte haalt (Cloudflare Image Transformations voor R2, Cloudinary voor nog
- * niet gemigreerde beelden). Vaste verhouding 3:2 en een lichte achtergrond tijdens het laden,
- * zodat de kaarten niet verspringen (was sc-2632). Laadt het beeld niet, dan de standaardafbeelding.
+ * niet gemigreerde beelden). Het beeld houdt zijn eigen hoogte (het raster van wenskaarten verspringt
+ * bewust); alleen tijdens het laden staat er een lichtgrijs vlak in 3:2 (was sc-2632). Laadt het beeld
+ * niet, dan de standaardafbeelding.
  */
 @Component({
   selector: 'gimmi-image-view',
@@ -26,11 +27,15 @@ export class ImageViewComponent implements OnChanges {
 
   src: string = STANDAARD_AFBEELDING;
   srcset: string = null;
+  /** Pas true als het beeld getoond is; tot dan houdt `.laden` de plaats vrij. */
+  geladen = false;
 
   constructor(private imageService: ImageService) { }
 
   ngOnChanges(): void {
-    this.src = this.imageService.src(this.image, 640);
+    const src = this.imageService.src(this.image, 640);
+    if (src !== this.src) this.geladen = false;
+    this.src = src;
     this.srcset = this.imageService.srcset(this.image);
   }
 
