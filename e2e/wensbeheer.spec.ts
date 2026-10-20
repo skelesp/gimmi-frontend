@@ -19,6 +19,9 @@ const wensB = `Smoke kopie ${runId}`;
 // Een rode PNG van 16x16 voor de foto-upload (sc-3028).
 const rodePng = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAFklEQVR4nGO4Y+pKEmIY1TCqYfhqAABoxFYQwMZTpQAAAABJRU5ErkJggg==';
 
+// Een opgeslagen afbeelding komt uit R2, via Image Transformations op het beelddomein (sc-2911).
+const R2_BEELD = /\/cdn-cgi\/image\/[^/]+\/(dev\/)?wishes\/[0-9a-f-]{36}\.(jpg|png|gif|webp|avif)$/;
+
 function overEenWeek(): string {
   const d = new Date();
   d.setDate(d.getDate() + 7);
@@ -79,7 +82,7 @@ test.describe('wensbeheer en navigatie', () => {
     await expect(wens.locator('gimmi-image-view img')).toHaveAttribute('src', /^https:\/\/imgs\.search\.brave\.com\//);
     await wens.locator('button[type="submit"]').click();
     await expect(wens).toBeHidden();
-    await expect(wishCard(page, 'Smoke fiets').locator('img').first()).not.toHaveAttribute('src', /wish_images\/default/);
+    await expect(wishCard(page, 'Smoke fiets').locator('img').first()).toHaveAttribute('src', R2_BEELD);
     await context.close();
   });
 
@@ -100,7 +103,7 @@ test.describe('wensbeheer en navigatie', () => {
     await expect(wens.locator('gimmi-image-view img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
     await wens.locator('button[type="submit"]').click();
     await expect(wens).toBeHidden();
-    await expect(wishCard(page, 'Smoke foto').locator('img').first()).not.toHaveAttribute('src', /wish_images\/default/);
+    await expect(wishCard(page, 'Smoke foto').locator('img').first()).toHaveAttribute('src', R2_BEELD);
     await context.close();
   });
 

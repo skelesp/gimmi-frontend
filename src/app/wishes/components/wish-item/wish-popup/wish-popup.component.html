@@ -35,7 +35,6 @@
                 </div>
                 <div class="form-group mt-2">
                     <gimmi-image-upload 
-                        [tempPublicId_prefix]="currentUser.id"
                         [searchTerm]="wishForm.get('title').value"
                         (previewChanged)="imagePreview = $event"
                         (imageUploaded)="updateWishImage($event)"
@@ -47,6 +46,7 @@
                     <gimmi-image-view
                         class="img-fluid rounded float-right"
                         [image]="wishForm.get('image').value"
+                        sizes="200px"
                         [preview]="imagePreview"
                     ></gimmi-image-view>
                 </div>

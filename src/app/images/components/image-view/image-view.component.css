@@ -1,0 +1,7 @@
+/* Vaste verhouding (die van de standaardafbeelding): de plaats ligt vast voor het beeld geladen is. */
+.beeld {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: contain;
+    background-color: #f8f9fa;
+}

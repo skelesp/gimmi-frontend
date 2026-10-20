@@ -1,8 +1,6 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
-import { environment } from 'src/environments/environment';
-import { CloudinaryService } from '../../services/cloudinary.service';
 import { ImagePickerComponent } from '../image-picker/image-picker.component';
 import { ImageUploadComponent } from './image-upload.component';
 
@@ -10,18 +8,15 @@ import { ImageUploadComponent } from './image-upload.component';
 describe('ImageUploadComponent', () => {
   let fixture: ComponentFixture<ImageUploadComponent>;
   let component: ImageUploadComponent;
-  let cloudinary: jasmine.SpyObj<CloudinaryService>;
   let modalService: jasmine.SpyObj<NgbModal>;
   let kiezer: { componentInstance: any, result: Promise<any>, dismiss: jasmine.Spy };
   let sluit: (waarde: any) => void;
   let annuleer: (reden: any) => void;
   let opgeladen: jasmine.Spy;
 
-  function maak(opties: { publicId?: string; prefix?: string; zoekterm?: string } = {}) {
+  function maak(opties: { zoekterm?: string } = {}) {
     fixture = TestBed.createComponent(ImageUploadComponent);
     component = fixture.componentInstance;
-    if (opties.publicId) component.publicId = opties.publicId;
-    if (opties.prefix) component.tempPublicId_prefix = opties.prefix;
     if (opties.zoekterm) component.searchTerm = opties.zoekterm;
     opgeladen = jasmine.createSpy('imageUploaded');
     component.imageUploaded.subscribe(opgeladen);
@@ -34,8 +29,6 @@ describe('ImageUploadComponent', () => {
   }
 
   beforeEach(async () => {
-    cloudinary = jasmine.createSpyObj<CloudinaryService>('CloudinaryService', ['generateRandomPublicId']);
-    cloudinary.generateRandomPublicId.and.returnValue('ria-4242_temp');
     modalService = jasmine.createSpyObj<NgbModal>('NgbModal', ['open']);
     modalService.open.and.callFake(() => {
       kiezer = {
@@ -48,26 +41,16 @@ describe('ImageUploadComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ImageUploadComponent],
       providers: [
-        { provide: CloudinaryService, useValue: cloudinary },
         { provide: NgbModal, useValue: modalService }
       ]
     }).compileComponents();
   });
 
-  it('opent de kiezer als grote popup met de tijdelijke naam en de titel als zoekterm', () => {
-    maak({ prefix: 'ria', zoekterm: 'Rode fiets' });
+  it('opent de kiezer als grote popup met de titel als zoekterm', () => {
+    maak({ zoekterm: 'Rode fiets' });
     klikKnop();
     expect(modalService.open).toHaveBeenCalledWith(ImagePickerComponent, { size: 'lg', scrollable: true, ariaLabelledBy: 'kiezer-titel' });
-    expect(cloudinary.generateRandomPublicId).toHaveBeenCalledWith('ria', environment.cloudinary.temporaryImagePostfix);
-    expect(kiezer.componentInstance.publicId).toBe('ria-4242_temp');
     expect(kiezer.componentInstance.searchTerm).toBe('Rode fiets');
-  });
-
-  it('met publicId: die naam, geen tijdelijke', () => {
-    maak({ publicId: 'wish_images/w1' });
-    klikKnop();
-    expect(kiezer.componentInstance.publicId).toBe('wish_images/w1');
-    expect(cloudinary.generateRandomPublicId).not.toHaveBeenCalled();
   });
 
   it('de titel op het moment van openen telt, niet die bij het aanmaken', () => {
@@ -81,12 +64,12 @@ describe('ImageUploadComponent', () => {
     maak();
     const volgorde: string[] = [];
     component.previewChanged.subscribe(v => volgorde.push('voorvertoning ' + v));
-    component.imageUploaded.subscribe(a => volgorde.push('afbeelding ' + a.publicId));
+    component.imageUploaded.subscribe(a => volgorde.push('afbeelding ' + a.key));
     klikKnop();
-    sluit({ afbeelding: { publicId: 'ria-4242_temp', version: '5' }, voorvertoning: 'data:image/jpeg;base64,AAA' });
+    sluit({ afbeelding: { key: 'wishes/a.jpg', url: 'u' }, voorvertoning: 'data:image/jpeg;base64,AAA' });
     tick();
-    expect(opgeladen).toHaveBeenCalledWith({ publicId: 'ria-4242_temp', version: '5' });
-    expect(volgorde).toEqual(['voorvertoning data:image/jpeg;base64,AAA', 'afbeelding ria-4242_temp']);
+    expect(opgeladen).toHaveBeenCalledWith({ key: 'wishes/a.jpg', url: 'u' });
+    expect(volgorde).toEqual(['voorvertoning data:image/jpeg;base64,AAA', 'afbeelding wishes/a.jpg']);
   }));
 
   it('kiezer geannuleerd: niets doorgegeven, en bij het sluiten van de wens-popup niets meer te sluiten', fakeAsync(() => {

@@ -5,7 +5,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { BehaviorSubject } from 'rxjs';
 
-import { CloudinaryService } from 'src/app/images/services/cloudinary.service';
+import { ImageService } from 'src/app/images/services/image.service';
 import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { CommunicationService } from 'src/app/shared/services/communication.service';
@@ -61,7 +61,7 @@ describe('WishPageComponent', () => {
         { provide: NgbModal, useValue: jasmine.createSpyObj('NgbModal', ['open']) },
         { provide: NotificationService, useValue: {} },
         { provide: UserService, useValue: {} },
-        { provide: CloudinaryService, useValue: {} },
+        { provide: ImageService, useValue: {} },
         { provide: PeopleService, useValue: {} },
         { provide: CommunicationService, useValue: {} },
         { provide: ActivatedRoute, useValue: {} }

@@ -7,8 +7,18 @@ import { environment } from 'src/environments/environment';
 import { Person } from 'src/app/people/models/person.model';
 import { IPersonNameResponse, IPersonSearchResponse, PeopleService } from 'src/app/people/service/people.service';
 import { UserService } from 'src/app/users/service/user.service';
-import { IClosure, IGiftFeedback, IReservation, Wish } from '../models/wish.model';
-import { CloudinaryService } from 'src/app/images/services/cloudinary.service';
+import { IClosure, IGiftFeedback, IReservation, IWishImage, Wish } from '../models/wish.model';
+
+/**
+ * Afbeeldingsveld zoals de API het geeft en verwacht: R2 {key, url} (sc-3052), of een
+ * nog niet gemigreerd Cloudinary-beeld {public_id, version} (tot sc-3065).
+ */
+interface IWishImageApi {
+  key?: string;
+  url?: string;
+  public_id?: string;
+  version?: number;
+}
 
 interface IWishlistResponse {
   _id: {
@@ -22,10 +32,7 @@ interface IWishResponse {
   _id: string;
   receiver: string;
   title: string;
-  image: {
-    version: number;
-    public_id: string;
-  };
+  image?: IWishImageApi;
   price?: number;
   url?: string;
   createdBy: {
@@ -54,10 +61,7 @@ interface IWishResponseWithFullCreatedBy {
   receiver: string;
   _id: string;
   title: string;
-  image: {
-    version: number;
-    public_id: string;
-  };
+  image?: IWishImageApi;
   price?: number;
   url?: string;
   createdBy: IPersonNameResponse;
@@ -120,10 +124,7 @@ interface IWishRequest {
   id: string;
   title: string;
   price: number;
-  image?: {
-    public_id: string; 
-    version: number
-  };
+  image?: IWishImageApi;
   reservation: IReservation;
   giftFeedback: IGiftFeedback;
   closure: IClosure;
@@ -148,10 +149,7 @@ interface IWishCreateRequest {
   receiver: string;
   createdBy: string;
   amountWanted: number;
-  image?: {
-    public_id: string;
-    version: number;
-  };
+  image?: IWishImageApi;
   copyOf?: string;
 }
 
@@ -171,8 +169,7 @@ export class WishService {
   constructor(
     private http$ : HttpClient,
     private userService : UserService,
-    private peopleService : PeopleService,
-    private imageService: CloudinaryService
+    private peopleService : PeopleService
   ) { }
 
   public getWishlist(receiver: Person): Observable<Wish[]> { //https://stackoverflow.com/questions/65417031/rxjs-how-to-make-foreach-loop-wait-for-inner-observable
@@ -222,8 +219,8 @@ export class WishService {
       environment.apiUrl + 'wish/' + wish.id
     ).pipe(
       map(wishResponse => this.createBasicWishInstanceFromResponse(wishResponse, wish.receiver)),
-      tap(wish => this.deleteWishFromWishlist(wish) ),
-      tap(wish => this.imageService.deleteImage(wish.image).subscribe())
+      // De afbeelding ruimt de backend zelf op (sc-3052).
+      tap(wish => this.deleteWishFromWishlist(wish) )
     );
   }
 
@@ -249,10 +246,8 @@ export class WishService {
       amountWanted: newWish.amountWanted,
     }
 
-    if (newWish.image) wishCreatePayload.image = {
-      public_id: newWish.image.publicId,
-      version: +newWish.image.version
-    }
+    const image = imageVoorApi(newWish.image);
+    if (image) wishCreatePayload.image = image;
 
     if (newWish.copyOf) wishCreatePayload.copyOf = newWish.copyOf;
 
@@ -261,29 +256,22 @@ export class WishService {
       wishCreatePayload 
     ).pipe(
       switchMap(wishResponse => this.convertWishResponseToFullWishInstance(wishResponse, newWish.receiver)),
-      switchMap(wish => this.changeTemporaryImage(wish)),
-      tap(wish => this.addWishToWishlist(wish)),
-      switchMap(wish => this.update(wish))
+      tap(wish => this.addWishToWishlist(wish))
     )
   }
 
   public update ( wish : Wish ) : Observable<Wish>{
-    return this.changeTemporaryImage(wish).pipe(
-      map(wish => { 
-        return <IWishRequest>{
-          ...wish,
-          _id: wish.id,
-          receiver: wish.receiver,
-          // Conditionally add property to object literal: https://2ality.com/2017/04/conditional-literal-entries.html#conditionally-adding-properties-inside-object-literals
-          // Needed because image interface foor API (with "public_id") is different from webapp (with "publicId")
-          // If interfaces are aligned, image can correctly be copied by ...wish above, so this code becomes obsolete.
-          ...(wish.image?.publicId ? { image: { public_id: wish.image?.publicId, version: +wish.image?.version }} : {})
-        }
-      }),
-      switchMap(wishRequest => this.http$.put<IWishReservationResponse>(
-        environment.apiUrl + 'wish/' + wish.id,
-        wishRequest
-      )),
+    const wishRequest = <IWishRequest>{
+      ...wish,
+      _id: wish.id,
+      receiver: wish.receiver,
+      // De API kent een ander afbeeldingsveld dan de app (public_id tegenover publicId).
+      image: imageVoorApi(wish.image)
+    };
+    return this.http$.put<IWishReservationResponse>(
+      environment.apiUrl + 'wish/' + wish.id,
+      wishRequest
+    ).pipe(
       switchMap(updatedWish => this.convertWishReservationResponseToUpdatedWish(updatedWish, wish))
     );
   }
@@ -371,19 +359,6 @@ export class WishService {
     this._wishes$.next(filteredWishlist);
   }
 
-  private changeTemporaryImage (wish : Wish) : Observable<Wish>{
-    if (wish.image && this.imageService.isTemporaryImage(wish.image) ) {
-      return this.imageService.renameImage(wish.image.publicId, wish.id).pipe(
-        map(newImage => {
-          wish.image = newImage;
-          return wish;
-        })
-      )
-    } else {
-      return of(wish);
-    }
-  }
-  
   private convertWishReservationResponseToUpdatedWish (wishReservationResponse: IWishReservationResponse | IWishResponseWithFullCreatedBy, wish: Wish) : Observable<Wish>{
     return of(wishReservationResponse).pipe(
       // !! Dit is een nutteloze actie puur om ervoor te zorgen dat de wishResponse van deze call gelijk is aan deze van de getWishlist
@@ -511,7 +486,7 @@ export class WishService {
     );
     wish.createdAt = wishResponse.createdAt;
 
-    if (wishResponse.image?.public_id) wish.image = { publicId: wishResponse.image.public_id, version: wishResponse.image.version.toString() };
+    wish.image = imageUitApi(wishResponse.image);
 
     if (wishResponse.giftFeedback) wish.giftFeedback = {
       satisfaction: wishResponse.giftFeedback.satisfaction,
@@ -522,4 +497,17 @@ export class WishService {
     
     return wish;
   }
+}
+/** Afbeelding van de app naar de vorm van de API; undefined als er geen is. */
+export function imageVoorApi(image: IWishImage): IWishImageApi {
+  if (image?.key) return { key: image.key };
+  if (image?.publicId) return { public_id: image.publicId, version: +image.version };
+  return undefined;
+}
+
+/** Afbeelding uit de API naar de vorm van de app; undefined als er geen is. */
+export function imageUitApi(image: IWishImageApi): IWishImage {
+  if (image?.key && image?.url) return { key: image.key, url: image.url };
+  if (image?.public_id) return { publicId: image.public_id, version: String(image.version) };
+  return undefined;
 }

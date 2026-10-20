@@ -6,16 +6,16 @@ import { DeviceDetectorService } from 'ngx-device-detector';
 import { of, Subject, throwError } from 'rxjs';
 
 import { IWishImage } from 'src/app/wishes/models/wish.model';
-import { CloudinaryService } from '../../services/cloudinary.service';
+import { ImageService } from '../../services/image.service';
 import { IImageSearchResult, ImageSearchService } from '../../services/image-search.service';
 import { boodschapVoor, ImagePickerComponent, MAX_BESTAND_BYTES } from './image-picker.component';
 
 // De eigen afbeeldingskiezer als popup (sc-3028): zoeken via Brave, foto/bestand opladen via
-// de backend. Vervangt de Cloudinary-widget; netwerk, toestel en popup worden nagebootst.
+// de backend naar R2 (sc-2911). Vervangt de Cloudinary-widget; netwerk, toestel en popup worden nagebootst.
 describe('ImagePickerComponent', () => {
   let fixture: ComponentFixture<ImagePickerComponent>;
   let component: ImagePickerComponent;
-  let cloudinary: jasmine.SpyObj<CloudinaryService>;
+  let beelden: jasmine.SpyObj<ImageService>;
   let zoekService: jasmine.SpyObj<ImageSearchService>;
   let toestel: jasmine.SpyObj<DeviceDetectorService>;
   let modal: jasmine.SpyObj<NgbActiveModal>;
@@ -30,7 +30,6 @@ describe('ImagePickerComponent', () => {
   function maak(opties: { zoekterm?: string } = {}) {
     fixture = TestBed.createComponent(ImagePickerComponent);
     component = fixture.componentInstance;
-    component.publicId = 'ria-4242_temp';
     if (opties.zoekterm !== undefined) component.searchTerm = opties.zoekterm;
     fixture.detectChanges();
   }
@@ -45,7 +44,7 @@ describe('ImagePickerComponent', () => {
   }
 
   beforeEach(async () => {
-    cloudinary = jasmine.createSpyObj<CloudinaryService>('CloudinaryService', ['uploadImage']);
+    beelden = jasmine.createSpyObj<ImageService>('ImageService', ['uploadImage']);
     zoekService = jasmine.createSpyObj<ImageSearchService>('ImageSearchService', ['search']);
     zoekService.search.and.returnValue(of([resultaat(1), resultaat(2)]));
     toestel = jasmine.createSpyObj<DeviceDetectorService>('DeviceDetectorService', ['isMobile', 'isTablet']);
@@ -56,7 +55,7 @@ describe('ImagePickerComponent', () => {
       declarations: [ImagePickerComponent],
       imports: [FormsModule, NgbNavModule, NgbAlertModule],
       providers: [
-        { provide: CloudinaryService, useValue: cloudinary },
+        { provide: ImageService, useValue: beelden },
         { provide: ImageSearchService, useValue: zoekService },
         { provide: DeviceDetectorService, useValue: toestel },
         { provide: NgbActiveModal, useValue: modal }
@@ -159,17 +158,17 @@ describe('ImagePickerComponent', () => {
   });
 
   describe('een zoekresultaat kiezen', () => {
-    it('laadt de URL op onder de meegegeven naam en sluit met de afbeelding en de thumbnail als voorvertoning', () => {
-      const nieuw: IWishImage = { publicId: 'ria-4242_temp', version: '7' };
-      cloudinary.uploadImage.and.returnValue(of(nieuw));
+    it('laadt de URL op en sluit met de afbeelding en de thumbnail als voorvertoning', () => {
+      const nieuw: IWishImage = { key: 'wishes/a.jpg', url: 'https://img-test.gimmi.be/wishes/a.jpg' };
+      beelden.uploadImage.and.returnValue(of(nieuw));
       maak({ zoekterm: 'fiets' });
       alle('.resultaat')[1].click();
-      expect(cloudinary.uploadImage).toHaveBeenCalledWith('https://winkel.be/2.jpg', 'ria-4242_temp');
+      expect(beelden.uploadImage).toHaveBeenCalledWith('https://winkel.be/2.jpg');
       expect(modal.close).toHaveBeenCalledWith({ afbeelding: nieuw, voorvertoning: 'https://imgs.search.brave.com/2' });
     });
 
     it('tijdens het opladen: wieltje op het gekozen resultaat, de andere staan uit', () => {
-      cloudinary.uploadImage.and.returnValue(new Subject<IWishImage>());
+      beelden.uploadImage.and.returnValue(new Subject<IWishImage>());
       maak({ zoekterm: 'fiets' });
       alle('.resultaat')[0].click();
       fixture.detectChanges();
@@ -178,11 +177,11 @@ describe('ImagePickerComponent', () => {
       expect(eerste.querySelector('.spinner-border')).not.toBeNull();
       expect(tweede.disabled).toBeTrue();
       component.kies(resultaat(2));
-      expect(cloudinary.uploadImage).toHaveBeenCalledTimes(1);
+      expect(beelden.uploadImage).toHaveBeenCalledTimes(1);
     });
 
     it('de bronsite weigert (sc-2960): melding, resultaat uitgegrijsd, een ander kiezen kan', () => {
-      cloudinary.uploadImage.and.returnValues(throwError(fout(422, 'bron-weigert')), of({ publicId: 'p', version: '2' }));
+      beelden.uploadImage.and.returnValues(throwError(fout(422, 'bron-weigert')), of({ key: 'wishes/p.jpg', url: 'u' }));
       maak({ zoekterm: 'fiets' });
       alle('.resultaat')[0].click();
       fixture.detectChanges();
@@ -193,22 +192,22 @@ describe('ImagePickerComponent', () => {
       expect(modal.close).not.toHaveBeenCalled();
 
       tweede.click();
-      expect(modal.close).toHaveBeenCalledWith({ afbeelding: { publicId: 'p', version: '2' }, voorvertoning: 'https://imgs.search.brave.com/2' });
+      expect(modal.close).toHaveBeenCalledWith({ afbeelding: { key: 'wishes/p.jpg', url: 'u' }, voorvertoning: 'https://imgs.search.brave.com/2' });
     });
 
     it('een mislukt resultaat opnieuw kiezen doet niets', () => {
-      cloudinary.uploadImage.and.returnValue(throwError(fout(422, 'niet-gevonden')));
+      beelden.uploadImage.and.returnValue(throwError(fout(422, 'niet-gevonden')));
       maak({ zoekterm: 'fiets' });
       component.kies(resultaat(1));
       component.kies(resultaat(1));
-      expect(cloudinary.uploadImage).toHaveBeenCalledTimes(1);
+      expect(beelden.uploadImage).toHaveBeenCalledTimes(1);
     });
 
     it('popup weg tijdens zoeken en opladen: alles wordt afgebroken (sc-1391)', () => {
       const zoeken = new Subject<IImageSearchResult[]>();
       const upload = new Subject<IWishImage>();
       zoekService.search.and.returnValue(zoeken);
-      cloudinary.uploadImage.and.returnValue(upload);
+      beelden.uploadImage.and.returnValue(upload);
       maak({ zoekterm: 'fiets' });
       component.kies(resultaat(1));
       fixture.destroy();
@@ -256,17 +255,16 @@ describe('ImagePickerComponent', () => {
     });
 
     it('verkleint het bestand, laadt de JPEG op als data-URI en sluit met de afbeelding en die data-URI als voorvertoning', async () => {
-      cloudinary.uploadImage.and.returnValue(of({ publicId: 'ria-4242_temp', version: '3' }));
+      beelden.uploadImage.and.returnValue(of({ key: 'wishes/f.jpg', url: 'u' }));
       openBestandTab();
       await kiesBestand(await pngBestand());
-      const [image, publicId] = cloudinary.uploadImage.calls.mostRecent().args;
+      const [image] = beelden.uploadImage.calls.mostRecent().args;
       expect(image.startsWith('data:image/jpeg;base64,')).toBeTrue();
-      expect(publicId).toBe('ria-4242_temp');
-      expect(modal.close).toHaveBeenCalledWith({ afbeelding: { publicId: 'ria-4242_temp', version: '3' }, voorvertoning: image });
+      expect(modal.close).toHaveBeenCalledWith({ afbeelding: { key: 'wishes/f.jpg', url: 'u' }, voorvertoning: image });
     });
 
     it('tijdens het opladen: "Bezig met opladen…"', async () => {
-      cloudinary.uploadImage.and.returnValue(new Subject<IWishImage>());
+      beelden.uploadImage.and.returnValue(new Subject<IWishImage>());
       openBestandTab();
       await kiesBestand(await pngBestand());
       fixture.detectChanges();
@@ -274,7 +272,7 @@ describe('ImagePickerComponent', () => {
     });
 
     it('opladen faalt: melding, popup blijft open', async () => {
-      cloudinary.uploadImage.and.returnValue(throwError(fout(413)));
+      beelden.uploadImage.and.returnValue(throwError(fout(413)));
       openBestandTab();
       await kiesBestand(await pngBestand());
       fixture.detectChanges();
@@ -288,7 +286,7 @@ describe('ImagePickerComponent', () => {
       await kiesBestand(new File(['%PDF'], 'x.pdf', { type: 'application/pdf' }));
       fixture.detectChanges();
       expect(el('ngb-alert').textContent).toContain('Dit bestand is geen bruikbare afbeelding.');
-      expect(cloudinary.uploadImage).not.toHaveBeenCalled();
+      expect(beelden.uploadImage).not.toHaveBeenCalled();
     });
 
     it('groter dan 30 MB: melding, niets opgeladen', async () => {
@@ -297,7 +295,7 @@ describe('ImagePickerComponent', () => {
       Object.defineProperty(groot, 'size', { value: MAX_BESTAND_BYTES + 1 });
       await kiesBestand(groot);
       expect(component.uploadFout).toContain('te groot');
-      expect(cloudinary.uploadImage).not.toHaveBeenCalled();
+      expect(beelden.uploadImage).not.toHaveBeenCalled();
     });
 
     it('onleesbare afbeelding: melding, niets opgeladen', async () => {
@@ -305,7 +303,7 @@ describe('ImagePickerComponent', () => {
       await kiesBestand(new File(['kapot'], 'kapot.jpg', { type: 'image/jpeg' }));
       expect(component.uploadFout).toContain('kunnen we niet lezen');
       expect(component.bezigMet).toBeNull();
-      expect(cloudinary.uploadImage).not.toHaveBeenCalled();
+      expect(beelden.uploadImage).not.toHaveBeenCalled();
     });
 
     it('geen bestand gekozen (dialoog geannuleerd): niets', async () => {
@@ -313,7 +311,7 @@ describe('ImagePickerComponent', () => {
       const input = el('input[data-testid=bestand-kiezen]') as HTMLInputElement;
       await component.bestandGekozen({ target: input } as unknown as Event);
       expect(component.uploadFout).toBeNull();
-      expect(cloudinary.uploadImage).not.toHaveBeenCalled();
+      expect(beelden.uploadImage).not.toHaveBeenCalled();
     });
 
     it('popup gesloten tijdens het verkleinen: er wordt niets meer opgeladen', async () => {
@@ -321,7 +319,7 @@ describe('ImagePickerComponent', () => {
       const bezig = kiesBestand(await pngBestand());
       fixture.destroy();
       await bezig;
-      expect(cloudinary.uploadImage).not.toHaveBeenCalled();
+      expect(beelden.uploadImage).not.toHaveBeenCalled();
     });
 
     it('wisselen van tab wist een oude foutmelding', async () => {
