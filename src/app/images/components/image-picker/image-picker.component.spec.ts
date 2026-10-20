@@ -159,13 +159,13 @@ describe('ImagePickerComponent', () => {
   });
 
   describe('een zoekresultaat kiezen', () => {
-    it('laadt de URL op onder de meegegeven naam en sluit de popup met de afbeelding', () => {
+    it('laadt de URL op onder de meegegeven naam en sluit met de afbeelding en de thumbnail als voorvertoning', () => {
       const nieuw: IWishImage = { publicId: 'ria-4242_temp', version: '7' };
       cloudinary.uploadImage.and.returnValue(of(nieuw));
       maak({ zoekterm: 'fiets' });
       alle('.resultaat')[1].click();
       expect(cloudinary.uploadImage).toHaveBeenCalledWith('https://winkel.be/2.jpg', 'ria-4242_temp');
-      expect(modal.close).toHaveBeenCalledWith(nieuw);
+      expect(modal.close).toHaveBeenCalledWith({ afbeelding: nieuw, voorvertoning: 'https://imgs.search.brave.com/2' });
     });
 
     it('tijdens het opladen: wieltje op het gekozen resultaat, de andere staan uit', () => {
@@ -193,7 +193,7 @@ describe('ImagePickerComponent', () => {
       expect(modal.close).not.toHaveBeenCalled();
 
       tweede.click();
-      expect(modal.close).toHaveBeenCalledWith({ publicId: 'p', version: '2' });
+      expect(modal.close).toHaveBeenCalledWith({ afbeelding: { publicId: 'p', version: '2' }, voorvertoning: 'https://imgs.search.brave.com/2' });
     });
 
     it('een mislukt resultaat opnieuw kiezen doet niets', () => {
@@ -255,14 +255,14 @@ describe('ImagePickerComponent', () => {
       expect(el('input[capture]').getAttribute('capture')).toBe('environment');
     });
 
-    it('verkleint het bestand, laadt de JPEG op als data-URI en sluit met de afbeelding', async () => {
+    it('verkleint het bestand, laadt de JPEG op als data-URI en sluit met de afbeelding en die data-URI als voorvertoning', async () => {
       cloudinary.uploadImage.and.returnValue(of({ publicId: 'ria-4242_temp', version: '3' }));
       openBestandTab();
       await kiesBestand(await pngBestand());
       const [image, publicId] = cloudinary.uploadImage.calls.mostRecent().args;
       expect(image.startsWith('data:image/jpeg;base64,')).toBeTrue();
       expect(publicId).toBe('ria-4242_temp');
-      expect(modal.close).toHaveBeenCalledWith({ publicId: 'ria-4242_temp', version: '3' });
+      expect(modal.close).toHaveBeenCalledWith({ afbeelding: { publicId: 'ria-4242_temp', version: '3' }, voorvertoning: image });
     });
 
     it('tijdens het opladen: "Bezig met opladen…"', async () => {
