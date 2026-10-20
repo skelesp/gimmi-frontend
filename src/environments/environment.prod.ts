@@ -4,9 +4,9 @@ export const environment = {
   apiUrl: 'https://api.gimmi.be/api/',
   rootSiteUrl: 'https://www.gimmi.be',
   cloudinary: {
-    cloud_name: 'hunk4smqo',
+    // De cloud van de productie-backend (add-on van Heroku-app gimmi); test gebruikt hunk4smqo.
+    cloud_name: 'hxibcyhbq',
     uploadPreset: 'wish_images',
-    apiKey: "645975382923815",
     defaultImage: {
       publicId: "wish_images/default",
       version: "1556702046"

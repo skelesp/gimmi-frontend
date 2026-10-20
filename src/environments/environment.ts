@@ -10,7 +10,6 @@ export const environment = {
   cloudinary: {
     cloud_name: 'hunk4smqo',
     uploadPreset: 'wish_images',
-    apiKey: "645975382923815",
     defaultImage: {
       publicId: "wish_images/default",
       version: "1556702046"
