@@ -55,11 +55,12 @@ test.describe('wensbeheer en navigatie', () => {
     const { context, page } = await newUserPage(browser);
     await login(page, owner);
     await page.getByText('Voeg wens toe').click();
-    const dialog = page.getByRole('dialog');
-    await dialog.locator('#wishTitle').fill('Smoke fiets');
-    await dialog.getByRole('button', { name: 'Kies afbeelding' }).click();
+    // Twee popups boven elkaar: de wens-popup en de kiezer.
+    const wens = page.locator('ngb-modal-window', { has: page.locator('#wishTitle') });
+    await wens.locator('#wishTitle').fill('Smoke fiets');
+    await wens.getByRole('button', { name: 'Kies afbeelding' }).click();
 
-    const kiezer = dialog.locator('#afbeeldingskiezer');
+    const kiezer = page.getByRole('dialog', { name: 'Kies een afbeelding' });
     await expect(kiezer.getByRole('searchbox')).toHaveValue('Smoke fiets');
     const resultaten = kiezer.locator('button.resultaat');
     await expect(resultaten.first()).toBeVisible({ timeout: 15_000 });
@@ -68,15 +69,15 @@ test.describe('wensbeheer en navigatie', () => {
     let gelukt = false;
     for (let i = 0; i < Math.min(await resultaten.count(), 6) && !gelukt; i++) {
       await resultaten.nth(i).click();
-      await expect(resultaten.nth(i).locator('.spinner-border')).toHaveCount(0, { timeout: 20_000 });
+      await expect.poll(async () => await kiezer.count() === 0 || await kiezer.getByRole('alert').isVisible(),
+        { timeout: 20_000 }).toBe(true);
       gelukt = await kiezer.count() === 0;
-      if (!gelukt) await expect(kiezer.getByRole('alert')).toBeVisible();
     }
     expect(gelukt, 'minstens één van de eerste zoekresultaten kan opgeladen worden').toBeTruthy();
 
-    await expect(dialog.locator('gimmi-image-view img')).not.toHaveAttribute('src', /wish_images\/default/);
-    await dialog.locator('button[type="submit"]').click();
-    await expect(dialog).toBeHidden();
+    await expect(wens.locator('gimmi-image-view img')).not.toHaveAttribute('src', /wish_images\/default/);
+    await wens.locator('button[type="submit"]').click();
+    await expect(wens).toBeHidden();
     await expect(wishCard(page, 'Smoke fiets').locator('img').first()).not.toHaveAttribute('src', /wish_images\/default/);
     await context.close();
   });
@@ -85,18 +86,39 @@ test.describe('wensbeheer en navigatie', () => {
     const { context, page } = await newUserPage(browser);
     await login(page, owner);
     await page.getByText('Voeg wens toe').click();
-    const dialog = page.getByRole('dialog');
-    await dialog.locator('#wishTitle').fill('Smoke foto');
-    await dialog.getByRole('button', { name: 'Kies afbeelding' }).click();
-    await dialog.getByRole('tab', { name: 'Foto / bestand' }).click();
-    await dialog.locator('input[data-testid="bestand-kiezen"]').setInputFiles({
+    const wens = page.locator('ngb-modal-window', { has: page.locator('#wishTitle') });
+    await wens.locator('#wishTitle').fill('Smoke foto');
+    await wens.getByRole('button', { name: 'Kies afbeelding' }).click();
+    const kiezer = page.getByRole('dialog', { name: 'Kies een afbeelding' });
+    await kiezer.getByRole('tab', { name: 'Foto / bestand' }).click();
+    await kiezer.locator('input[data-testid="bestand-kiezen"]').setInputFiles({
       name: 'foto.png', mimeType: 'image/png', buffer: Buffer.from(rodePng, 'base64')
     });
-    await expect(dialog.locator('#afbeeldingskiezer')).toHaveCount(0, { timeout: 20_000 });
-    await expect(dialog.locator('gimmi-image-view img')).not.toHaveAttribute('src', /wish_images\/default/);
-    await dialog.locator('button[type="submit"]').click();
-    await expect(dialog).toBeHidden();
+    await expect(kiezer).toHaveCount(0, { timeout: 20_000 });
+    await expect(wens.locator('gimmi-image-view img')).not.toHaveAttribute('src', /wish_images\/default/);
+    await wens.locator('button[type="submit"]').click();
+    await expect(wens).toBeHidden();
     await expect(wishCard(page, 'Smoke foto').locator('img').first()).not.toHaveAttribute('src', /wish_images\/default/);
+    await context.close();
+  });
+
+  test('de wens-popup sluiten sluit ook de kiezer (sc-1391)', async ({ browser }) => {
+    const { context, page } = await newUserPage(browser);
+    await login(page, owner);
+    await page.getByText('Voeg wens toe').click();
+    const wens = page.locator('ngb-modal-window', { has: page.locator('#wishTitle') });
+    await wens.getByRole('button', { name: 'Kies afbeelding' }).click();
+    const kiezer = page.getByRole('dialog', { name: 'Kies een afbeelding' });
+    await kiezer.getByRole('button', { name: 'Annuleer' }).click();
+    await expect(kiezer).toHaveCount(0);
+    await expect(wens).toBeVisible();
+    // Escape sluit de bovenste popup (de kiezer) en daarna de wens-popup.
+    await wens.getByRole('button', { name: 'Kies afbeelding' }).click();
+    await expect(kiezer).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(kiezer).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(wens).toHaveCount(0);
     await context.close();
   });
 

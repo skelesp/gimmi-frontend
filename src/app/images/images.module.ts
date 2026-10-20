@@ -1,18 +1,22 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NgbAlertModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { CloudinaryModule, CloudinaryConfiguration } from '@cloudinary/angular-5.x';
 import * as Cloudinary from "cloudinary-core";
 import { environment } from 'src/environments/environment';
+import { ImagePickerComponent } from './components/image-picker/image-picker.component';
 import { ImageUploadComponent } from './components/image-upload/image-upload.component';
 import { ImageViewComponent } from './components/image-view/image-view.component';
 
 @NgModule({
-  declarations: [ImageUploadComponent, ImageViewComponent],
+  declarations: [ImagePickerComponent, ImageUploadComponent, ImageViewComponent],
   imports: [
     CommonModule,
     FormsModule,
+    NgbAlertModule,
+    NgbNavModule,
     CloudinaryModule.forRoot(Cloudinary, {
       cloud_name: environment.cloudinary.cloud_name,
       upload_preset: environment.cloudinary.uploadPreset,
