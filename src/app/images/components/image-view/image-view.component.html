@@ -1,6 +1,6 @@
 <img *ngIf="preview; else opgeslagen" [src]="preview" [class]="class + ' beeld voorvertoning'" alt="Gekozen afbeelding" />
 <ng-template #opgeslagen>
     <img [src]="src" [attr.srcset]="srcset" [attr.sizes]="srcset ? sizes : null"
-         [class]="class + ' beeld'" alt="Afbeelding van de wens" loading="lazy" decoding="async"
-         (error)="nietGeladen()" />
+         [class]="class + ' beeld' + (geladen ? '' : ' laden')" alt="Afbeelding van de wens" loading="lazy" decoding="async"
+         (load)="geladen = true" (error)="nietGeladen()" />
 </ng-template>
