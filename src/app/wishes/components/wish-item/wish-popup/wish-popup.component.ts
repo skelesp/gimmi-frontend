@@ -21,6 +21,8 @@ export class WishPopupComponent implements OnInit, OnDestroy {
   saving: boolean = false;
   showWarningExistingCopy: boolean = false;
   currentUser: User;
+  /** Voorvertoning van een net gekozen afbeelding, tot de popup sluit (sc-3028). */
+  imagePreview: string = null;
 
   constructor(
     public activeModal : NgbActiveModal,

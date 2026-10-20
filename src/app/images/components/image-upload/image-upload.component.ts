@@ -3,7 +3,7 @@ import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { environment } from 'src/environments/environment';
 import { CloudinaryService } from '../../services/cloudinary.service';
-import { ImagePickerComponent } from '../image-picker/image-picker.component';
+import { IGekozenAfbeelding, ImagePickerComponent } from '../image-picker/image-picker.component';
 
 /**
  * Knop "Kies afbeelding": opent de afbeeldingskiezer als popup (sc-3028) en geeft de
@@ -22,6 +22,8 @@ export class ImageUploadComponent implements OnInit, OnDestroy {
   @Input() searchTerm: string = "";
 
   @Output() imageUploaded: EventEmitter<IWishImage> = new EventEmitter();
+  /** Komt vlak vóór imageUploaded: een URL of data-URI die de browser meteen kan tonen. */
+  @Output() previewChanged: EventEmitter<string> = new EventEmitter();
 
   private doelPublicId: string;
   private kiezer: NgbModalRef = null;
@@ -39,9 +41,10 @@ export class ImageUploadComponent implements OnInit, OnDestroy {
     this.kiezer.componentInstance.publicId = this.doelPublicId;
     this.kiezer.componentInstance.searchTerm = this.searchTerm;
     this.kiezer.result.then(
-      (afbeelding: IWishImage) => {
+      (gekozen: IGekozenAfbeelding) => {
         this.kiezer = null;
-        this.imageUploaded.emit(afbeelding);
+        this.previewChanged.emit(gekozen.voorvertoning);
+        this.imageUploaded.emit(gekozen.afbeelding);
       },
       () => { this.kiezer = null; }   // geannuleerd of weggeklikt
     );

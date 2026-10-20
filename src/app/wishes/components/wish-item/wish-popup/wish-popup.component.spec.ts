@@ -122,6 +122,15 @@ describe('WishPopupComponent', () => {
     expect(component.wishForm.get('image').value).toBe(nieuw);
   });
 
+  it('de voorvertoning van een net gekozen afbeelding gaat meteen naar de preview (sc-3028)', () => {
+    open('create');
+    expect(fixture.debugElement.query(el => el.name === 'gimmi-image-view').properties.preview).toBeNull();
+    fixture.debugElement.query(el => el.name === 'gimmi-image-upload').triggerEventHandler('previewChanged', 'data:image/jpeg;base64,AAA');
+    fixture.detectChanges();
+    expect(component.imagePreview).toBe('data:image/jpeg;base64,AAA');
+    expect(fixture.debugElement.query(el => el.name === 'gimmi-image-view').properties.preview).toBe('data:image/jpeg;base64,AAA');
+  });
+
   it('upload-widget krijgt de eigen gebruiker als prefix voor de tijdelijke naam', () => {
     open('create');
     expect(fixture.debugElement.query(el => el.name === 'gimmi-image-upload').nativeElement.tempPublicId_prefix).toBe('ria');

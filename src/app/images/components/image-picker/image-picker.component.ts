@@ -10,6 +10,16 @@ import { verkleinAfbeelding } from '../../utils/resize-image';
 
 export type KiezerTab = 'zoeken' | 'bestand';
 
+/**
+ * Resultaat van de kiezer: de opgeladen afbeelding, en een voorvertoning die de browser
+ * al heeft (thumbnail van het zoekresultaat of de verkleinde foto). Zo kan de wens-popup
+ * de nieuwe afbeelding meteen tonen, zonder te wachten tot Cloudinary ze levert.
+ */
+export interface IGekozenAfbeelding {
+  afbeelding: IWishImage;
+  voorvertoning: string;
+}
+
 /** Grootste bestand dat we nog proberen te verkleinen; een foto van een gsm is zelden groter. */
 export const MAX_BESTAND_BYTES = 30 * 1024 * 1024;
 
@@ -44,7 +54,7 @@ export function boodschapVoor(err: HttpErrorResponse): string {
  *   klik = de backend haalt de afbeelding op en laadt ze op.
  * - Foto / bestand: camera (gsm) of bestand, in de browser verkleind, via de backend opgeladen.
  *
- * Geslaagd: de popup sluit met de nieuwe afbeelding als resultaat. Sluit de popup op een
+ * Geslaagd: de popup sluit met de nieuwe afbeelding (en een voorvertoning) als resultaat. Sluit de popup op een
  * andere manier, dan worden zoeken en opladen afgebroken (was sc-1391).
  */
 @Component({
@@ -125,7 +135,7 @@ export class ImagePickerComponent implements OnInit, OnDestroy {
 
   kies(resultaat: IImageSearchResult): void {
     if (this.bezigMet || this.mislukt.has(resultaat.url)) return;
-    this.laadOp(resultaat.url, resultaat.url);
+    this.laadOp(resultaat.url, resultaat.url, resultaat.thumbnail);
   }
 
   async bestandGekozen(event: Event): Promise<void> {
@@ -155,16 +165,16 @@ export class ImagePickerComponent implements OnInit, OnDestroy {
     }
     // Popup gesloten tijdens het verkleinen: niets meer doen.
     if (this.vernietigd) return;
-    this.laadOp(dataUri, BESTAND);
+    this.laadOp(dataUri, BESTAND, dataUri);
   }
 
-  private laadOp(image: string, sleutel: string): void {
+  private laadOp(image: string, sleutel: string, voorvertoning: string): void {
     this.bezigMet = sleutel;
     this.uploadFout = null;
     this.uploadSub = this.cloudinaryService.uploadImage(image, this.publicId).subscribe({
       next: (nieuweAfbeelding: IWishImage) => {
         this.bezigMet = null;
-        this.activeModal.close(nieuweAfbeelding);
+        this.activeModal.close({ afbeelding: nieuweAfbeelding, voorvertoning } as IGekozenAfbeelding);
       },
       error: (err: HttpErrorResponse) => {
         this.bezigMet = null;

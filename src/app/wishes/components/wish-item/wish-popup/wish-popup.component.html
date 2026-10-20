@@ -37,6 +37,7 @@
                     <gimmi-image-upload 
                         [tempPublicId_prefix]="currentUser.id"
                         [searchTerm]="wishForm.get('title').value"
+                        (previewChanged)="imagePreview = $event"
                         (imageUploaded)="updateWishImage($event)"
                     ></gimmi-image-upload>
                 </div>
@@ -46,6 +47,7 @@
                     <gimmi-image-view
                         class="img-fluid rounded float-right"
                         [image]="wishForm.get('image').value"
+                        [preview]="imagePreview"
                     ></gimmi-image-view>
                 </div>
             </div>

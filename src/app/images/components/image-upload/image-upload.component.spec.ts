@@ -77,12 +77,16 @@ describe('ImageUploadComponent', () => {
     expect(kiezer.componentInstance.searchTerm).toBe('step');
   });
 
-  it('kiezer sluit met een afbeelding: geeft ze door', fakeAsync(() => {
+  it('kiezer sluit met een afbeelding: eerst de voorvertoning, dan de afbeelding', fakeAsync(() => {
     maak();
+    const volgorde: string[] = [];
+    component.previewChanged.subscribe(v => volgorde.push('voorvertoning ' + v));
+    component.imageUploaded.subscribe(a => volgorde.push('afbeelding ' + a.publicId));
     klikKnop();
-    sluit({ publicId: 'ria-4242_temp', version: '5' });
+    sluit({ afbeelding: { publicId: 'ria-4242_temp', version: '5' }, voorvertoning: 'data:image/jpeg;base64,AAA' });
     tick();
     expect(opgeladen).toHaveBeenCalledWith({ publicId: 'ria-4242_temp', version: '5' });
+    expect(volgorde).toEqual(['voorvertoning data:image/jpeg;base64,AAA', 'afbeelding ria-4242_temp']);
   }));
 
   it('kiezer geannuleerd: niets doorgegeven, en bij het sluiten van de wens-popup niets meer te sluiten', fakeAsync(() => {

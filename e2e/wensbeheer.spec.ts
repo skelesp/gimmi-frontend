@@ -75,7 +75,8 @@ test.describe('wensbeheer en navigatie', () => {
     }
     expect(gelukt, 'minstens één van de eerste zoekresultaten kan opgeladen worden').toBeTruthy();
 
-    await expect(wens.locator('gimmi-image-view img')).not.toHaveAttribute('src', /wish_images\/default/);
+    // Meteen de voorvertoning (thumbnail van het resultaat), niet eerst de oude afbeelding.
+    await expect(wens.locator('gimmi-image-view img')).toHaveAttribute('src', /^https:\/\/imgs\.search\.brave\.com\//);
     await wens.locator('button[type="submit"]').click();
     await expect(wens).toBeHidden();
     await expect(wishCard(page, 'Smoke fiets').locator('img').first()).not.toHaveAttribute('src', /wish_images\/default/);
@@ -95,7 +96,8 @@ test.describe('wensbeheer en navigatie', () => {
       name: 'foto.png', mimeType: 'image/png', buffer: Buffer.from(rodePng, 'base64')
     });
     await expect(kiezer).toHaveCount(0, { timeout: 20_000 });
-    await expect(wens.locator('gimmi-image-view img')).not.toHaveAttribute('src', /wish_images\/default/);
+    // Meteen de voorvertoning (de verkleinde foto), niet eerst de oude afbeelding.
+    await expect(wens.locator('gimmi-image-view img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
     await wens.locator('button[type="submit"]').click();
     await expect(wens).toBeHidden();
     await expect(wishCard(page, 'Smoke foto').locator('img').first()).not.toHaveAttribute('src', /wish_images\/default/);
