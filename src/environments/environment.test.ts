@@ -6,14 +6,10 @@ export const environment = {
   // deze regel dus nog een keer mee.
   apiUrl: 'https://test-gimmi.herokuapp.com/api/',
   rootSiteUrl: 'https://test.gimmi.be',
+  // Alleen nog om wensen te tonen die niet naar R2 gemigreerd zijn (sc-3065); weg in sc-3070.
+  // Afbeeldingen opladen en opslaan gebeurt via de backend in R2 (sc-2911).
   cloudinary: {
-    cloud_name: 'hunk4smqo',
-    uploadPreset: 'wish_images',
-    defaultImage: {
-      publicId: "wish_images/default",
-      version: "1556702046"
-    },
-    temporaryImagePostfix: '_temp'
+    cloud_name: 'hunk4smqo'
   }
 };
 

@@ -2,9 +2,10 @@ import { Component, Input, OnInit } from '@angular/core';
 import { faBan, faGift, faStar, faLightbulb, faCartArrowDown, faThumbsUp, faTrashAlt, faGlobeEurope } from '@fortawesome/free-solid-svg-icons';
 import { faClone, faComment, faEdit } from '@fortawesome/free-regular-svg-icons';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { switchMap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 
-import { IGiftFeedback, Wish, WishScenario } from '../../models/wish.model';
+import { IGiftFeedback, IWishImage, Wish, WishScenario } from '../../models/wish.model';
 import { WishReservationComponent } from '../wish-reservation/wish-reservation.component';
 import { ChangeWishReservationComponent } from '../wish-reservation/change-wish-reservation/change-wish-reservation.component';
 import { GiftFeedbackComponent } from '../gift-feedback/gift-feedback.component';
@@ -17,10 +18,9 @@ import { WishService } from '../../services/wish.service';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { Person } from 'src/app/people/models/person.model';
 import { UserService } from 'src/app/users/service/user.service';
-import { CloudinaryService } from 'src/app/images/services/cloudinary.service';
+import { ImageService } from 'src/app/images/services/image.service';
 import { CommunicationService } from 'src/app/shared/services/communication.service';
 import { PeopleService } from 'src/app/people/service/people.service';
-import { environment } from 'src/environments/environment';
 
 @Component({
   template: '',
@@ -100,7 +100,7 @@ export class WishItemComponent implements OnInit {
     protected wishService: WishService,
     protected notificationService: NotificationService,
     protected userService: UserService,
-    protected imageService: CloudinaryService,
+    protected imageService: ImageService,
     protected peopleService: PeopleService,
     protected communicationService: CommunicationService
   ) { }
@@ -175,10 +175,7 @@ export class WishItemComponent implements OnInit {
   }
 
   copy() {
-    this.imageService.uploadImage(
-      this.imageService.generateCloudinaryUrl(this.wish.image),
-      this.imageService.generateRandomPublicId(this.wish.id, environment.cloudinary.temporaryImagePostfix)
-    ).subscribe(image => {
+    this.beeldVoorKopie().subscribe(image => {
       let copyPopup;
       let currentUser = new Person(
         this.userService.currentUser.id,
@@ -208,6 +205,23 @@ export class WishItemComponent implements OnInit {
         );
       }).catch(err => console.warn('popup closed:', err));
     }); 
+  }
+
+  /**
+   * Afbeelding voor een kopie van deze wens (sc-2911). Een R2-beeld deelt de kopie gewoon:
+   * de backend verwijdert het pas als geen enkele wens het nog gebruikt. Een Cloudinary-beeld
+   * (nog niet gemigreerd) zet de backend eerst over naar R2. Lukt dat niet, dan zonder beeld.
+   */
+  private beeldVoorKopie(): Observable<IWishImage> {
+    const image = this.wish.image;
+    if (!this.imageService.heeftBeeld(image)) return of(null);
+    if (image.key) return of(image);
+    return this.imageService.uploadImage(this.imageService.origineel(image)).pipe(
+      catchError(err => {
+        console.warn('Afbeelding niet gekopieerd:', err);
+        return of(null);
+      })
+    );
   }
 
   delete() {
