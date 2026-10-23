@@ -1,7 +1,6 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { CloudinaryService } from 'src/app/images/services/cloudinary.service';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
 import { IWishImage, Wish } from 'src/app/wishes/models/wish.model';
@@ -12,7 +11,7 @@ import { WishService } from 'src/app/wishes/services/wish.service';
   templateUrl: './wish-popup.component.html',
   styleUrls: ['./wish-popup.component.css']
 })
-export class WishPopupComponent implements OnInit, OnDestroy {
+export class WishPopupComponent implements OnInit {
   @Input() wish: Wish = new Wish(null, null, null, null, null, null, null, null, null, 1);
   @Input() mode: 'edit' | 'create' | 'copy';
   wishForm: FormGroup;
@@ -27,7 +26,6 @@ export class WishPopupComponent implements OnInit, OnDestroy {
   constructor(
     public activeModal : NgbActiveModal,
     public userService : UserService,
-    public imageService : CloudinaryService,
     public wishService : WishService
   ){}
 
@@ -90,18 +88,4 @@ export class WishPopupComponent implements OnInit, OnDestroy {
     this.activeModal.dismiss('Cancel');
   }
 
-  private deleteTempWishImage ( image : IWishImage ) {
-    if (this.imageService.isTemporaryImage(image)) {
-      this.imageService.deleteImage(image).subscribe(result => {
-        if (result) console.info(`Image ${image.publicId} is deleted from Cloudinary`);
-        else console.info(`Image ${image.publicId} NOT deleted from Cloudinary`);
-      })
-    }
-  }
-
-  ngOnDestroy(): void {
-    if (!this.saving && this.wishForm.value.image) {
-      this.deleteTempWishImage(this.wishForm.value.image);
-    }
-  }
 }

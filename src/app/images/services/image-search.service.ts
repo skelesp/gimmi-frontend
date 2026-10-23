@@ -6,7 +6,7 @@ import { environment } from 'src/environments/environment';
 
 /** Eén zoekresultaat zoals de backend het teruggeeft (GET /api/images/search, sc-3028). */
 export interface IImageSearchResult {
-  url: string;          // de afbeelding zelf: die geef je aan CloudinaryService.uploadImage
+  url: string;          // de afbeelding zelf: die geef je aan ImageService.uploadImage
   thumbnail: string;    // kleine versie via de proxy van Brave
   width: number | null;
   height: number | null;

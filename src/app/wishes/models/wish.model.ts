@@ -6,9 +6,15 @@ import { environment } from 'src/environments/environment';
 export type wishStatus = 'Open' | 'Reserved' | 'Received' | 'Fulfilled';
 export type WishScenario = 'OPEN_WISH' | 'OPEN_WISH_CREATED_BY_USER_FOR_ANOTHER' | 'RESERVED' | 'RESERVED_BY_USER' | 'RESERVED_INCOGNITO_FOR_USER' | 'RECEIVED' | 'RECEIVED_RECEIVER' | 'RECEIVED_GIVEN_BY_USER' | 'FULFILLED' | 'FULFILLED_BY_USER';
 
+/**
+ * Afbeelding van een wens. R2 (sc-3052, sc-2911): {key, url}. Nog niet gemigreerd
+ * (tot sc-3065): het Cloudinary-beeld {publicId, version}.
+ */
 export interface IWishImage {
-    publicId: string,
-    version: string
+    key?: string,
+    url?: string,
+    publicId?: string,
+    version?: string
 }
 
 export interface IReservation {

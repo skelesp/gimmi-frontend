@@ -4,7 +4,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal, NgbAlertModule } from '@ng-bootstrap/ng-bootstrap';
 import { of } from 'rxjs';
 
-import { CloudinaryService } from 'src/app/images/services/cloudinary.service';
 import { Person } from 'src/app/people/models/person.model';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
@@ -13,13 +12,13 @@ import { WishService } from 'src/app/wishes/services/wish.service';
 import { WishPopupComponent } from './wish-popup.component';
 
 // Popup om een wens toe te voegen, aan te passen of te kopiëren (sc-2348). Sluit met de
-// ingevulde wens; een tijdelijke afbeelding die niet bewaard wordt, gaat weer weg.
+// ingevulde wens. Een opgeladen afbeelding heeft meteen een eigen sleutel in R2 (sc-2911):
+// geen tijdelijke naam meer die de popup zelf moet opruimen.
 describe('WishPopupComponent', () => {
   const ria = new Person('ria', 'Ria', 'Receiver');
   let fixture: ComponentFixture<WishPopupComponent>;
   let component: WishPopupComponent;
   let activeModal: jasmine.SpyObj<NgbActiveModal>;
-  let images: jasmine.SpyObj<CloudinaryService>;
   let wishService: jasmine.SpyObj<WishService>;
 
   function bestaandeWens(): Wish {
@@ -46,8 +45,6 @@ describe('WishPopupComponent', () => {
 
   beforeEach(async () => {
     activeModal = jasmine.createSpyObj<NgbActiveModal>('NgbActiveModal', ['close', 'dismiss']);
-    images = jasmine.createSpyObj<CloudinaryService>('CloudinaryService', ['isTemporaryImage', 'deleteImage']);
-    images.deleteImage.and.returnValue(of(true));
     wishService = jasmine.createSpyObj<WishService>('WishService', ['getCopiesOnListOf']);
     wishService.getCopiesOnListOf.and.returnValue(of([]));
     await TestBed.configureTestingModule({
@@ -56,7 +53,6 @@ describe('WishPopupComponent', () => {
       providers: [
         { provide: NgbActiveModal, useValue: activeModal },
         { provide: UserService, useValue: { currentUser: new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', {}) } },
-        { provide: CloudinaryService, useValue: images },
         { provide: WishService, useValue: wishService }
       ],
       schemas: [NO_ERRORS_SCHEMA]
@@ -117,7 +113,7 @@ describe('WishPopupComponent', () => {
 
   it('een nieuw opgeladen afbeelding komt in het formulier en in de bewaarde wens', () => {
     open('create');
-    const nieuw = { publicId: 'ria-12_temp', version: '7' } as any;
+    const nieuw = { key: 'wishes/a.jpg', url: 'u' };
     fixture.debugElement.query(el => el.name === 'gimmi-image-upload').triggerEventHandler('imageUploaded', nieuw);
     expect(component.wishForm.get('image').value).toBe(nieuw);
   });
@@ -131,9 +127,10 @@ describe('WishPopupComponent', () => {
     expect(fixture.debugElement.query(el => el.name === 'gimmi-image-view').properties.preview).toBe('data:image/jpeg;base64,AAA');
   });
 
-  it('upload-widget krijgt de eigen gebruiker als prefix voor de tijdelijke naam', () => {
-    open('create');
-    expect(fixture.debugElement.query(el => el.name === 'gimmi-image-upload').nativeElement.tempPublicId_prefix).toBe('ria');
+  it('de afbeeldingskiezer krijgt de titel als zoekterm, het voorbeeld een vaste breedte', () => {
+    open('edit', bestaandeWens());
+    expect(fixture.debugElement.query(el => el.name === 'gimmi-image-upload').properties.searchTerm).toBe('Fiets');
+    expect(fixture.debugElement.query(el => el.name === 'gimmi-image-view').attributes.sizes).toBe('200px');
   });
 
   it('annuleren en het kruisje sluiten de popup zonder wens', () => {
@@ -162,25 +159,10 @@ describe('WishPopupComponent', () => {
     expect(wishService.getCopiesOnListOf).not.toHaveBeenCalled();
   });
 
-  it('sluiten zonder opslaan: een tijdelijke afbeelding wordt bij Cloudinary verwijderd', () => {
-    images.isTemporaryImage.and.returnValue(true);
-    spyOn(console, 'info');
-    open('create');
-    const tijdelijk = { publicId: 'ria-12_temp', version: '7' } as any;
-    component.updateWishImage(tijdelijk);
-    fixture.destroy();
-    expect(images.deleteImage).toHaveBeenCalledWith(tijdelijk);
-  });
-
-  it('sluiten na opslaan, of met een definitieve afbeelding: niets verwijderd', () => {
-    images.isTemporaryImage.and.callFake(img => img.publicId.endsWith('_temp'));
-    open('create');
-    component.updateWishImage({ publicId: 'ria-12_temp', version: '7' } as any);
-    component.saveWish();
-    fixture.destroy();
-
+  it('aanpassen met een nieuwe afbeelding: de nieuwe sleutel gaat mee in de bewaarde wens', () => {
     open('edit', bestaandeWens());
-    fixture.destroy();
-    expect(images.deleteImage).not.toHaveBeenCalled();
+    component.updateWishImage({ key: 'wishes/b.jpg', url: 'u' });
+    component.saveWish();
+    expect(activeModal.close.calls.mostRecent().args[0].image).toEqual({ key: 'wishes/b.jpg', url: 'u' });
   });
 });

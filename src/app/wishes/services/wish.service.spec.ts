@@ -3,13 +3,12 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { of, throwError } from 'rxjs';
 
 import { environment } from 'src/environments/environment';
-import { CloudinaryService } from 'src/app/images/services/cloudinary.service';
 import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
 import { Wish } from '../models/wish.model';
-import { WishService } from './wish.service';
+import { imageUitApi, imageVoorApi, WishService } from './wish.service';
 
 // Legt vast hoe de app met de wish- en wishlist-API praat (sc-2979). Dekt onder meer
 // wens aanmaken (sc-1977), reserveren (sc-1979) en reservatie verwijderen (sc-2515),
@@ -19,7 +18,6 @@ describe('WishService', () => {
   let service: WishService;
   let http: HttpTestingController;
   let people: jasmine.SpyObj<PeopleService>;
-  let images: jasmine.SpyObj<CloudinaryService>;
 
   const ria = new Person('ria', 'Ria', 'Receiver');
   const rob = new Person('rob', 'Rob', 'Reservator');
@@ -43,15 +41,11 @@ describe('WishService', () => {
 
   beforeEach(() => {
     people = jasmine.createSpyObj<PeopleService>('PeopleService', ['getPersonById']);
-    images = jasmine.createSpyObj<CloudinaryService>('CloudinaryService', ['isTemporaryImage', 'renameImage', 'deleteImage']);
-    images.isTemporaryImage.and.returnValue(false);
-    images.deleteImage.and.returnValue(of(null));
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
         { provide: UserService, useValue: { currentUser: new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', []) } },
-        { provide: PeopleService, useValue: people },
-        { provide: CloudinaryService, useValue: images }
+        { provide: PeopleService, useValue: people }
       ]
     });
     service = TestBed.inject(WishService);
@@ -73,17 +67,21 @@ describe('WishService', () => {
         count: 2,
         wishes: [
           wishResponse({ _id: 'w1', image: { public_id: 'img1', version: 3 } }),
+          wishResponse({ _id: 'w3', image: { key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' } }),
           wishResponse({ _id: 'w2', reservation: { reservedBy: 'rob', amount: 1, reason: 'x', reservationDate: '2026-10-02' } })
         ]
       }]);
       flushState('w1', 'Open');
+      flushState('w3', 'Open');
       flushState('w2', 'Reserved');
 
       expect(ontvanger.fullName).toBe('Ria Receiver');
-      expect(wensen.map(w => w.id)).toEqual(['w1', 'w2']);
+      expect(wensen.map(w => w.id)).toEqual(['w1', 'w3', 'w2']);
       expect(wensen[0].status).toBe('Open');
       expect(wensen[0].url).toBe('http://boek.be');
       expect(wensen[0].image).toEqual({ publicId: 'img1', version: '3' });
+      expect(wensen[1].image).toEqual({ key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' });
+      wensen.splice(1, 1);
       expect(wensen[1].reservation.reservedBy.fullName).toBe('Rob Reservator');
       expect(wensen[1].scenario).toBe('RESERVED_BY_USER'); // ingelogd als rob
       expect(people.getPersonById).toHaveBeenCalledWith('rob');
@@ -208,22 +206,21 @@ describe('WishService', () => {
     flushState('w1', 'Closed');
   });
 
-  it('delete: verwijdert de wens uit de lijst en ruimt de afbeelding op', () => {
+  it('delete: verwijdert de wens uit de lijst; de afbeelding ruimt de backend op (sc-3052)', () => {
     const [wens] = laadLijst('w1', 'w2');
     service.delete(wens).subscribe();
     const req = http.expectOne(`${api}wish/w1`);
     expect(req.request.method).toBe('DELETE');
     req.flush(wishResponse({ image: { public_id: 'img1', version: 1 } }));
     expect(huidigeLijst().map(w => w.id)).toEqual(['w2']);
-    expect(images.deleteImage).toHaveBeenCalledWith({ publicId: 'img1', version: '1' });
   });
 
   describe('create', () => {
-    it('post de nieuwe wens, zet hem bovenaan de lijst en slaat hem daarna op', () => {
+    it('post de nieuwe wens met de sleutel van de afbeelding en zet hem bovenaan de lijst, zonder tweede PUT', () => {
       laadLijst('w0');
       const wens = nieuweWens();
       wens.copyOf = 'origineel';
-      wens.image = { publicId: 'img9', version: '7' };
+      wens.image = { key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' };
       let aangemaakt: Wish;
       service.create(wens).subscribe(w => aangemaakt = w);
 
@@ -231,35 +228,61 @@ describe('WishService', () => {
       expect(post.request.body).toEqual({
         title: 'Boek', price: 20, url: 'http://boek.be', color: null, size: null, description: null,
         receiver: 'ria', createdBy: 'ria', amountWanted: 1,
-        image: { public_id: 'img9', version: 7 }, copyOf: 'origineel'
+        image: { key: 'wishes/a.jpg' }, copyOf: 'origineel'
       });
-      post.flush(wishResponse({ _id: 'w1', image: { public_id: 'img9', version: 7 } }));
+      post.flush(wishResponse({ _id: 'w1', image: { key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' } }));
       flushState('w1', 'Open');
       expect(huidigeLijst().map(w => w.id)).toEqual(['w1', 'w0']);
+      expect(aangemaakt.id).toBe('w1');
+      expect(aangemaakt.image).toEqual({ key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' });
+    });
 
+    it('zonder afbeelding: geen image-veld in de POST', () => {
+      laadLijst();
+      service.create(nieuweWens()).subscribe();
+      const post = http.expectOne(`${api}wish`);
+      expect('image' in post.request.body).toBeFalse();
+      post.flush(wishResponse({ _id: 'w1' }));
+      flushState('w1', 'Open');
+    });
+  });
+
+  describe('update', () => {
+    it('PUT met de wens, het afbeeldingsveld in de vorm van de API, en werkt de lijst bij', () => {
+      const [wens] = laadLijst('w1', 'w2');
+      wens.title = 'Nieuw boek';
+      wens.image = { key: 'wishes/b.jpg', url: 'https://img.gimmi.be/wishes/b.jpg' };
+      service.update(wens).subscribe();
       const put = http.expectOne(`${api}wish/w1`);
       expect(put.request.method).toBe('PUT');
-      expect(put.request.body.image).toEqual({ public_id: 'img9', version: 7 });
-      put.flush(wishResponse({ _id: 'w1' }));
+      expect(put.request.body._id).toBe('w1');
+      expect(put.request.body.title).toBe('Nieuw boek');
+      expect(put.request.body.image).toEqual({ key: 'wishes/b.jpg' });
+      put.flush(wishResponse({ _id: 'w1', title: 'Nieuw boek', image: { key: 'wishes/b.jpg', url: 'https://img.gimmi.be/wishes/b.jpg' } }));
       flushState('w1', 'Open');
-      expect(aangemaakt.id).toBe('w1');
+      expect(huidigeLijst()[0].title).toBe('Nieuw boek');
+      expect(huidigeLijst()[0].image.key).toBe('wishes/b.jpg');
     });
 
-    it('tijdelijke afbeelding krijgt de id van de wens als naam', () => {
-      laadLijst();
-      images.isTemporaryImage.and.returnValues(true, false);
-      images.renameImage.and.returnValue(of({ publicId: 'w1', version: '8' }));
-      const wens = nieuweWens();
-      wens.image = { publicId: 'tmp/123', version: '1' };
-      service.create(wens).subscribe();
-      http.expectOne(`${api}wish`).flush(wishResponse({ _id: 'w1', image: { public_id: 'tmp/123', version: 1 } }));
-      flushState('w1', 'Open');
-      expect(images.renameImage).toHaveBeenCalledWith('tmp/123', 'w1');
+    it('een nog niet gemigreerd Cloudinary-beeld gaat ongewijzigd mee', () => {
+      const [wens] = laadLijst('w1');
+      wens.image = { publicId: 'wish_images/w1', version: '3' };
+      service.update(wens).subscribe();
       const put = http.expectOne(`${api}wish/w1`);
-      expect(put.request.body.image).toEqual({ public_id: 'w1', version: 8 });
+      expect(put.request.body.image).toEqual({ public_id: 'wish_images/w1', version: 3 });
       put.flush(wishResponse({ _id: 'w1' }));
       flushState('w1', 'Open');
     });
+  });
+
+  it('imageVoorApi en imageUitApi: R2, Cloudinary of niets', () => {
+    expect(imageVoorApi({ key: 'wishes/a.jpg', url: 'u' })).toEqual({ key: 'wishes/a.jpg' });
+    expect(imageVoorApi({ publicId: 'p', version: '4' })).toEqual({ public_id: 'p', version: 4 });
+    expect(imageVoorApi(null)).toBeUndefined();
+    expect(imageUitApi({ key: 'wishes/a.jpg', url: 'u' })).toEqual({ key: 'wishes/a.jpg', url: 'u' });
+    expect(imageUitApi({ public_id: 'p', version: 4 })).toEqual({ publicId: 'p', version: '4' });
+    expect(imageUitApi({ key: 'wishes/a.jpg' })).toBeUndefined();
+    expect(imageUitApi(null)).toBeUndefined();
   });
 
   describe('getCopiesOnListOf', () => {

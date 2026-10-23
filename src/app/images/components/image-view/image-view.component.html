@@ -1,9 +1,6 @@
-<img *ngIf="preview; else cloudinary" [src]="preview" [class]="class + ' voorvertoning'" alt="Gekozen afbeelding" />
-<ng-template #cloudinary>
-    <cl-image [public-id]='image.publicId'
-        [attr.version]='image.version'
-        [class]="class">
-        <cl-transformation fetch-format="auto"></cl-transformation>
-        <cl-placeholder type="predominant"></cl-placeholder>
-    </cl-image>
+<img *ngIf="preview; else opgeslagen" [src]="preview" [class]="class + ' beeld voorvertoning'" alt="Gekozen afbeelding" />
+<ng-template #opgeslagen>
+    <img [src]="src" [attr.srcset]="srcset" [attr.sizes]="srcset ? sizes : null"
+         [class]="class + ' beeld' + (geladen ? '' : ' laden')" alt="Afbeelding van de wens" loading="lazy" decoding="async"
+         (load)="geladen = true" (error)="nietGeladen()" />
 </ng-template>

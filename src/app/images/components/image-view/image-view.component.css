@@ -1,0 +1,9 @@
+/* Volle breedte en de eigen hoogte van het beeld: zo blijft het raster van wenskaarten verspringen. */
+.beeld {
+    width: 100%;
+    background-color: #f8f9fa;
+}
+/* Tot het beeld er is: een vlak in de verhouding van de standaardafbeelding, geen kaart zonder hoogte. */
+.laden {
+    aspect-ratio: 3 / 2;
+}

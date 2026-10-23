@@ -4,7 +4,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { Subscription } from 'rxjs';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
-import { CloudinaryService } from '../../services/cloudinary.service';
+import { ImageService } from '../../services/image.service';
 import { IImageSearchResult, ImageSearchService } from '../../services/image-search.service';
 import { verkleinAfbeelding } from '../../utils/resize-image';
 
@@ -13,7 +13,7 @@ export type KiezerTab = 'zoeken' | 'bestand';
 /**
  * Resultaat van de kiezer: de opgeladen afbeelding, en een voorvertoning die de browser
  * al heeft (thumbnail van het zoekresultaat of de verkleinde foto). Zo kan de wens-popup
- * de nieuwe afbeelding meteen tonen, zonder te wachten tot Cloudinary ze levert.
+ * de nieuwe afbeelding meteen tonen, zonder te wachten tot ze opgehaald is.
  */
 export interface IGekozenAfbeelding {
   afbeelding: IWishImage;
@@ -48,7 +48,7 @@ export function boodschapVoor(err: HttpErrorResponse): string {
 
 /**
  * Afbeeldingskiezer voor een wens (sc-3028), als popup boven de wens-popup.
- * Vervangt de Cloudinary-uploadwidget.
+ * Vervangt de Cloudinary-uploadwidget. Opladen gaat naar R2, via de backend (sc-3052, sc-2911).
  *
  * - Zoeken: zoekterm = titel van de wens (was sc-1330), resultaten via Brave Search,
  *   klik = de backend haalt de afbeelding op en laadt ze op.
@@ -63,8 +63,6 @@ export function boodschapVoor(err: HttpErrorResponse): string {
   styleUrls: ['./image-picker.component.css']
 })
 export class ImagePickerComponent implements OnInit, OnDestroy {
-  /** Naam waaronder de afbeelding opgeladen wordt. */
-  @Input() publicId: string;
   @Input() searchTerm: string = "";
 
   tab: KiezerTab = 'zoeken';
@@ -83,7 +81,7 @@ export class ImagePickerComponent implements OnInit, OnDestroy {
 
   constructor(
     public activeModal: NgbActiveModal,
-    private cloudinaryService: CloudinaryService,
+    private imageService: ImageService,
     private imageSearchService: ImageSearchService,
     private deviceService: DeviceDetectorService) { }
 
@@ -171,7 +169,7 @@ export class ImagePickerComponent implements OnInit, OnDestroy {
   private laadOp(image: string, sleutel: string, voorvertoning: string): void {
     this.bezigMet = sleutel;
     this.uploadFout = null;
-    this.uploadSub = this.cloudinaryService.uploadImage(image, this.publicId).subscribe({
+    this.uploadSub = this.imageService.uploadImage(image).subscribe({
       next: (nieuweAfbeelding: IWishImage) => {
         this.bezigMet = null;
         this.activeModal.close({ afbeelding: nieuweAfbeelding, voorvertoning } as IGekozenAfbeelding);
