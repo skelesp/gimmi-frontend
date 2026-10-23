@@ -4,8 +4,8 @@ import { ImageService, STANDAARD_AFBEELDING } from '../../services/image.service
 
 /**
  * Toont de afbeelding van een wens (sc-2911): een gewone <img> met srcset, zodat de browser
- * een passende breedte haalt (Cloudflare Image Transformations voor R2, Cloudinary voor nog
- * niet gemigreerde beelden). Het beeld houdt zijn eigen hoogte (het raster van wenskaarten verspringt
+ * een passende breedte haalt (Cloudflare Image Transformations op het beelddomein van R2).
+ * Het beeld houdt zijn eigen hoogte (het raster van wenskaarten verspringt
  * bewust); alleen tijdens het laden staat er een lichtgrijs vlak in 3:2 (was sc-2632). Laadt het beeld
  * niet, dan de standaardafbeelding.
  */

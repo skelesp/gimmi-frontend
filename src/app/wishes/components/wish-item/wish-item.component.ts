@@ -2,10 +2,9 @@ import { Component, Input, OnInit } from '@angular/core';
 import { faBan, faGift, faStar, faLightbulb, faCartArrowDown, faThumbsUp, faTrashAlt, faGlobeEurope } from '@fortawesome/free-solid-svg-icons';
 import { faClone, faComment, faEdit } from '@fortawesome/free-regular-svg-icons';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Observable, of } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
 
-import { IGiftFeedback, IWishImage, Wish, WishScenario } from '../../models/wish.model';
+import { IGiftFeedback, Wish, WishScenario } from '../../models/wish.model';
 import { WishReservationComponent } from '../wish-reservation/wish-reservation.component';
 import { ChangeWishReservationComponent } from '../wish-reservation/change-wish-reservation/change-wish-reservation.component';
 import { GiftFeedbackComponent } from '../gift-feedback/gift-feedback.component';
@@ -175,53 +174,35 @@ export class WishItemComponent implements OnInit {
   }
 
   copy() {
-    this.beeldVoorKopie().subscribe(image => {
-      let copyPopup;
-      let currentUser = new Person(
-        this.userService.currentUser.id,
-        this.userService.currentUser.firstName,
-        this.userService.currentUser.lastName
-      );
-
-      copyPopup = this.modalService.open(WishPopupComponent);
-      copyPopup.componentInstance.mode = 'copy';
-      copyPopup.componentInstance.wish = { 
-        ...this.wish, 
-        id: undefined, 
-        copyOf: this.wish.id, 
-        description: "", 
-        image,
-        createdBy: currentUser,
-        receiver: currentUser
-      };
-
-      (copyPopup.result as Promise<Wish>).then(wish => {
-        this.wishService.create(wish).subscribe(wish =>
-          this.notificationService.showNotification(
-            `De wens '${wish.title}' werd toegevoegd aan je lijst.`,
-            'success',
-            'Wens gekopieerd'
-          )
-        );
-      }).catch(err => console.warn('popup closed:', err));
-    }); 
-  }
-
-  /**
-   * Afbeelding voor een kopie van deze wens (sc-2911). Een R2-beeld deelt de kopie gewoon:
-   * de backend verwijdert het pas als geen enkele wens het nog gebruikt. Een Cloudinary-beeld
-   * (nog niet gemigreerd) zet de backend eerst over naar R2. Lukt dat niet, dan zonder beeld.
-   */
-  private beeldVoorKopie(): Observable<IWishImage> {
-    const image = this.wish.image;
-    if (!this.imageService.heeftBeeld(image)) return of(null);
-    if (image.key) return of(image);
-    return this.imageService.uploadImage(this.imageService.origineel(image)).pipe(
-      catchError(err => {
-        console.warn('Afbeelding niet gekopieerd:', err);
-        return of(null);
-      })
+    let copyPopup;
+    let currentUser = new Person(
+      this.userService.currentUser.id,
+      this.userService.currentUser.firstName,
+      this.userService.currentUser.lastName
     );
+
+    copyPopup = this.modalService.open(WishPopupComponent);
+    copyPopup.componentInstance.mode = 'copy';
+    copyPopup.componentInstance.wish = { 
+      ...this.wish, 
+      id: undefined, 
+      copyOf: this.wish.id, 
+      description: "", 
+      // De kopie deelt het R2-beeld (sc-2911): de backend verwijdert het pas als geen enkele wens het nog gebruikt.
+      image: this.imageService.heeftBeeld(this.wish.image) ? this.wish.image : null,
+      createdBy: currentUser,
+      receiver: currentUser
+    };
+
+    (copyPopup.result as Promise<Wish>).then(wish => {
+      this.wishService.create(wish).subscribe(wish =>
+        this.notificationService.showNotification(
+          `De wens '${wish.title}' werd toegevoegd aan je lijst.`,
+          'success',
+          'Wens gekopieerd'
+        )
+      );
+    }).catch(err => console.warn('popup closed:', err));
   }
 
   delete() {

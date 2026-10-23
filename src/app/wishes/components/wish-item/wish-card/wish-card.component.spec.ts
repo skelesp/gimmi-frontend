@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks } from '@angular/
 import { RouterTestingModule } from '@angular/router/testing';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NgbDropdownModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 
 import { ImageService } from 'src/app/images/services/image.service';
 import { Person } from 'src/app/people/models/person.model';
@@ -78,7 +78,7 @@ describe('WishCardComponent', () => {
     modal = jasmine.createSpyObj<NgbModal>('NgbModal', ['open']);
     modal.open.and.callFake(() => popup as any);
     wishService = jasmine.createSpyObj<WishService>('WishService', ['addGiftFeedback', 'close', 'update', 'create']);
-    images = jasmine.createSpyObj<ImageService>('ImageService', ['uploadImage', 'heeftBeeld', 'origineel']);
+    images = jasmine.createSpyObj<ImageService>('ImageService', ['uploadImage', 'heeftBeeld']);
     people = jasmine.createSpyObj<PeopleService>('PeopleService', ['getEmailById']);
     communication = jasmine.createSpyObj<CommunicationService>('CommunicationService', ['sendMail']);
     notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['showNotification']);
@@ -219,25 +219,6 @@ describe('WishCardComponent', () => {
       kopieer({ key: 'wishes/a.jpg', url: 'u' });
       expect(popup.componentInstance.wish.image).toEqual({ key: 'wishes/a.jpg', url: 'u' });
       expect(images.uploadImage).not.toHaveBeenCalled();
-    }));
-
-    it('kopiëren met een Cloudinary-beeld: eerst naar R2 overgezet', fakeAsync(() => {
-      images.heeftBeeld.and.returnValue(true);
-      images.origineel.and.returnValue('https://res.cloudinary.com/x/image/upload/v3/wish_images/w1');
-      images.uploadImage.and.returnValue(of({ key: 'wishes/nieuw.jpg', url: 'u2' }));
-      kopieer({ publicId: 'wish_images/w1', version: '3' });
-      expect(images.uploadImage).toHaveBeenCalledWith('https://res.cloudinary.com/x/image/upload/v3/wish_images/w1');
-      expect(popup.componentInstance.wish.image).toEqual({ key: 'wishes/nieuw.jpg', url: 'u2' });
-    }));
-
-    it('kopiëren: overzetten mislukt, dan zonder beeld', fakeAsync(() => {
-      spyOn(console, 'warn');
-      images.heeftBeeld.and.returnValue(true);
-      images.origineel.and.returnValue('https://res.cloudinary.com/x/image/upload/v3/wish_images/w1');
-      images.uploadImage.and.returnValue(throwError({ status: 422 }));
-      kopieer({ publicId: 'wish_images/w1', version: '3' });
-      expect(modal.open).toHaveBeenCalledWith(WishPopupComponent);
-      expect(popup.componentInstance.wish.image).toBeNull();
     }));
 
     it('feedback: slaat feedback op, sluit de wens en mailt de gever de boodschap', fakeAsync(() => {

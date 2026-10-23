@@ -62,9 +62,10 @@ describe('ImageViewComponent', () => {
     expect(img().classList).toContain('laden');
   });
 
-  it('nog niet gemigreerd Cloudinary-beeld: rechtstreeks van Cloudinary', () => {
-    toon({ publicId: 'wish_images/w1', version: '3' });
-    expect(img().getAttribute('src')).toMatch(/^https:\/\/res\.cloudinary\.com\/\w+\/image\/upload\/f_auto,c_limit,w_640\/v3\/wish_images\/w1$/);
+  it('een oud Cloudinary-veld (zonder sleutel) telt als geen beeld (sc-3070)', () => {
+    toon({ publicId: 'wish_images/w1', version: '3' } as any);
+    expect(img().getAttribute('src')).toBe(STANDAARD_AFBEELDING);
+    expect(img().hasAttribute('srcset')).toBeFalse();
   });
 
   it('beeld laadt niet: de standaardafbeelding, en daarna niet nog eens', () => {
