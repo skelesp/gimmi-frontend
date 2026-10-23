@@ -10,14 +10,12 @@ import { UserService } from 'src/app/users/service/user.service';
 import { IClosure, IGiftFeedback, IReservation, IWishImage, Wish } from '../models/wish.model';
 
 /**
- * Afbeeldingsveld zoals de API het geeft en verwacht: R2 {key, url} (sc-3052), of een
- * nog niet gemigreerd Cloudinary-beeld {public_id, version} (tot sc-3065).
+ * Afbeeldingsveld zoals de API het geeft en verwacht: R2 {key, url} (sc-3052). De API
+ * bewaart alleen `key` en geeft `url` erbij.
  */
 interface IWishImageApi {
   key?: string;
   url?: string;
-  public_id?: string;
-  version?: number;
 }
 
 interface IWishlistResponse {
@@ -265,7 +263,7 @@ export class WishService {
       ...wish,
       _id: wish.id,
       receiver: wish.receiver,
-      // De API kent een ander afbeeldingsveld dan de app (public_id tegenover publicId).
+      // De API bewaart van het afbeeldingsveld alleen de sleutel.
       image: imageVoorApi(wish.image)
     };
     return this.http$.put<IWishReservationResponse>(
@@ -501,13 +499,11 @@ export class WishService {
 /** Afbeelding van de app naar de vorm van de API; undefined als er geen is. */
 export function imageVoorApi(image: IWishImage): IWishImageApi {
   if (image?.key) return { key: image.key };
-  if (image?.publicId) return { public_id: image.publicId, version: +image.version };
   return undefined;
 }
 
 /** Afbeelding uit de API naar de vorm van de app; undefined als er geen is. */
 export function imageUitApi(image: IWishImageApi): IWishImage {
   if (image?.key && image?.url) return { key: image.key, url: image.url };
-  if (image?.public_id) return { publicId: image.public_id, version: String(image.version) };
   return undefined;
 }

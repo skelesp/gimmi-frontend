@@ -23,7 +23,7 @@ describe('WishPopupComponent', () => {
 
   function bestaandeWens(): Wish {
     const w = new Wish('w1', 'Fiets', 250, 'www.fiets.be', ria, ria, 'rood', 'L', 'Met bel', 1);
-    w.image = { publicId: 'wish_images/w1', version: '3' } as any;
+    w.image = { key: 'wishes/w1.jpg', url: 'https://img-test.gimmi.be/wishes/w1.jpg' };
     return w;
   }
 
