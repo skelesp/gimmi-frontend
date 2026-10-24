@@ -66,7 +66,7 @@ describe('WishService', () => {
         _id: { receiver: { _id: 'ria', firstName: 'Ria', lastName: 'Receiver' } },
         count: 2,
         wishes: [
-          wishResponse({ _id: 'w1', image: { public_id: 'img1', version: 3 } }),
+          wishResponse({ _id: 'w1' }),
           wishResponse({ _id: 'w3', image: { key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' } }),
           wishResponse({ _id: 'w2', reservation: { reservedBy: 'rob', amount: 1, reason: 'x', reservationDate: '2026-10-02' } })
         ]
@@ -79,7 +79,7 @@ describe('WishService', () => {
       expect(wensen.map(w => w.id)).toEqual(['w1', 'w3', 'w2']);
       expect(wensen[0].status).toBe('Open');
       expect(wensen[0].url).toBe('http://boek.be');
-      expect(wensen[0].image).toEqual({ publicId: 'img1', version: '3' });
+      expect(wensen[0].image).toBeUndefined();
       expect(wensen[1].image).toEqual({ key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' });
       wensen.splice(1, 1);
       expect(wensen[1].reservation.reservedBy.fullName).toBe('Rob Reservator');
@@ -211,7 +211,7 @@ describe('WishService', () => {
     service.delete(wens).subscribe();
     const req = http.expectOne(`${api}wish/w1`);
     expect(req.request.method).toBe('DELETE');
-    req.flush(wishResponse({ image: { public_id: 'img1', version: 1 } }));
+    req.flush(wishResponse({ image: { key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' } }));
     expect(huidigeLijst().map(w => w.id)).toEqual(['w2']);
   });
 
@@ -263,24 +263,14 @@ describe('WishService', () => {
       expect(huidigeLijst()[0].title).toBe('Nieuw boek');
       expect(huidigeLijst()[0].image.key).toBe('wishes/b.jpg');
     });
-
-    it('een nog niet gemigreerd Cloudinary-beeld gaat ongewijzigd mee', () => {
-      const [wens] = laadLijst('w1');
-      wens.image = { publicId: 'wish_images/w1', version: '3' };
-      service.update(wens).subscribe();
-      const put = http.expectOne(`${api}wish/w1`);
-      expect(put.request.body.image).toEqual({ public_id: 'wish_images/w1', version: 3 });
-      put.flush(wishResponse({ _id: 'w1' }));
-      flushState('w1', 'Open');
-    });
   });
 
-  it('imageVoorApi en imageUitApi: R2, Cloudinary of niets', () => {
+  it('imageVoorApi en imageUitApi: R2 of niets', () => {
     expect(imageVoorApi({ key: 'wishes/a.jpg', url: 'u' })).toEqual({ key: 'wishes/a.jpg' });
-    expect(imageVoorApi({ publicId: 'p', version: '4' })).toEqual({ public_id: 'p', version: 4 });
+    expect(imageVoorApi({})).toBeUndefined();
     expect(imageVoorApi(null)).toBeUndefined();
     expect(imageUitApi({ key: 'wishes/a.jpg', url: 'u' })).toEqual({ key: 'wishes/a.jpg', url: 'u' });
-    expect(imageUitApi({ public_id: 'p', version: 4 })).toEqual({ publicId: 'p', version: '4' });
+    expect(imageUitApi({ public_id: 'p', version: 4 } as any)).toBeUndefined();
     expect(imageUitApi({ key: 'wishes/a.jpg' })).toBeUndefined();
     expect(imageUitApi(null)).toBeUndefined();
   });
