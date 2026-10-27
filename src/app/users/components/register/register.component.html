@@ -26,11 +26,7 @@
                 </p>
             </ngb-alert>
             <h3>Registreer je op Gimmi...</h3>
-            <h5>Via Facebook (aangeraden)</h5>
-            <div><small class='text-muted'>Zo hoef je geen acount en wachtwoord te onthouden voor Gimmi.</small></div>
-            <gimmi-facebook-login-button></gimmi-facebook-login-button>
-
-            <h5> Of via een Gimmi account</h5>
+            <h5>Met je e-mailadres</h5>
             <div [hidden]="!knownUser" class="alert alert-danger">
                 Er bestaat al een gebruiker met dit emailadres. Gelieve <a [routerLink]="['/users','login']" [queryParams]="{e: registrationForm.get('localAccountData.email')?.value}">in te loggen met deze email</a> of
                 een ander emailadres te gebruiken.
