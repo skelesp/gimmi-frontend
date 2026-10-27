@@ -1,13 +1,11 @@
 <div class="container">
     <div class="row align-items-center justify-content-center">
         <div class="col-lg-7">
-            <h5>Login via een andere account</h5>
-            <small class='text-muted'>Als je deze optie kiest, heb je geen wachtwoord voor Gimmi nodig (en kan je het dus ook niet vergeten).</small><br />
-            <gimmi-facebook-login-button></gimmi-facebook-login-button>
-        
-    
             <h5>Login met je email en wachtwoord</h5>
-            <small class='text-muted'>Als je voor deze optie kiest, zal je wachtwoord op Gimmi zelf opgeslaan worden.</small><br />
+            <div class="alert alert-info">
+                Inloggen met Facebook kan niet meer. Had je alleen Facebook? Stel dan een wachtwoord in via
+                <a [routerLink]="['/users', 'forgotpassword']">Wachtwoord vergeten</a>, met het e-mailadres van je Facebook-account.
+            </div>
             <div *ngIf="loggedInUser" class="alert alert-info">
                 Je bent al ingelogd momenteel als <strong>{{loggedInUser.firstName}} {{loggedInUser.lastName}}</strong>.
                 <ul>
