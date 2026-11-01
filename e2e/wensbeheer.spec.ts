@@ -20,7 +20,8 @@ const wensB = `Smoke kopie ${runId}`;
 const rodePng = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAFklEQVR4nGO4Y+pKEmIY1TCqYfhqAABoxFYQwMZTpQAAAABJRU5ErkJggg==';
 
 // Een opgeslagen afbeelding komt uit R2, via Image Transformations op het beelddomein (sc-2911).
-const R2_BEELD = /\/cdn-cgi\/image\/[^/]+\/(dev\/)?wishes\/[0-9a-f-]{36}\.(jpg|png|gif|webp|avif)$/;
+// Een AVIF kan Image Transformations niet verwerken: dat komt als origineel (sc-3231).
+const R2_BEELD = /(\/cdn-cgi\/image\/[^/]+\/(dev\/)?wishes\/[0-9a-f-]{36}\.(jpg|png|gif|webp)|\/(dev\/)?wishes\/[0-9a-f-]{36}\.avif)$/;
 
 function overEenWeek(): string {
   const d = new Date();
@@ -82,7 +83,11 @@ test.describe('wensbeheer en navigatie', () => {
     await expect(wens.locator('gimmi-image-view img')).toHaveAttribute('src', /^https:\/\/imgs\.search\.brave\.com\//);
     await wens.locator('button[type="submit"]').click();
     await expect(wens).toBeHidden();
-    await expect(wishCard(page, 'Smoke fiets').locator('img').first()).toHaveAttribute('src', R2_BEELD);
+    const beeld = wishCard(page, 'Smoke fiets').locator('img').first();
+    await expect(beeld).toHaveAttribute('src', R2_BEELD);
+    // Echt geladen, niet stil teruggevallen op de standaardafbeelding (sc-3231).
+    await expect.poll(() => beeld.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0
+      && !img.currentSrc.endsWith('standaard-wens.jpg')), { timeout: 15_000 }).toBe(true);
     await context.close();
   });
 

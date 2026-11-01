@@ -34,17 +34,26 @@ export class ImageService {
     return !!(image?.key && image?.url);
   }
 
+  /**
+   * Kan Image Transformations dit beeld als bron gebruiken? Een AVIF niet (415, sc-3231):
+   * dat tonen we als origineel, zonder andere breedtes.
+   */
+  public transformeerbaar(image: IWishImage): boolean {
+    return this.heeftBeeld(image) && !/\.avif$/i.test(image.key);
+  }
+
   /** URL van het beeld in de gevraagde breedte, als webp/avif waar de browser dat kan. */
   public src(image: IWishImage, breedte: number): string {
     if (!this.heeftBeeld(image)) return STANDAARD_AFBEELDING;
+    if (!this.transformeerbaar(image)) return image.url;
     // Cloudflare Image Transformations op het eigen beelddomein (img.gimmi.be / img-test.gimmi.be).
     const basis = image.url.slice(0, image.url.length - image.key.length);
     return `${basis}cdn-cgi/image/width=${breedte},fit=scale-down,format=auto/${image.key}`;
   }
 
-  /** srcset met alle BREEDTES, of null voor de standaardafbeelding (één vast bestand). */
+  /** srcset met alle BREEDTES, of null voor één vast bestand (standaardafbeelding of AVIF). */
   public srcset(image: IWishImage): string {
-    if (!this.heeftBeeld(image)) return null;
+    if (!this.transformeerbaar(image)) return null;
     return BREEDTES.map(b => `${this.src(image, b)} ${b}w`).join(', ');
   }
 }
