@@ -53,6 +53,17 @@ describe('ImageService', () => {
     expect(service.src(null, 320)).toBe(STANDAARD_AFBEELDING);
   });
 
+  // Image Transformations weigert AVIF als bron (sc-3231): dan het origineel, zonder srcset.
+  it('een AVIF-beeld: het origineel zonder transformatie en zonder srcset', () => {
+    const avif = { key: 'wishes/c.avif', url: 'https://img.gimmi.be/wishes/c.avif' };
+    expect(service.transformeerbaar(avif)).toBeFalse();
+    expect(service.transformeerbaar({ key: 'wishes/c.AVIF', url: 'https://img.gimmi.be/wishes/c.AVIF' })).toBeFalse();
+    expect(service.transformeerbaar(r2)).toBeTrue();
+    expect(service.transformeerbaar(null)).toBeFalse();
+    expect(service.src(avif, 320)).toBe(avif.url);
+    expect(service.srcset(avif)).toBeNull();
+  });
+
   it('srcset: elke breedte met zijn w-waarde, of null voor de standaardafbeelding', () => {
     const delen = service.srcset(r2).split(', ');
     expect(delen.length).toBe(BREEDTES.length);
