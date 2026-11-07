@@ -1,0 +1,53 @@
+# Een GitHub-release bij elke push naar master (= elke productiedeploy).
+# Tag: v<jaar>.<maand>.<dag> (UTC), met .2, .3 enz. als er die dag meer zijn. De titel en de tekst komen uit
+# de PR die de commit naar master bracht: bij een release-PR (develop -> master) staan daar de stories, de PR's
+# en wat de gebruiker merkt in. Een Dependabot-PR krijgt de automatisch gegenereerde tekst.
+name: Release
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          day="v$(date -u +%Y.%m.%d)"
+          tag="$day"
+          n=1
+          while git rev-parse -q --verify "refs/tags/$tag" > /dev/null; do
+            n=$((n + 1))
+            tag="$day.$n"
+          done
+
+          pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/pulls" --jq '.[0] // empty')
+          title="$tag"
+          args=(--target "$SHA" --latest)
+          if [ -n "$pr" ]; then
+            number=$(jq -r '.number' <<< "$pr")
+            title="$tag: $(jq -r '.title' <<< "$pr")"
+            if [ "$(jq -r '.user.login' <<< "$pr")" = "dependabot[bot]" ] || [ -z "$(jq -r '.body // empty' <<< "$pr")" ]; then
+              args+=(--generate-notes)
+            else
+              jq -r '.body' <<< "$pr" > notes.md
+              printf '\n\nPR #%s\n' "$number" >> notes.md
+              args+=(--notes-file notes.md)
+            fi
+          else
+            args+=(--generate-notes)
+          fi
+          gh release create "$tag" --title "$title" "${args[@]}"
