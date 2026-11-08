@@ -4,8 +4,7 @@
     "outDir": "./out-tsc/spec",
     "types": [
       "jasmine",
-      "node",
-      "facebook-js-sdk"
+      "node"
     ]
   },
   "files": [

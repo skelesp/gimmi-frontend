@@ -1,8 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
-import { SocialAuthService } from 'angularx-social-login';
-import { NEVER } from 'rxjs';
 
 import { environment } from 'src/environments/environment';
 import { NotificationService } from 'src/app/shared/services/notification.service';
@@ -42,8 +40,7 @@ describe('UserService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         { provide: Router, useValue: router },
-        { provide: NotificationService, useValue: notifications },
-        { provide: SocialAuthService, useValue: { authState: NEVER, signOut: () => Promise.resolve() } }
+        { provide: NotificationService, useValue: notifications }
       ]
     });
     spyOn(console, 'info');
