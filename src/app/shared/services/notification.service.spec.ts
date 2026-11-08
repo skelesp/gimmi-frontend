@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Toaster } from 'ngx-toast-notifications';
+import { Toaster } from './toaster.service';
 
 import { NotificationService } from './notification.service';
 
