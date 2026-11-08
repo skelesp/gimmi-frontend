@@ -8,9 +8,10 @@ import { Person } from 'src/app/people/models/person.model';
 
 type EmailExistsRedirectType = "wishlist" | "login";
 @Component({
-  selector: 'gimmi-email-input',
-  templateUrl: './email-input.component.html',
-  styleUrls: ['./email-input.component.css']
+    selector: 'gimmi-email-input',
+    templateUrl: './email-input.component.html',
+    styleUrls: ['./email-input.component.css'],
+    standalone: false
 })
 export class EmailInputComponent implements OnInit {
   @Input() parentFormGroup: UntypedFormGroup;

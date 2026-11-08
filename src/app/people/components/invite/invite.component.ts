@@ -4,9 +4,10 @@ import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { InvitePersonData, PeopleService } from '../../service/people.service';
 
 @Component({
-  selector: 'gimmi-invite',
-  templateUrl: './invite.component.html',
-  styleUrls: ['./invite.component.css']
+    selector: 'gimmi-invite',
+    templateUrl: './invite.component.html',
+    styleUrls: ['./invite.component.css'],
+    standalone: false
 })
 export class InviteComponent implements OnInit {
   mailIcon = faEnvelope;

@@ -5,9 +5,10 @@ import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 import { DeviceDetectorService } from 'ngx-device-detector';
 
 @Component({
-  selector: 'gimmi-whatsapp-button',
-  templateUrl: './whatsapp-button.component.html',
-  styleUrls: ['./whatsapp-button.component.css']
+    selector: 'gimmi-whatsapp-button',
+    templateUrl: './whatsapp-button.component.html',
+    styleUrls: ['./whatsapp-button.component.css'],
+    standalone: false
 })
 export class WhatsappButtonComponent {
   @Input() message: string;

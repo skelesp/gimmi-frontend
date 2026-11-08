@@ -2,8 +2,9 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { Wish, wishStatus } from '../models/wish.model';
 
 @Pipe({
-  name: 'filterOnState',
-  pure: false
+    name: 'filterOnState',
+    pure: false,
+    standalone: false
 })
 export class FilterOnStatePipe implements PipeTransform {
 

@@ -6,9 +6,10 @@ import { CommunicationService, MailInfo } from 'src/app/shared/services/communic
 import { NotificationService } from 'src/app/shared/services/notification.service';
 
 @Component({
-  selector: 'gimmi-mail-to-button',
-  templateUrl: './mail-to-button.component.html',
-  styleUrls: ['./mail-to-button.component.css']
+    selector: 'gimmi-mail-to-button',
+    templateUrl: './mail-to-button.component.html',
+    styleUrls: ['./mail-to-button.component.css'],
+    standalone: false
 })
 export class MailToButtonComponent {
   @Input() url: string;

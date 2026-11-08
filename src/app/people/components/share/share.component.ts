@@ -7,9 +7,10 @@ import { Person } from '../../models/person.model';
 import { SharePopupComponent } from './share-popup/share-popup.component';
 
 @Component({
-  selector: 'gimmi-share',
-  templateUrl: './share.component.html',
-  styleUrls: ['./share.component.css']
+    selector: 'gimmi-share',
+    templateUrl: './share.component.html',
+    styleUrls: ['./share.component.css'],
+    standalone: false
 })
 export class ShareComponent {
   @Input() personToShare: Person;

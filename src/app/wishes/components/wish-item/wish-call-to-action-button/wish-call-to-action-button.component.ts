@@ -7,9 +7,10 @@ export interface CTAButtonConfig {
   onClick?: () => void;
 }
 @Component({
-  selector: 'gimmi-wish-call-to-action-button',
-  templateUrl: './wish-call-to-action-button.component.html',
-  styleUrls: ['./wish-call-to-action-button.component.css']
+    selector: 'gimmi-wish-call-to-action-button',
+    templateUrl: './wish-call-to-action-button.component.html',
+    styleUrls: ['./wish-call-to-action-button.component.css'],
+    standalone: false
 })
 export class WishCallToActionButtonComponent {
   @Input() CTAconfig : CTAButtonConfig;

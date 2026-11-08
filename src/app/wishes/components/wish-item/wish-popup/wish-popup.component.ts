@@ -7,9 +7,10 @@ import { IWishImage, Wish } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
 
 @Component({
-  selector: 'gimmi-wish-popup',
-  templateUrl: './wish-popup.component.html',
-  styleUrls: ['./wish-popup.component.css']
+    selector: 'gimmi-wish-popup',
+    templateUrl: './wish-popup.component.html',
+    styleUrls: ['./wish-popup.component.css'],
+    standalone: false
 })
 export class WishPopupComponent implements OnInit {
   @Input() wish: Wish = new Wish(null, null, null, null, null, null, null, null, null, 1);

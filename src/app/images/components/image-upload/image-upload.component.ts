@@ -13,8 +13,9 @@ import { IGekozenAfbeelding, ImagePickerComponent } from '../image-picker/image-
  * meer die achteraf hernoemd of opgeruimd moet worden.
  */
 @Component({
-  selector: 'gimmi-image-upload',
-  templateUrl: './image-upload.component.html'
+    selector: 'gimmi-image-upload',
+    templateUrl: './image-upload.component.html',
+    standalone: false
 })
 export class ImageUploadComponent implements OnDestroy {
   @Input() searchTerm: string = "";

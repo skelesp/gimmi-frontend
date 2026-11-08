@@ -4,9 +4,10 @@ import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
 
 @Component({
-  selector: 'gimmi-navigation-bar',
-  templateUrl: './navigation-bar.component.html',
-  styleUrls: ['./navigation-bar.component.css']
+    selector: 'gimmi-navigation-bar',
+    templateUrl: './navigation-bar.component.html',
+    styleUrls: ['./navigation-bar.component.css'],
+    standalone: false
 })
 export class NavigationBarComponent {
   public isNavbarCollapsed = true;

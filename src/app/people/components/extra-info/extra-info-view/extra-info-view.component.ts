@@ -3,9 +3,10 @@ import { ILike } from 'src/app/people/models/person.model';
 import { itemTypes } from '../extra-info.component';
 
 @Component({
-  selector: 'gimmi-extra-info-view',
-  templateUrl: './extra-info-view.component.html',
-  styleUrls: ['./extra-info-view.component.css']
+    selector: 'gimmi-extra-info-view',
+    templateUrl: './extra-info-view.component.html',
+    styleUrls: ['./extra-info-view.component.css'],
+    standalone: false
 })
 export class ExtraInfoViewComponent implements OnInit {
   @Input() firstName: string;

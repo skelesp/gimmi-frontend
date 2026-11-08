@@ -6,9 +6,10 @@ import { User } from 'src/app/users/models/user.model';
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'gimmi-how-to-use',
-  templateUrl: './how-to-use.component.html',
-  styleUrls: ['./how-to-use.component.css']
+    selector: 'gimmi-how-to-use',
+    templateUrl: './how-to-use.component.html',
+    styleUrls: ['./how-to-use.component.css'],
+    standalone: false
 })
 export class HowToUseComponent implements OnInit, OnDestroy {
   registerIcon : IconDefinition = faUserPlus;

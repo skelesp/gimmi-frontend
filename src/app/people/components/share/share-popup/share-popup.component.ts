@@ -6,9 +6,10 @@ import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
 
 @Component({
-  selector: 'gimmi-share-popup',
-  templateUrl: './share-popup.component.html',
-  styleUrls: ['./share-popup.component.css']
+    selector: 'gimmi-share-popup',
+    templateUrl: './share-popup.component.html',
+    styleUrls: ['./share-popup.component.css'],
+    standalone: false
 })
 export class SharePopupComponent implements OnInit, OnDestroy {
   @Input() linkToShare : string;

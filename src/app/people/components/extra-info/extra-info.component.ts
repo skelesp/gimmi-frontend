@@ -7,9 +7,10 @@ import { ActivatedRoute } from '@angular/router';
 
 export type itemTypes = 'like' | 'dislike'; 
 @Component({
-  selector: 'gimmi-extra-info',
-  templateUrl: './extra-info.component.html',
-  styleUrls: ['./extra-info.component.css']
+    selector: 'gimmi-extra-info',
+    templateUrl: './extra-info.component.html',
+    styleUrls: ['./extra-info.component.css'],
+    standalone: false
 })
 export class ExtraInfoComponent implements OnInit {
   @Input() firstName : string;

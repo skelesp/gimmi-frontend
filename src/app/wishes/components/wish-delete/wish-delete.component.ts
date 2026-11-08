@@ -6,9 +6,10 @@ import { Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 
 @Component({
-  selector: 'gimmi-wish-delete',
-  templateUrl: './wish-delete.component.html',
-  styleUrls: ['./wish-delete.component.css']
+    selector: 'gimmi-wish-delete',
+    templateUrl: './wish-delete.component.html',
+    styleUrls: ['./wish-delete.component.css'],
+    standalone: false
 })
 export class WishDeleteComponent {
   @Input() wish: Wish;

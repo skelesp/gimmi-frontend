@@ -58,9 +58,10 @@ export function boodschapVoor(err: HttpErrorResponse): string {
  * andere manier, dan worden zoeken en opladen afgebroken (was sc-1391).
  */
 @Component({
-  selector: 'gimmi-image-picker',
-  templateUrl: './image-picker.component.html',
-  styleUrls: ['./image-picker.component.css']
+    selector: 'gimmi-image-picker',
+    templateUrl: './image-picker.component.html',
+    styleUrls: ['./image-picker.component.css'],
+    standalone: false
 })
 export class ImagePickerComponent implements OnInit, OnDestroy {
   @Input() searchTerm: string = "";

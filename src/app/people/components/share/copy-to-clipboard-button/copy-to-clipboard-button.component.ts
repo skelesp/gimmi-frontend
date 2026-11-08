@@ -4,9 +4,10 @@ import { faCopy } from '@fortawesome/free-solid-svg-icons';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 
 @Component({
-  selector: 'gimmi-copy-to-clipboard-button',
-  templateUrl: './copy-to-clipboard-button.component.html',
-  styleUrls: ['./copy-to-clipboard-button.component.css']
+    selector: 'gimmi-copy-to-clipboard-button',
+    templateUrl: './copy-to-clipboard-button.component.html',
+    styleUrls: ['./copy-to-clipboard-button.component.css'],
+    standalone: false
 })
 export class CopyToClipboardButtonComponent{
   @Input() url: string;

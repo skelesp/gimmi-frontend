@@ -8,9 +8,10 @@ export interface BannerConfig {
   bannerIcon: IconDefinition 
 }
 @Component({
-  selector: 'gimmi-wish-banner',
-  templateUrl: './wish-banner.component.html',
-  styleUrls: ['./wish-banner.component.css']
+    selector: 'gimmi-wish-banner',
+    templateUrl: './wish-banner.component.html',
+    styleUrls: ['./wish-banner.component.css'],
+    standalone: false
 })
 export class WishBannerComponent {
   @Input() bannerConfig : BannerConfig = {text: null, backgroundColor: null, bannerIcon: null};

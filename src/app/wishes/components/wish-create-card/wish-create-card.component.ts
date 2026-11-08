@@ -11,9 +11,10 @@ import { WishService } from '../../services/wish.service';
 import { WishPopupComponent } from '../wish-item/wish-popup/wish-popup.component';
 
 @Component({
-  selector: 'gimmi-wish-create-card',
-  templateUrl: './wish-create-card.component.html',
-  styleUrls: ['./wish-create-card.component.css']
+    selector: 'gimmi-wish-create-card',
+    templateUrl: './wish-create-card.component.html',
+    styleUrls: ['./wish-create-card.component.css'],
+    standalone: false
 })
 export class WishCreateCardComponent implements OnInit {
   @Input() receiver : Person;

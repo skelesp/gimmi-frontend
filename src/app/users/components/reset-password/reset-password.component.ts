@@ -6,9 +6,10 @@ import { NotificationService } from 'src/app/shared/services/notification.servic
 import { UserService } from '../../service/user.service';
 
 @Component({
-  selector: 'gimmi-reset-password',
-  templateUrl: './reset-password.component.html',
-  styleUrls: ['./reset-password.component.css']
+    selector: 'gimmi-reset-password',
+    templateUrl: './reset-password.component.html',
+    styleUrls: ['./reset-password.component.css'],
+    standalone: false
 })
 export class ResetPasswordComponent implements OnInit {
   resetPasswordForm: UntypedFormGroup;
