@@ -16,7 +16,7 @@ import { Toaster } from '../../services/toaster.service';
     .toast-panel { width: 100%; font-size: 1rem; line-height: 1.5; }
     .toast-card { display: block; pointer-events: auto; overflow: hidden; margin-top: 1rem;
       box-shadow: rgba(0, 0, 0, .15) 0 .2rem 1.5rem .3rem; }
-    @media (max-width: 575px) { .toast-overlay { display: flex; justify-content: flex-end; flex-direction: column; } }
+    @media (max-width: 575px) { .toast-overlay { display: flex; justify-content: flex-end; flex-direction: column; } .toast-panel { padding-bottom: 2px; } }
     @media (min-width: 576px) { .toast-panel { position: absolute; max-width: 20rem; top: 0; right: 1rem; } }
   `]
 })
