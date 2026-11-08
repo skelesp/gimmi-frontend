@@ -11,6 +11,8 @@ export default defineConfig({
   retries: 0,
   timeout: 60_000,
   expect: { timeout: 10_000 },
+  // Visuele baseline (sc-3277): geen platformnaam in het pad, want alleen de Linux-run in CI levert baselines.
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: process.env.E2E_BASE_URL || 'https://gimmi-test.pages.dev',

@@ -12,6 +12,5 @@
         <div class="my-2"><gimmi-copy-to-clipboard-button [url]="linkToShare"></gimmi-copy-to-clipboard-button></div>
         <div class="my-2"><gimmi-mail-to-button [url]="linkToShare" [person]="personToShare"></gimmi-mail-to-button></div>
         <div class="my-2"><gimmi-whatsapp-button [message]="generateMessage()"></gimmi-whatsapp-button></div>
-        <div class="my-2" *ngIf="currentUser.loginStrategy==='facebook'"><gimmi-facebook-share-button [url]="linkToShare"></gimmi-facebook-share-button></div>
     </div>
 </div>

@@ -19,16 +19,6 @@ export interface ILocalLoginInfo {
     password: string
 }
 
-export interface IFacebookUserInfo { //Zie SocialUser class van angularx-social-login
-    provider: string;
-    id: string;
-    authToken: string;
-    photoUrl: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-}
-
 export interface IDecodedUserToken {
     _id: string;
     id: string;

@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
-import { faFacebookF } from "@fortawesome/free-brands-svg-icons";
 import { UserService } from '../../service/user.service';
 import { User } from '../../models/user.model';
 
@@ -11,7 +10,6 @@ import { User } from '../../models/user.model';
 })
 export class LogoutButtonComponent {
   @Input() currentUser : User;
-  facebookIcon = faFacebookF;
   logoutIcon = faSignOutAlt;
 
   constructor(
@@ -22,7 +20,4 @@ export class LogoutButtonComponent {
     this.userService.logout("USER_EVENT");
   }
 
-  logOutFacebook(): void {
-    this.userService.logoutFromSocialAccount();
-  }
 }

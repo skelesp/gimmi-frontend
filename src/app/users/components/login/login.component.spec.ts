@@ -44,7 +44,7 @@ describe('LoginComponent', () => {
         { provide: UserService, useValue: users },
         { provide: PeopleService, useValue: jasmine.createSpyObj('PeopleService', ['findPersonByEmail']) }
       ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA] // gimmi-facebook-login-button
+      schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
   }));
 

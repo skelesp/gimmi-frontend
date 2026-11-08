@@ -1,7 +1,7 @@
 // Rechtstreekse API-aanroepen voor de opruiming van testdata. De tests zelf gaan via de UI.
 
 // Gedeelde testomgeving; overschrijfbaar als E2E_BASE_URL naar een andere omgeving wijst.
-export const apiUrl = (process.env.E2E_API_URL || 'https://test-gimmi.herokuapp.com/api/').replace(/\/?$/, '/');
+export const apiUrl = (process.env.E2E_API_URL || 'https://api-test.gimmi.be/api/').replace(/\/?$/, '/');
 
 export const smokePassword = 'Smoke-test-1!';
 
