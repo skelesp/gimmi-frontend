@@ -24,7 +24,7 @@ module.exports = function (config) {
       // (statements/branches/functions/lines).
       thresholds: {
         emitWarning: false,
-        global: { statements: 84, branches: 84, functions: 77, lines: 83 }
+        global: { statements: 93, branches: 93, functions: 92, lines: 93 }
       }
     },
     // 'coverage-istanbul' staat er expliciet in: anders voegt de CLI bij --code-coverage
