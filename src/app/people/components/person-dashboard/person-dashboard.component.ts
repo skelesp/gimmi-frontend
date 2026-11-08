@@ -4,7 +4,7 @@ import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
 import { IExtraPersonInfo, Person } from '../../models/person.model';
 import { PeopleService } from '../../service/people.service';
-import { NgIf } from '@angular/common';
+
 import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { ShareComponent } from '../share/share.component';
 import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
@@ -16,7 +16,7 @@ import { WishListComponent } from '../../../wishes/components/wish-list/wish-lis
     templateUrl: './person-dashboard.component.html',
     styleUrls: ['./person-dashboard.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgIf, NgbAlert, ShareComponent, CursorPointerDirective, RouterLink, ExtraInfoComponent, WishListComponent]
+    imports: [NgbAlert, ShareComponent, CursorPointerDirective, RouterLink, ExtraInfoComponent, WishListComponent]
 })
 export class PersonDashboardComponent implements OnInit {
   person : Person;

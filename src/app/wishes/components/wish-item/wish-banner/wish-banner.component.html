@@ -1,4 +1,5 @@
-<span   *ngIf="bannerConfig?.text" 
+@if (bannerConfig?.text) {
+  <span
         [ngClass]="{
             'w-75 badge fw-normal text-wrap text-center badge-multiline disabled': true,
             'badge-wish-card-banner': true,
@@ -6,5 +7,6 @@
             'text-bg-danger': bannerConfig.backgroundColor === 'danger',
             'text-bg-success': bannerConfig.backgroundColor === 'success'
         }"
-><fa-icon [icon]="bannerConfig.bannerIcon"></fa-icon> {{bannerConfig.text}}
-</span>
+    ><fa-icon [icon]="bannerConfig.bannerIcon"></fa-icon> {{bannerConfig.text}}
+  </span>
+}

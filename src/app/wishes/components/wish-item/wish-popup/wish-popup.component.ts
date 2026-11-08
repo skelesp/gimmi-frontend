@@ -6,7 +6,7 @@ import { UserService } from 'src/app/users/service/user.service';
 import { IWishImage, Wish } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
 import { CursorPointerDirective } from '../../../../shared/directives/cursor-pointer.directive';
-import { NgIf } from '@angular/common';
+
 import { ImageUploadComponent } from '../../../../images/components/image-upload/image-upload.component';
 import { ImageViewComponent } from '../../../../images/components/image-view/image-view.component';
 
@@ -15,7 +15,7 @@ import { ImageViewComponent } from '../../../../images/components/image-view/ima
     templateUrl: './wish-popup.component.html',
     styleUrls: ['./wish-popup.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [CursorPointerDirective, NgIf, NgbAlert, FormsModule, ReactiveFormsModule, ImageUploadComponent, ImageViewComponent]
+    imports: [CursorPointerDirective, NgbAlert, FormsModule, ReactiveFormsModule, ImageUploadComponent, ImageViewComponent]
 })
 export class WishPopupComponent implements OnInit {
   @Input() wish: Wish = new Wish(null, null, null, null, null, null, null, null, null, 1);

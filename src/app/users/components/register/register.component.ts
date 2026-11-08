@@ -4,7 +4,7 @@ import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { INewUserRequestInfo } from '../../service/user.service';
 import { UserService } from '../../service/user.service';
-import { NgIf } from '@angular/common';
+
 import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
 import { RouterLink } from '@angular/router';
@@ -17,7 +17,7 @@ import { PasswordCheckComponent } from '../../../shared/components/form-componen
     templateUrl: './register.component.html',
     styleUrls: ['./register.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgIf, NgbAlert, CursorPointerDirective, RouterLink, ForgotPasswordLinkComponent, FormsModule, ReactiveFormsModule, EmailInputComponent, PasswordCheckComponent]
+    imports: [NgbAlert, CursorPointerDirective, RouterLink, ForgotPasswordLinkComponent, FormsModule, ReactiveFormsModule, EmailInputComponent, PasswordCheckComponent]
 })
 export class RegisterComponent implements OnInit {
   invitedFor: string;

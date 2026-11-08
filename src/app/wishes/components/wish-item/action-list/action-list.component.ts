@@ -4,14 +4,14 @@ import { ActionListItemConfig, ActionListItemComponent } from './action-list-ite
 import { NgbDropdown, NgbDropdownToggle, NgbDropdownMenu } from '@ng-bootstrap/ng-bootstrap/dropdown';
 import { CursorPointerDirective } from '../../../../shared/directives/cursor-pointer.directive';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { NgFor } from '@angular/common';
+
 
 @Component({
     selector: 'gimmi-action-list',
     templateUrl: './action-list.component.html',
     styleUrls: ['./action-list.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgbDropdown, CursorPointerDirective, NgbDropdownToggle, FaIconComponent, NgbDropdownMenu, NgFor, ActionListItemComponent]
+    imports: [NgbDropdown, CursorPointerDirective, NgbDropdownToggle, FaIconComponent, NgbDropdownMenu, ActionListItemComponent]
 })
 export class ActionListComponent {
   @Input() actionListItems : ActionListItemConfig[];

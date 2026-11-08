@@ -1,6 +1,6 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { NgIf } from '@angular/common';
+
 import { CursorPointerDirective } from '../../../../shared/directives/cursor-pointer.directive';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
@@ -14,7 +14,7 @@ export interface CTAButtonConfig {
     templateUrl: './wish-call-to-action-button.component.html',
     styleUrls: ['./wish-call-to-action-button.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgIf, CursorPointerDirective, FaIconComponent]
+    imports: [CursorPointerDirective, FaIconComponent]
 })
 export class WishCallToActionButtonComponent {
   @Input() CTAconfig : CTAButtonConfig;

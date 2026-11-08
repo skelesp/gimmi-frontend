@@ -4,7 +4,7 @@ import { Wish, wishStatus } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 import { NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
-import { NgIf, NgFor } from '@angular/common';
+
 import { WishCreateCardComponent } from '../wish-create-card/wish-create-card.component';
 import { WishCardComponent } from '../wish-item/wish-card/wish-card.component';
 import { FilterOnStatePipe } from '../../pipes/filter-on-state.pipe';
@@ -14,7 +14,7 @@ import { FilterOnStatePipe } from '../../pipes/filter-on-state.pipe';
     templateUrl: './wish-list.component.html',
     styleUrls: ['./wish-list.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, CursorPointerDirective, NgIf, NgbAlert, WishCreateCardComponent, NgFor, WishCardComponent, FilterOnStatePipe]
+    imports: [NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, CursorPointerDirective, NgbAlert, WishCreateCardComponent, WishCardComponent, FilterOnStatePipe]
 })
 export class WishListComponent implements OnInit, OnChanges {
   @Input() receiver : Person;

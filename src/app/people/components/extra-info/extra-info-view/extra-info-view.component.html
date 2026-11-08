@@ -1,14 +1,28 @@
-<div *ngIf="items?.length">
-    <div class="h6" [ngSwitch]="itemType">
-        <span *ngSwitchCase="'likes'">Waarmee kan je {{firstName}} een plezier doen?</span>
-        <span *ngSwitchCase="'dislikes'">Wat krijgt {{firstName}} liever niet?</span>
+@if (items?.length) {
+  <div>
+    <div class="h6">
+      @switch (itemType) {
+        @case ('likes') {
+          <span>Waarmee kan je {{firstName}} een plezier doen?</span>
+        }
+        @case ('dislikes') {
+          <span>Wat krijgt {{firstName}} liever niet?</span>
+        }
+      }
     </div>
     <div class="font-sm">
-        <ul>
-            <li *ngFor="let item of items">
-                <span *ngIf="!item.url">{{item.text}}</span>
-                <a *ngIf="item.url" [href]="item.url" target="_blank">{{item.text}}</a>
-            </li>
-        </ul>
+      <ul>
+        @for (item of items; track item) {
+          <li>
+            @if (!item.url) {
+              <span>{{item.text}}</span>
+            }
+            @if (item.url) {
+              <a [href]="item.url" target="_blank">{{item.text}}</a>
+            }
+          </li>
+        }
+      </ul>
     </div>
-</div>
+  </div>
+}

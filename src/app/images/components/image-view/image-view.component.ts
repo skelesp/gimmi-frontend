@@ -1,7 +1,7 @@
 import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { ImageService, STANDAARD_AFBEELDING } from '../../services/image.service';
-import { NgIf } from '@angular/common';
+
 
 /**
  * Toont de afbeelding van een wens (sc-2911): een gewone <img> met srcset, zodat de browser
@@ -15,7 +15,7 @@ import { NgIf } from '@angular/common';
     templateUrl: './image-view.component.html',
     styleUrls: ['./image-view.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgIf]
+    imports: []
 })
 export class ImageViewComponent implements OnChanges {
   @Input() image : IWishImage = null;

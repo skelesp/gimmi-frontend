@@ -6,14 +6,14 @@ import { User } from 'src/app/users/models/user.model';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { RouterLink } from '@angular/router';
 import { CursorPointerDirective } from '../../shared/directives/cursor-pointer.directive';
-import { NgIf } from '@angular/common';
+
 
 @Component({
     selector: 'gimmi-landing-page-banner',
     templateUrl: './landing-page-banner.component.html',
     styleUrls: ['./landing-page-banner.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [FaIconComponent, RouterLink, CursorPointerDirective, NgIf]
+    imports: [FaIconComponent, RouterLink, CursorPointerDirective]
 })
 export class LandingPageBannerComponent implements OnInit, OnDestroy {
   checkIcon = faCheckCircle;

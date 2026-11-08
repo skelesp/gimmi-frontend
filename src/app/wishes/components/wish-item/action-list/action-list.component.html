@@ -1,9 +1,11 @@
 <div ngbDropdown class="float-end me-1" [container]="'body'">
-    <div ngbDropdownToggle>
-        <fa-icon [icon]="actionListIcon" size="2x" class="px-1"></fa-icon>
-        <!-- Vertical ellipsis because this is more compact on mobile designs -->
-    </div>
-    <div ngbDropdownMenu class="mt-3">
-        <gimmi-action-list-item *ngFor="let item of actionListItems" [itemConfig]="item"></gimmi-action-list-item>
-    </div>
+  <div ngbDropdownToggle>
+    <fa-icon [icon]="actionListIcon" size="2x" class="px-1"></fa-icon>
+    <!-- Vertical ellipsis because this is more compact on mobile designs -->
+  </div>
+  <div ngbDropdownMenu class="mt-3">
+    @for (item of actionListItems; track item) {
+      <gimmi-action-list-item [itemConfig]="item"></gimmi-action-list-item>
+    }
+  </div>
 </div>

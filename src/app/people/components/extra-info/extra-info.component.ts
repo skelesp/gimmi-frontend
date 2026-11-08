@@ -4,19 +4,19 @@ import { faPencilAlt, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons
 import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PeopleService } from '../../service/people.service';
 import { ActivatedRoute } from '@angular/router';
-import { NgIf } from '@angular/common';
+
 import { ExtraInfoViewComponent } from './extra-info-view/extra-info-view.component';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
 import { ExtraInfoEditComponent } from './extra-info-edit/extra-info-edit.component';
 
-export type itemTypes = 'like' | 'dislike'; 
+export type itemTypes = 'likes' | 'dislikes'; 
 @Component({
     selector: 'gimmi-extra-info',
     templateUrl: './extra-info.component.html',
     styleUrls: ['./extra-info.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgIf, ExtraInfoViewComponent, FaIconComponent, CursorPointerDirective, FormsModule, ReactiveFormsModule, ExtraInfoEditComponent]
+    imports: [ExtraInfoViewComponent, FaIconComponent, CursorPointerDirective, FormsModule, ReactiveFormsModule, ExtraInfoEditComponent]
 })
 export class ExtraInfoComponent implements OnInit {
   @Input() firstName : string;

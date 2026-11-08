@@ -7,14 +7,14 @@ import { UserService } from 'src/app/users/service/user.service';
 import { IReservation, Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
-import { NgFor, NgIf } from '@angular/common';
+
 
 @Component({
     selector: 'gimmi-wish-reservation',
     templateUrl: './wish-reservation.component.html',
     styleUrls: ['./wish-reservation.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [CursorPointerDirective, FormsModule, ReactiveFormsModule, NgFor, NgIf]
+    imports: [CursorPointerDirective, FormsModule, ReactiveFormsModule]
 })
 export class WishReservationComponent implements OnInit {
   @Input() wish: Wish;

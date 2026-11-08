@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Toaster } from '../../services/toaster.service';
-import { NgFor } from '@angular/common';
+
 import { CustomToastComponent } from '../custom-toast/custom-toast.component';
 
 // Zelfde plaatsing en schaduw als de vroegere ngx-toast-notifications: rechtsboven vanaf 576px,
@@ -10,7 +10,9 @@ import { CustomToastComponent } from '../custom-toast/custom-toast.component';
     template: `
     <div class="toast-overlay">
       <div class="toast-panel">
-        <gimmi-custom-toast *ngFor="let toast of toaster.toasts" class="toast-card" [toast]="toast"></gimmi-custom-toast>
+        @for (toast of toaster.toasts; track toast) {
+          <gimmi-custom-toast class="toast-card" [toast]="toast"></gimmi-custom-toast>
+        }
       </div>
     </div>`,
     styles: [`
@@ -22,7 +24,7 @@ import { CustomToastComponent } from '../custom-toast/custom-toast.component';
     @media (min-width: 576px) { .toast-panel { position: absolute; max-width: 20rem; top: 0; right: 1rem; } }
   `],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgFor, CustomToastComponent]
+    imports: [CustomToastComponent]
 })
 export class ToastContainerComponent {
   constructor(public toaster: Toaster) { }

@@ -1,76 +1,96 @@
 <div class="modal-header">
-    <h3 class="modal-title" id="kiezer-titel">Kies een afbeelding</h3>
-    <button type="button" class="btn-close" aria-label="Close" (click)="annuleer()"></button>
+  <h3 class="modal-title" id="kiezer-titel">Kies een afbeelding</h3>
+  <button type="button" class="btn-close" aria-label="Close" (click)="annuleer()"></button>
 </div>
 
 <div class="modal-body">
-    <ul ngbNav #nav="ngbNav" [(activeId)]="tab" (navChange)="kiesTab()" class="nav-tabs mb-3">
-        <li ngbNavItem="zoeken">
-            <a ngbNavLink class="text-secondary">Zoeken</a>
-            <ng-template ngbNavContent>
-                <div class="input-group input-group-sm mb-3" role="search">
-                    <input type="search" class="form-control form-control-sm" placeholder="Zoek een afbeelding"
-                           aria-label="Zoekterm voor afbeeldingen" maxlength="200" ngbAutofocus
-                           [(ngModel)]="zoekterm" (keydown.enter)="zoekMetEnter($event)" />
-                    <button class="btn btn-danger" type="button" (click)="zoek()" [disabled]="zoeken">
-                            <i class="fa fa-search" aria-hidden="true"></i> Zoek
-                        </button>
-                </div>
+  <ul ngbNav #nav="ngbNav" [(activeId)]="tab" (navChange)="kiesTab()" class="nav-tabs mb-3">
+    <li ngbNavItem="zoeken">
+      <a ngbNavLink class="text-secondary">Zoeken</a>
+      <ng-template ngbNavContent>
+        <div class="input-group input-group-sm mb-3" role="search">
+          <input type="search" class="form-control form-control-sm" placeholder="Zoek een afbeelding"
+            aria-label="Zoekterm voor afbeeldingen" maxlength="200" ngbAutofocus
+            [(ngModel)]="zoekterm" (keydown.enter)="zoekMetEnter($event)" />
+            <button class="btn btn-danger" type="button" (click)="zoek()" [disabled]="zoeken">
+              <i class="fa fa-search" aria-hidden="true"></i> Zoek
+            </button>
+          </div>
 
-                <div *ngIf="zoeken" class="text-center my-4">
-                    <div class="spinner-border text-danger" role="status"><span class="visually-hidden">Zoeken…</span></div>
-                </div>
-                <ngb-alert *ngIf="zoekFout" type="warning" [dismissible]="false">{{ zoekFout }}</ngb-alert>
-                <ngb-alert *ngIf="!zoeken && resultaten?.length === 0" type="info" [dismissible]="false">
-                    Geen afbeeldingen gevonden. Probeer een andere zoekterm.
-                </ngb-alert>
-                <p *ngIf="!zoeken && resultaten === null && !zoekFout" class="text-muted">
-                    Geef een zoekterm in, bijvoorbeeld de naam van het product.
-                </p>
+          @if (zoeken) {
+            <div class="text-center my-4">
+              <div class="spinner-border text-danger" role="status"><span class="visually-hidden">Zoeken…</span></div>
+            </div>
+          }
+          @if (zoekFout) {
+            <ngb-alert type="warning" [dismissible]="false">{{ zoekFout }}</ngb-alert>
+          }
+          @if (!zoeken && resultaten?.length === 0) {
+            <ngb-alert type="info" [dismissible]="false">
+              Geen afbeeldingen gevonden. Probeer een andere zoekterm.
+            </ngb-alert>
+          }
+          @if (!zoeken && resultaten === null && !zoekFout) {
+            <p class="text-muted">
+              Geef een zoekterm in, bijvoorbeeld de naam van het product.
+            </p>
+          }
 
-                <div *ngIf="!zoeken && resultaten?.length" class="raster">
-                    <button *ngFor="let r of resultaten" type="button" class="resultaat"
-                            [class.bezig]="bezigMet === r.url" [class.mislukt]="mislukt.has(r.url)"
-                            [disabled]="!!bezigMet || mislukt.has(r.url)"
-                            [title]="r.title + (r.source ? ' (' + r.source + ')' : '')"
-                            (click)="kies(r)">
-                        <img [src]="r.thumbnail" [alt]="r.title" loading="lazy" referrerpolicy="no-referrer"
-                             (error)="verwijderResultaat(r)" />
-                        <span *ngIf="bezigMet === r.url" class="spinner-border text-light" role="status">
-                            <span class="visually-hidden">Bezig met opladen</span>
-                        </span>
-                    </button>
-                </div>
-                <small class="d-block text-muted mt-2">Zoekresultaten van Brave Search</small>
-            </ng-template>
+          @if (!zoeken && resultaten?.length) {
+            <div class="raster">
+              @for (r of resultaten; track r) {
+                <button type="button" class="resultaat"
+                  [class.bezig]="bezigMet === r.url" [class.mislukt]="mislukt.has(r.url)"
+                  [disabled]="!!bezigMet || mislukt.has(r.url)"
+                  [title]="r.title + (r.source ? ' (' + r.source + ')' : '')"
+                  (click)="kies(r)">
+                  <img [src]="r.thumbnail" [alt]="r.title" loading="lazy" referrerpolicy="no-referrer"
+                    (error)="verwijderResultaat(r)" />
+                    @if (bezigMet === r.url) {
+                      <span class="spinner-border text-light" role="status">
+                        <span class="visually-hidden">Bezig met opladen</span>
+                      </span>
+                    }
+                  </button>
+                }
+              </div>
+            }
+            <small class="d-block text-muted mt-2">Zoekresultaten van Brave Search</small>
+          </ng-template>
         </li>
         <li ngbNavItem="bestand">
-            <a ngbNavLink class="text-secondary">Foto / bestand</a>
-            <ng-template ngbNavContent>
-                <p>Neem een foto of kies een afbeelding van je toestel.</p>
-                <label *ngIf="toonCamera" class="btn btn-danger me-2" [class.disabled]="!!bezigMet">
-                    <i class="fa fa-camera me-1" aria-hidden="true"></i> Foto nemen
-                    <input type="file" accept="image/*" capture="environment" class="d-none"
-                           [disabled]="!!bezigMet" (change)="bestandGekozen($event)" />
+          <a ngbNavLink class="text-secondary">Foto / bestand</a>
+          <ng-template ngbNavContent>
+            <p>Neem een foto of kies een afbeelding van je toestel.</p>
+            @if (toonCamera) {
+              <label class="btn btn-danger me-2" [class.disabled]="!!bezigMet">
+                <i class="fa fa-camera me-1" aria-hidden="true"></i> Foto nemen
+                <input type="file" accept="image/*" capture="environment" class="d-none"
+                  [disabled]="!!bezigMet" (change)="bestandGekozen($event)" />
                 </label>
-                <label class="btn" [class.btn-danger]="!toonCamera" [class.btn-outline-danger]="toonCamera"
-                       [class.disabled]="!!bezigMet">
-                    <i class="fa fa-folder-open me-1" aria-hidden="true"></i> Bestand kiezen
-                    <input type="file" accept="image/*" class="d-none" data-testid="bestand-kiezen"
-                           [disabled]="!!bezigMet" (change)="bestandGekozen($event)" />
+              }
+              <label class="btn" [class.btn-danger]="!toonCamera" [class.btn-outline-danger]="toonCamera"
+                [class.disabled]="!!bezigMet">
+                <i class="fa fa-folder-open me-1" aria-hidden="true"></i> Bestand kiezen
+                <input type="file" accept="image/*" class="d-none" data-testid="bestand-kiezen"
+                  [disabled]="!!bezigMet" (change)="bestandGekozen($event)" />
                 </label>
-                <div *ngIf="bezigMet === 'bestand'" class="d-flex align-items-center text-muted mt-2">
+                @if (bezigMet === 'bestand') {
+                  <div class="d-flex align-items-center text-muted mt-2">
                     <div class="spinner-border spinner-border-sm text-danger me-2" aria-hidden="true"></div>
                     Bezig met opladen…
-                </div>
-            </ng-template>
-        </li>
-    </ul>
+                  </div>
+                }
+              </ng-template>
+            </li>
+          </ul>
 
-    <ngb-alert *ngIf="uploadFout" type="warning" [dismissible]="false">{{ uploadFout }}</ngb-alert>
-    <div [ngbNavOutlet]="nav"></div>
-</div>
+          @if (uploadFout) {
+            <ngb-alert type="warning" [dismissible]="false">{{ uploadFout }}</ngb-alert>
+          }
+          <div [ngbNavOutlet]="nav"></div>
+        </div>
 
-<div class="modal-footer">
-    <button class="btn btn-outline-danger" type="button" (click)="annuleer()">Annuleer</button>
-</div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-danger" type="button" (click)="annuleer()">Annuleer</button>
+        </div>

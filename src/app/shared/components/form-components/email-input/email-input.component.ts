@@ -5,7 +5,7 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { faAt } from '@fortawesome/free-solid-svg-icons'
 import { PeopleService } from 'src/app/people/service/people.service';
 import { Person } from 'src/app/people/models/person.model';
-import { NgIf } from '@angular/common';
+
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { BindQueryparamToInputDirective } from '../../../directives/bind-queryparam-to-input.directive';
 import { RouterLink } from '@angular/router';
@@ -17,7 +17,7 @@ type EmailExistsRedirectType = "wishlist" | "login";
     templateUrl: './email-input.component.html',
     styleUrls: ['./email-input.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [FormsModule, ReactiveFormsModule, NgIf, FaIconComponent, BindQueryparamToInputDirective, RouterLink, CursorPointerDirective]
+    imports: [FormsModule, ReactiveFormsModule, FaIconComponent, BindQueryparamToInputDirective, RouterLink, CursorPointerDirective]
 })
 export class EmailInputComponent implements OnInit {
   @Input() parentFormGroup: UntypedFormGroup;

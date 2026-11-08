@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from '../../service/user.service';
-import { NgIf } from '@angular/common';
+
 import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { EmailInputComponent } from '../../../shared/components/form-components/email-input/email-input.component';
 
@@ -11,7 +11,7 @@ import { EmailInputComponent } from '../../../shared/components/form-components/
     templateUrl: './forgot-password.component.html',
     styleUrls: ['./forgot-password.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgIf, NgbAlert, FormsModule, ReactiveFormsModule, EmailInputComponent]
+    imports: [NgbAlert, FormsModule, ReactiveFormsModule, EmailInputComponent]
 })
 export class ForgotPasswordComponent implements OnInit {
   forgotPasswordForm : UntypedFormGroup;

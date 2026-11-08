@@ -1,38 +1,42 @@
-<div class="container" *ngIf='!person'>
+@if (!person) {
+  <div class="container">
     <ngb-alert>Sorry, geen lijst gevonden.</ngb-alert>
-</div>
+  </div>
+}
 
-<div *ngIf='person'>
+@if (person) {
+  <div>
     <div class="row mb-2">
-        <div class="col-auto">
-            <h1>{{person?.firstName}} {{person?.lastName}}</h1>
-        </div>
-        <div class="col col-sm-4 float-start">
-            <gimmi-share [personToShare]="person"></gimmi-share>
-            <a  class="badge rounded-pill text-bg-secondary float-end" 
-                [hidden]='currrentUser?.id === person?.id'
-                [routerLink]='["/people", $safeNavigationMigration(currrentUser?.id)]'
-                *ngIf='currrentUser'>
-                Ga naar mijn lijst
-            </a>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col">
-            <gimmi-extra-info 
-                [firstName]="person.firstName" 
-                [likes]="$safeNavigationMigration(person.extraInfo?.likes)" 
-                [dislikes]="$safeNavigationMigration(person.extraInfo?.dislikes)"
-                [personIsUser]="person?.id === currrentUser?.id"
-                (extraInfoSaved)="updateExtraInfo($event)">
-            </gimmi-extra-info>
-        </div>
+      <div class="col-auto">
+        <h1>{{person?.firstName}} {{person?.lastName}}</h1>
+      </div>
+      <div class="col col-sm-4 float-start">
+        <gimmi-share [personToShare]="person"></gimmi-share>
+        @if (currrentUser) {
+          <a  class="badge rounded-pill text-bg-secondary float-end"
+            [hidden]='currrentUser?.id === person?.id'
+            [routerLink]='["/people", $safeNavigationMigration(currrentUser?.id)]'
+            >
+            Ga naar mijn lijst
+          </a>
+        }
+      </div>
     </div>
     <div class="row">
-        <div class="col">
-            <gimmi-wish-list [receiver]='person'></gimmi-wish-list>
-        </div>
+      <div class="col">
+        <gimmi-extra-info
+          [firstName]="person.firstName"
+          [likes]="$safeNavigationMigration(person.extraInfo?.likes)"
+          [dislikes]="$safeNavigationMigration(person.extraInfo?.dislikes)"
+          [personIsUser]="person?.id === currrentUser?.id"
+          (extraInfoSaved)="updateExtraInfo($event)">
+        </gimmi-extra-info>
+      </div>
     </div>
-
-</div>
+    <div class="row">
+      <div class="col">
+        <gimmi-wish-list [receiver]='person'></gimmi-wish-list>
+      </div>
+    </div>
+  </div>
+}

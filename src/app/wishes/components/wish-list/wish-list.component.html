@@ -1,31 +1,38 @@
 <div class="row my-2">
-    <div class="col">
-        <ul ngbNav [(activeId)]="activeTab" class="nav-tabs">
-            <li [ngbNavItem]="'Open'">
-                <a ngbNavLink class="text-secondary" (click)="setWishlistFilter('Open');$event.preventDefault()">Wensenlijst</a>
-            </li>
-            <li [ngbNavItem]="'Received'">
-                <a ngbNavLink class="text-secondary" (click)="setWishlistFilter('Received');$event.preventDefault()">Ontvangen cadeaus</a>
-            </li>
-        </ul>
-    </div>
-</div>   
-<div *ngIf="wishes?.length === 0 && !loading">
+  <div class="col">
+    <ul ngbNav [(activeId)]="activeTab" class="nav-tabs">
+      <li [ngbNavItem]="'Open'">
+        <a ngbNavLink class="text-secondary" (click)="setWishlistFilter('Open');$event.preventDefault()">Wensenlijst</a>
+      </li>
+      <li [ngbNavItem]="'Received'">
+        <a ngbNavLink class="text-secondary" (click)="setWishlistFilter('Received');$event.preventDefault()">Ontvangen cadeaus</a>
+      </li>
+    </ul>
+  </div>
+</div>
+@if (wishes?.length === 0 && !loading) {
+  <div>
     <ngb-alert type="info">
-        <p>Er staan nog geen wensen op deze lijst. Vraag {{receiver.firstName}} om wensen op de lijst toe te voegen,
-            zodat jij het perfect cadeau kan kopen...</p>
+      <p>Er staan nog geen wensen op deze lijst. Vraag {{receiver.firstName}} om wensen op de lijst toe te voegen,
+      zodat jij het perfect cadeau kan kopen...</p>
     </ngb-alert>
-</div>
+  </div>
+}
 
-<div *ngIf="loading" class="spinner-border text-danger" role="status">
+@if (loading) {
+  <div class="spinner-border text-danger" role="status">
     <span class="visually-hidden">Loading...</span>
-</div>
-<div *ngIf="wishes && !loading" class="card-columns">
+  </div>
+}
+@if (wishes && !loading) {
+  <div class="card-columns">
     <gimmi-wish-create-card
-        [receiver]="receiver"
+      [receiver]="receiver"
     ></gimmi-wish-create-card>
-    <gimmi-wish-card 
-        *ngFor="let wish of wishes | filterOnState:wishlistFilter" 
+    @for (wish of wishes | filterOnState:wishlistFilter; track wish) {
+      <gimmi-wish-card
         [wish]="wish">
-    </gimmi-wish-card>
-</div>
+      </gimmi-wish-card>
+    }
+  </div>
+}

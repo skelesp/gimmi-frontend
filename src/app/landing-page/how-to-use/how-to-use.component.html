@@ -1,60 +1,68 @@
 <div class="container">
-    <div class="row">
-        <div class="col-lg-12 text-center">
-            <h2 class="section-heading">Hoe werkt het?</h2>
-            <hr class="primary">
-        </div>
+  <div class="row">
+    <div class="col-lg-12 text-center">
+      <h2 class="section-heading">Hoe werkt het?</h2>
+      <hr class="primary">
     </div>
+  </div>
 </div>
 <div class="container">
-    <div class="row">
-        <div class="col-lg-3 col-md-6 text-center">
-            <fa-icon 
-                [icon]="registerIcon" size="4x" class="text-danger"
-                ngbTooltip="Ga naar de registratiepagina" tooltipClass="customTooltip" placement="bottom-left"
-                [routerLink]="['/users/register']"
-            ></fa-icon>
-            <h3>Registreer</h3>
-            <p class="text-muted">Registreer je meteen en zet je eerste stappen om eindelijk jouw favoriete
-                cadeau's te krijgen, maak hier je ultieme wensenlijst aan!</p>
-        </div>
-        <div class="col-lg-3 col-md-6 text-center" >
-            <fa-icon *ngIf='!currentUser'
-                [icon]="listIcon" size="4x" class="text-danger" ngbTooltip="Registreer en ga naar je lijst"
-                tooltipClass="customTooltip" placement="bottom-left" [routerLink]="['/users/register']"
-            ></fa-icon>
-            <fa-icon *ngIf='currentUser'
-                [icon]="listIcon" size="4x" class="text-danger" ngbTooltip="Ga naar je eigen lijst"
-                tooltipClass="customTooltip" placement="bottom-left" [routerLink]='["/people", $safeNavigationMigration(currentUser?.id)]'
-            ></fa-icon>
-            <h3>Voeg wensen toe</h3>
-            <p class="text-muted">Ontdek je iets leuks, zet het dadelijk op je lijstje. Of kopieer leuke ideeën
-                van een vriend op jouw lijstje!</p>
-        </div>
-        <div class="col-lg-3 col-md-6 text-center">
-            <fa-icon *ngIf="!currentUser?.id" [icon]="sendIcon" size="4x" ></fa-icon>
-            <gimmi-share [shareIcon]="sendIcon" [personToShare]="currentUser" [iconSize]="'4x'" *ngIf="currentUser?.id"
-                         ngbTooltip="Communiceer je lijst" tooltipClass="customTooltip" placement="bottom-left"
-                         class="text-danger">
-            </gimmi-share>
-            <h3>Verspreid je lijst</h3>
-            <p class="text-muted">Nodig al je vrienden uit om jouw wensen te ontdekken, zo laat je ze eindelijk
-                weten wat jouw ultieme cadeau is.</p>
-        </div>
-        <div class="col-lg-3 col-md-6 text-center">
-            <img src="../../../assets/logoGIMMI.png" class="img-fluid rounded logo-in-service-box" alt="Gimmi logo"
-                uib-tooltip="Helaas geen link hier... Wacht geduldig tot iemand je een cadeau geeft."
-                tooltip-class="customTooltip" tooltip-placement="bottom-left">
-            <h3>Krijg cadeaus!</h3>
-            <p class="text-muted">Stop maar met het oefenen van je "Ooooh, zo'n leuk cadeau" gezicht. Vanaf nu
-                krijg je enkel nog cadeaus die je écht wilt!</p>
-        </div>
+  <div class="row">
+    <div class="col-lg-3 col-md-6 text-center">
+      <fa-icon
+        [icon]="registerIcon" size="4x" class="text-danger"
+        ngbTooltip="Ga naar de registratiepagina" tooltipClass="customTooltip" placement="bottom-left"
+        [routerLink]="['/users/register']"
+      ></fa-icon>
+      <h3>Registreer</h3>
+      <p class="text-muted">Registreer je meteen en zet je eerste stappen om eindelijk jouw favoriete
+      cadeau's te krijgen, maak hier je ultieme wensenlijst aan!</p>
     </div>
-</div>
-<div class="container">
-    <div class="row">
-        <div class="col-lg-12 text-center">
-            <hr class="primary">
-        </div>
+    <div class="col-lg-3 col-md-6 text-center" >
+      @if (!currentUser) {
+        <fa-icon
+          [icon]="listIcon" size="4x" class="text-danger" ngbTooltip="Registreer en ga naar je lijst"
+          tooltipClass="customTooltip" placement="bottom-left" [routerLink]="['/users/register']"
+        ></fa-icon>
+      }
+      @if (currentUser) {
+        <fa-icon
+          [icon]="listIcon" size="4x" class="text-danger" ngbTooltip="Ga naar je eigen lijst"
+          tooltipClass="customTooltip" placement="bottom-left" [routerLink]='["/people", $safeNavigationMigration(currentUser?.id)]'
+        ></fa-icon>
+      }
+      <h3>Voeg wensen toe</h3>
+      <p class="text-muted">Ontdek je iets leuks, zet het dadelijk op je lijstje. Of kopieer leuke ideeën
+      van een vriend op jouw lijstje!</p>
     </div>
-</div>
+    <div class="col-lg-3 col-md-6 text-center">
+      @if (!currentUser?.id) {
+        <fa-icon [icon]="sendIcon" size="4x" ></fa-icon>
+      }
+      @if (currentUser?.id) {
+        <gimmi-share [shareIcon]="sendIcon" [personToShare]="currentUser" [iconSize]="'4x'"
+          ngbTooltip="Communiceer je lijst" tooltipClass="customTooltip" placement="bottom-left"
+          class="text-danger">
+        </gimmi-share>
+      }
+      <h3>Verspreid je lijst</h3>
+      <p class="text-muted">Nodig al je vrienden uit om jouw wensen te ontdekken, zo laat je ze eindelijk
+      weten wat jouw ultieme cadeau is.</p>
+    </div>
+    <div class="col-lg-3 col-md-6 text-center">
+      <img src="../../../assets/logoGIMMI.png" class="img-fluid rounded logo-in-service-box" alt="Gimmi logo"
+        uib-tooltip="Helaas geen link hier... Wacht geduldig tot iemand je een cadeau geeft."
+        tooltip-class="customTooltip" tooltip-placement="bottom-left">
+        <h3>Krijg cadeaus!</h3>
+        <p class="text-muted">Stop maar met het oefenen van je "Ooooh, zo'n leuk cadeau" gezicht. Vanaf nu
+        krijg je enkel nog cadeaus die je écht wilt!</p>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <hr class="primary">
+      </div>
+    </div>
+  </div>

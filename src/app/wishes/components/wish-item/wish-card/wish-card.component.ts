@@ -9,7 +9,7 @@ import { UserService } from 'src/app/users/service/user.service';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { CommunicationService } from 'src/app/shared/services/communication.service';
 import { ImageViewComponent } from '../../../../images/components/image-view/image-view.component';
-import { NgClass, NgIf, CurrencyPipe } from '@angular/common';
+import { NgClass, CurrencyPipe } from '@angular/common';
 import { WishBannerComponent } from '../wish-banner/wish-banner.component';
 import { CursorPointerDirective } from '../../../../shared/directives/cursor-pointer.directive';
 import { RouterLink } from '@angular/router';
@@ -21,7 +21,7 @@ import { WishCallToActionButtonComponent } from '../wish-call-to-action-button/w
     templateUrl: './wish-card.component.html',
     styleUrls: ['./wish-card.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ImageViewComponent, NgClass, WishBannerComponent, CursorPointerDirective, RouterLink, ActionListComponent, NgIf, WishCallToActionButtonComponent, CurrencyPipe]
+    imports: [ImageViewComponent, NgClass, WishBannerComponent, CursorPointerDirective, RouterLink, ActionListComponent, WishCallToActionButtonComponent, CurrencyPipe]
 })
 export class WishCardComponent extends WishItemComponent {
 
