@@ -99,7 +99,7 @@ describe('WishReservationComponent', () => {
 
   it('annuleren en het kruisje: niets gereserveerd', () => {
     el().querySelector<HTMLButtonElement>('.modal-footer .btn-outline-danger').click();
-    el().querySelector<HTMLButtonElement>('button.close').click();
+    el().querySelector<HTMLButtonElement>('button.btn-close').click();
     expect(activeModal.dismiss.calls.allArgs()).toEqual([['Cancel'], ['Cross click']]);
     expect(wishService.addReservation).not.toHaveBeenCalled();
   });

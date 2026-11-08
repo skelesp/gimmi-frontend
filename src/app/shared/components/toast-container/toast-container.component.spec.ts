@@ -20,7 +20,7 @@ describe('ToastContainerComponent', () => {
     toaster.open({ text: 'ok', caption: 'Gelukt!!', type: 'success' });
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('.custom-toast').length).toBe(1);
-    fixture.nativeElement.querySelector('button.close').click();
+    fixture.nativeElement.querySelector('button.btn-close').click();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('.custom-toast').length).toBe(0);
   });

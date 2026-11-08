@@ -2,14 +2,12 @@
     <h3 class="modal-title" id="modal-title">
         Reserveer {{wish.title}}
     </h3>
-    <button type="button" class="close" aria-label="Close" (click)="activeModal.dismiss('Cross click')">
-        <span aria-hidden="true">&times;</span>
-    </button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
 </div>
 
 <form class="form" (ngSubmit)="saveReservation()" [formGroup]="reservationForm">
     <div class="modal-body" id="modal-body" style="color:#000000">
-        <div class="form-group">
+        <div class="mb-3">
             <label for="handoverDate" class="form-control-label">Wanneer geef je het cadeau aan {{wish.receiver.firstName}}?</label>
             <input  type="date" class="form-control" id="handoverDate" name="handoverDate" 
                     ngbAutofocus
@@ -17,7 +15,7 @@
             <small id="handoverDateHelp" class="form-text text-muted">Je reservatie blijft onzichtbaar voor
                 {{wish.receiver.firstName}} tot na deze datum. Zo blijft het een verrassing!</small>
         </div>
-        <div class="form-group">
+        <div class="mb-3">
             <label for="reservationReason" class="form-control-label">Voor welke gelegenheid wil je deze cadeau geven?</label>
             <!-- https://stackoverflow.com/questions/38725365/how-to-show-placeholder-empty-option-in-select-control-in-angular-2 -->
             <select class="form-control" id="reservationReason" formControlName="reason">

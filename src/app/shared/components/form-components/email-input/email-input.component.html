@@ -1,11 +1,9 @@
 <div [formGroup]='parentFormGroup' class='mb-3'>
     <label *ngIf="label">{{label}}</label>
     <div class="input-group">
-        <div class="input-group-prepend">
-            <span class="input-group-text">
+        <span class="input-group-text">
                 <fa-icon [icon]="mailIcon"></fa-icon>
             </span>
-        </div>
         <input  [formControlName]="controlName" 
                 type="text" 
                 class="form-control" 
