@@ -20,7 +20,7 @@
           [class.text-success]="fill === 100"></fa-icon>
         </ng-template>
       </ngb-rating>
-      <span class="ms-2 fw-light text-secondary" [ngClass]="{'text-danger': (selectedRate < 1 && !hoveredRate)}">
+      <span class="ms-2 fw-light text-secondary" [class.text-danger]="selectedRate < 1 && !hoveredRate">
         {{ hoveredRate ? satisfactionLevels[hoveredRate] : satisfactionLevels[selectedRate] }}
       </span>
     </div>

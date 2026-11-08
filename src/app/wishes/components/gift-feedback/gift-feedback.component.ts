@@ -11,14 +11,13 @@ import { WishService } from '../../services/wish.service';
 import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
 import { NgbRating } from '@ng-bootstrap/ng-bootstrap/rating';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { NgClass } from '@angular/common';
 
 @Component({
     selector: 'gimmi-gift-feedback',
     templateUrl: './gift-feedback.component.html',
     styleUrls: ['./gift-feedback.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [CursorPointerDirective, FormsModule, ReactiveFormsModule, NgbRating, FaIconComponent, NgClass]
+    imports: [CursorPointerDirective, FormsModule, ReactiveFormsModule, NgbRating, FaIconComponent]
 })
 export class GiftFeedbackComponent implements OnInit {
   activeModal = inject(NgbActiveModal);

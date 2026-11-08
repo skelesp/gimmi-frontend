@@ -6,7 +6,7 @@
       [image]="wish.image"
     ></gimmi-image-view>
     <!-- Wish card overlay with banners -->
-    <div class="card-img-overlay p-1 text-end h6" [ngClass]="{'blurred-card-overlay': canShowReservationStatus()}">
+    <div class="card-img-overlay p-1 text-end h6" [class.blurred-card-overlay]="canShowReservationStatus()">
       <gimmi-wish-banner [bannerConfig]="wishScenarioConfig[wish.scenario].bannerConfig" ></gimmi-wish-banner>
     </div>
   </div>
@@ -16,7 +16,7 @@
       <!-- Title -->
       <div class="col-10">
         <a  class="wish-card-title text-dark text-capitalize"
-          [ngClass]="{ 'text-muted' : canShowReservationStatus()}"
+          [class.text-muted]="canShowReservationStatus()"
         [routerLink]="['/wishes', wish.id]">{{wish.title}}</a>
       </div>
       <!-- Ellipsis menu -->
@@ -29,7 +29,7 @@
     <div class="row g-0">
       <div class="col-10">
         <p  class="card-text fw-bold"
-          [ngClass]="{ 'text-muted' : wish.status !== 'Open'}">
+          [class.text-muted]="wish.status !== 'Open'">
         {{wish.price | currency : "EUR" : 'symbol' : '1.2-2'}}</p>
       </div>
     </div>
