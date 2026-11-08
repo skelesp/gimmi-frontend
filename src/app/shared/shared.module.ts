@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from "@angular/common/http";
+import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { RouterModule } from '@angular/router';
 
 import { ImagesModule } from '../images/images.module';
@@ -19,46 +19,40 @@ import { PasswordCheckComponent } from './components/form-components/password-ch
 import { SocialButtonsComponent } from './components/social-buttons/social-buttons.component';
 import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-policy.component';
 
-@NgModule({
-  declarations: [
-    BrandLogoComponent, 
-    CursorPointerDirective, 
-    CustomToastComponent, 
-    BindQueryparamToInputDirective, 
-    EmailInputComponent,
-    PasswordInputComponent,
-    PasswordCheckComponent,
-    SocialButtonsComponent,
-    PrivacyPolicyComponent
-  ],
-  imports: [
-    CommonModule,
-    NgbModule,
-    FontAwesomeModule,
-    FormsModule,
-    RouterModule,
-    HttpClientModule,
-    ReactiveFormsModule,
-    ImagesModule,
-    ClipboardModule
-  ],
-  exports: [
-    CommonModule,
-    NgbModule,
-    FontAwesomeModule,
-    FormsModule,
-    ReactiveFormsModule,
-    BrandLogoComponent,
-    CursorPointerDirective,
-    CustomToastComponent,
-    BindQueryparamToInputDirective,
-    EmailInputComponent,
-    PasswordInputComponent,
-    PasswordCheckComponent,
-    ImagesModule,
-    ClipboardModule,
-    PrivacyPolicyComponent,
-    SocialButtonsComponent
-  ]
-})
+@NgModule({ declarations: [
+        BrandLogoComponent,
+        CursorPointerDirective,
+        CustomToastComponent,
+        BindQueryparamToInputDirective,
+        EmailInputComponent,
+        PasswordInputComponent,
+        PasswordCheckComponent,
+        SocialButtonsComponent,
+        PrivacyPolicyComponent
+    ],
+    exports: [
+        CommonModule,
+        NgbModule,
+        FontAwesomeModule,
+        FormsModule,
+        ReactiveFormsModule,
+        BrandLogoComponent,
+        CursorPointerDirective,
+        CustomToastComponent,
+        BindQueryparamToInputDirective,
+        EmailInputComponent,
+        PasswordInputComponent,
+        PasswordCheckComponent,
+        ImagesModule,
+        ClipboardModule,
+        PrivacyPolicyComponent,
+        SocialButtonsComponent
+    ], imports: [CommonModule,
+        NgbModule,
+        FontAwesomeModule,
+        FormsModule,
+        RouterModule,
+        ReactiveFormsModule,
+        ImagesModule,
+        ClipboardModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class SharedModule { }
