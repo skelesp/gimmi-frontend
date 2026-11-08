@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { faThumbsUp } from '@fortawesome/free-regular-svg-icons';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { switchMap} from 'rxjs/operators';
@@ -16,7 +16,7 @@ import { WishService } from '../../services/wish.service';
 })
 export class GiftFeedbackComponent implements OnInit {
   @Input() wish: Wish;
-  giftFeedbackForm : FormGroup;
+  giftFeedbackForm : UntypedFormGroup;
   hoveredRate: number;
   selectedRate: number;
   satisfactionLevels: string[] = ['Duid je tevredenheid aan...','Helemaal niet blij', 'Niet blij', 'Neutraal', 'Blij', 'Heel blij'];
@@ -29,11 +29,11 @@ export class GiftFeedbackComponent implements OnInit {
 
   ngOnInit(): void {
     let defaultReceivedDate = new Date(this.wish.reservation.reservationDate).toISOString().slice(0, 10);
-    this.giftFeedbackForm = new FormGroup({
-      'satisfaction': new FormControl(null, [Validators.required]),
-      'receivedOn': new FormControl( defaultReceivedDate, [Validators.required]),
-      'message': new FormControl(null),
-      'putBackOnList': new FormControl(false)
+    this.giftFeedbackForm = new UntypedFormGroup({
+      'satisfaction': new UntypedFormControl(null, [Validators.required]),
+      'receivedOn': new UntypedFormControl( defaultReceivedDate, [Validators.required]),
+      'message': new UntypedFormControl(null),
+      'putBackOnList': new UntypedFormControl(false)
     });
   }
 

@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks } from '@angular/core/testing';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 import { PasswordInputComponent } from './password-input.component';
@@ -8,7 +8,7 @@ import { PasswordInputComponent } from './password-input.component';
 describe('PasswordInputComponent', () => {
   let fixture: ComponentFixture<PasswordInputComponent>;
   let component: PasswordInputComponent;
-  let form: FormGroup;
+  let form: UntypedFormGroup;
 
   function input(): HTMLInputElement {
     return fixture.nativeElement.querySelector('input');
@@ -20,7 +20,7 @@ describe('PasswordInputComponent', () => {
       declarations: [PasswordInputComponent]
     }).compileComponents();
 
-    form = new FormGroup({});
+    form = new UntypedFormGroup({});
     fixture = TestBed.createComponent(PasswordInputComponent);
     component = fixture.componentInstance;
     component.parentFormGroup = form;

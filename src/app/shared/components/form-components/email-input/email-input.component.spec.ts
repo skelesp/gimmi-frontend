@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { of, throwError } from 'rxjs';
@@ -13,11 +13,11 @@ import { EmailInputComponent } from './email-input.component';
 describe('EmailInputComponent', () => {
   let fixture: ComponentFixture<EmailInputComponent>;
   let component: EmailInputComponent;
-  let form: FormGroup;
+  let form: UntypedFormGroup;
   let people: jasmine.SpyObj<PeopleService>;
 
   function create(inputs: Partial<EmailInputComponent> = {}) {
-    form = new FormGroup({});
+    form = new UntypedFormGroup({});
     fixture = TestBed.createComponent(EmailInputComponent);
     component = fixture.componentInstance;
     component.parentFormGroup = form;

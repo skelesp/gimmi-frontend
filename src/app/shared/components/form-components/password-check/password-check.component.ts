@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { UntypedFormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 @Component({
   selector: 'gimmi-password-check',
@@ -7,18 +7,18 @@ import { FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
   styleUrls: ['./password-check.component.css']
 })
 export class PasswordCheckComponent implements OnInit {
-  @Input() parentFormGroup : FormGroup;
+  @Input() parentFormGroup : UntypedFormGroup;
   @Input() controlName : string = 'passwordGroup';
 
   constructor() { }
 
   ngOnInit(): void {
-    this.parentFormGroup.addControl(this.controlName, new FormGroup({}, {
+    this.parentFormGroup.addControl(this.controlName, new UntypedFormGroup({}, {
       validators: this.passwordMatchValidator
     }));
   }
 
-   passwordMatchValidator : ValidatorFn = (control : FormGroup) : ValidationErrors | null => {
+   passwordMatchValidator : ValidatorFn = (control : UntypedFormGroup) : ValidationErrors | null => {
     const password = control.get('password');
     const passwordCheck = control.get('passwordCheck');
 

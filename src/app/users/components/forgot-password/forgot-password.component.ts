@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from '../../service/user.service';
 
@@ -9,7 +9,7 @@ import { UserService } from '../../service/user.service';
   styleUrls: ['./forgot-password.component.css']
 })
 export class ForgotPasswordComponent implements OnInit {
-  forgotPasswordForm : FormGroup;
+  forgotPasswordForm : UntypedFormGroup;
   successAlertClosed : boolean;
   requestSent : boolean = false;
   
@@ -19,7 +19,7 @@ export class ForgotPasswordComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.forgotPasswordForm = new FormGroup ({});
+    this.forgotPasswordForm = new UntypedFormGroup ({});
   }
 
   public requestPasswordReset () : void {

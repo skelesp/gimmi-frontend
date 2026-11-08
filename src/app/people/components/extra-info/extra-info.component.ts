@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { IExtraPersonInfo, ILike } from '../../models/person.model';
 import { faPencilAlt, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { PeopleService } from '../../service/people.service';
 import { ActivatedRoute } from '@angular/router';
 
@@ -18,7 +18,7 @@ export class ExtraInfoComponent implements OnInit {
   @Input() personIsUser: boolean = false;
   @Output() extraInfoSaved = new EventEmitter<IExtraPersonInfo>();
 
-  editItemsForm: FormGroup;
+  editItemsForm: UntypedFormGroup;
   editMode: boolean = false;
   pencilIcon = faPencilAlt;
   checkIcon = faCheck;
@@ -30,7 +30,7 @@ export class ExtraInfoComponent implements OnInit {
      ) { }
 
   ngOnInit(): void { 
-    this.editItemsForm = new FormGroup({});
+    this.editItemsForm = new UntypedFormGroup({});
   }
 
   saveExtraInfo () {
@@ -46,7 +46,7 @@ export class ExtraInfoComponent implements OnInit {
 
   resetEditForm () {
     this.editMode = false;
-    this.editItemsForm = new FormGroup({}); // This is needed or the edit form will only work the first time extra info is opened in edit mode. There might be better solutions to fix this, but it works as intended now.
+    this.editItemsForm = new UntypedFormGroup({}); // This is needed or the edit form will only work the first time extra info is opened in edit mode. There might be better solutions to fix this, but it works as intended now.
   }
 
 }

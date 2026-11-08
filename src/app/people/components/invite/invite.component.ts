@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { InvitePersonData, PeopleService } from '../../service/people.service';
 
@@ -10,14 +10,14 @@ import { InvitePersonData, PeopleService } from '../../service/people.service';
 })
 export class InviteComponent implements OnInit {
   mailIcon = faEnvelope;
-  invitationForm: FormGroup;
+  invitationForm: UntypedFormGroup;
 
   constructor(private _peopleService: PeopleService) { }
 
   ngOnInit(): void {
-    this.invitationForm = new FormGroup({
-      'invitationData': new FormGroup({
-        'notifyOnRegistration': new FormControl(false)
+    this.invitationForm = new UntypedFormGroup({
+      'invitationData': new UntypedFormGroup({
+        'notifyOnRegistration': new UntypedFormControl(false)
       })
     });
   }

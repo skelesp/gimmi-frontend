@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { UserService } from '../../service/user.service';
 import { ILocalLoginInfo } from "../../models/user.model";
 import { Subscription } from 'rxjs';
@@ -12,7 +12,7 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit, OnDestroy {
-  loginForm: FormGroup;
+  loginForm: UntypedFormGroup;
   authenticationError: boolean = false;
   loggedInUser: User;
   currentUserSubscription: Subscription;
@@ -23,7 +23,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.loginForm = new FormGroup({});
+    this.loginForm = new UntypedFormGroup({});
 
     this.currentUserSubscription = this.userService.currentUser$.subscribe( user => {
       this.loggedInUser = user;

@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks } from '@angular/core/testing';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 import { PasswordInputComponent } from '../password-input/password-input.component';
@@ -8,10 +8,10 @@ import { PasswordCheckComponent } from './password-check.component';
 // sc-2226: twee wachtwoordvelden die moeten overeenkomen.
 describe('PasswordCheckComponent', () => {
   let fixture: ComponentFixture<PasswordCheckComponent>;
-  let form: FormGroup;
+  let form: UntypedFormGroup;
 
-  function group(): FormGroup {
-    return form.get('passwordGroup') as FormGroup;
+  function group(): UntypedFormGroup {
+    return form.get('passwordGroup') as UntypedFormGroup;
   }
 
   function fill(password: string, check: string) {
@@ -27,7 +27,7 @@ describe('PasswordCheckComponent', () => {
       declarations: [PasswordCheckComponent, PasswordInputComponent]
     }).compileComponents();
 
-    form = new FormGroup({});
+    form = new UntypedFormGroup({});
     fixture = TestBed.createComponent(PasswordCheckComponent);
     fixture.componentInstance.parentFormGroup = form;
     fixture.detectChanges();

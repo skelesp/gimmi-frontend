@@ -136,7 +136,6 @@
       }
     }
   },
-  "defaultProject": "gimmi",
   "cli": {
     "analytics": false
   }

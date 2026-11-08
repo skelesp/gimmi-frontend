@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { faWindows } from '@fortawesome/free-brands-svg-icons';
 import { NotificationService } from 'src/app/shared/services/notification.service';
@@ -11,7 +11,7 @@ import { UserService } from '../../service/user.service';
   styleUrls: ['./reset-password.component.css']
 })
 export class ResetPasswordComponent implements OnInit {
-  resetPasswordForm: FormGroup;
+  resetPasswordForm: UntypedFormGroup;
   invalidToken : boolean;
 
   constructor(
@@ -22,7 +22,7 @@ export class ResetPasswordComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.resetPasswordForm = new FormGroup({ });
+    this.resetPasswordForm = new UntypedFormGroup({ });
     this.route.data.subscribe( data => {
       this.invalidToken = !data.validToken;
     });
