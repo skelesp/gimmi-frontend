@@ -17,7 +17,7 @@
         <small *ngIf="parentFormGroup.get(controlName).errors?.required">
             Email is een verplicht veld</small>
         <small *ngIf="parentFormGroup.get(controlName).errors?.email">
-            Geef een geldig emailadres in (formaat: *** @ *** . **)</small>
+            Geef een geldig emailadres in (formaat: *** &#64; *** . **)</small>
         <small *ngIf="parentFormGroup.get(controlName).errors?.emailExists" class="text-success">
             Er is al een wishlist gekoppeld aan dit emailadres:
             <a *ngIf='emailExistsRedirectTo === "wishlist"' [routerLink]="['/people', knownPerson.id]">Bekijk de wensen van {{knownPerson.fullName}}</a>
