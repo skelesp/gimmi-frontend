@@ -4,17 +4,16 @@ import { ActivatedRouteSnapshot, convertToParamMap } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 
 import { UserService } from '../service/user.service';
-import { PasswordResetTokenResolver } from './password-reset-token-resolver.service';
+import { passwordResetTokenResolver } from './password-reset-token-resolver.service';
 
 // Controleert het token uit de resetlink voor /users/resetpassword/:token wordt getoond (sc-2004).
-describe('PasswordResetTokenResolver', () => {
-    let resolver: PasswordResetTokenResolver;
+describe('passwordResetTokenResolver', () => {
     let users: Record<string, any>;
     const route = { paramMap: convertToParamMap({ token: 'abc123' }) } as ActivatedRouteSnapshot;
 
     function resolve(): boolean {
         let resultaat: boolean;
-        (resolver.resolve(route, null) as Observable<boolean>).subscribe(r => resultaat = r);
+        (TestBed.runInInjectionContext(() => passwordResetTokenResolver(route, null)) as Observable<boolean>).subscribe(r => resultaat = r);
         return resultaat;
     }
 
@@ -23,7 +22,6 @@ describe('PasswordResetTokenResolver', () => {
             validatePasswordResetToken: vi.fn().mockName("UserService.validatePasswordResetToken")
         };
         TestBed.configureTestingModule({ providers: [{ provide: UserService, useValue: users }] });
-        resolver = TestBed.inject(PasswordResetTokenResolver);
     });
 
     it('vraagt het token uit de url na: geldig = true', () => {

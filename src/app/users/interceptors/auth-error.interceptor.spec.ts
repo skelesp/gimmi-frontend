@@ -1,16 +1,16 @@
 import type { Mock } from "vitest";
 import { TestBed } from '@angular/core/testing';
-import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from '../service/user.service';
-import { AuthErrorInterceptor } from './auth-error.interceptor';
+import { authErrorInterceptor } from './auth-error.interceptor';
 
 // Reactie op 401 en 403 van de API. Het geval "401 terwijl iemand ingelogd is" roept logout()
 // aan, en dat herlaadt de pagina; dat pad staat hier dus niet in.
-describe('AuthErrorInterceptor', () => {
+describe('authErrorInterceptor', () => {
     let http: HttpClient;
     let backend: HttpTestingController;
     let router: Record<string, any> & {
@@ -41,11 +41,10 @@ describe('AuthErrorInterceptor', () => {
         TestBed.configureTestingModule({
             imports: [],
             providers: [
-                { provide: HTTP_INTERCEPTORS, useClass: AuthErrorInterceptor, multi: true },
                 { provide: Router, useValue: router },
                 { provide: NotificationService, useValue: notifications },
                 { provide: UserService, useValue: users },
-                provideHttpClient(withXhr(), withInterceptorsFromDi()),
+                provideHttpClient(withXhr(), withInterceptors([authErrorInterceptor])),
                 provideHttpClientTesting()
             ]
         });

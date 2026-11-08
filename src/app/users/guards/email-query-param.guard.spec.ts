@@ -6,12 +6,11 @@ import { Observable, of, throwError } from 'rxjs';
 
 import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
-import { EmailQueryParamGuard } from './email-query-param.guard';
+import { emailQueryParamGuard } from './email-query-param.guard';
 
 // sc-2250: bekend e-mailadres op de registratiepagina gaat naar login, onbekend adres op de
 // loginpagina gaat naar registratie. De guard leest location.search.
-describe('EmailQueryParamGuard', () => {
-    let guard: EmailQueryParamGuard;
+describe('emailQueryParamGuard', () => {
     let people: Record<string, any>;
     let router: Router;
     let oorspronkelijk: string;
@@ -19,9 +18,9 @@ describe('EmailQueryParamGuard', () => {
     function naar(url: string, query: string): boolean | UrlTree {
         history.replaceState(null, '', location.pathname + query);
         let resultaat: boolean | UrlTree;
-        const r = guard.canActivate({} as ActivatedRouteSnapshot, { url } as RouterStateSnapshot);
+        const r = TestBed.runInInjectionContext(() => emailQueryParamGuard({} as ActivatedRouteSnapshot, { url } as RouterStateSnapshot));
         if (r instanceof Observable)
-            r.subscribe(v => resultaat = v);
+            r.subscribe(v => resultaat = v as boolean | UrlTree);
         else
             resultaat = r as boolean | UrlTree;
         return resultaat;
@@ -36,7 +35,6 @@ describe('EmailQueryParamGuard', () => {
             imports: [RouterTestingModule],
             providers: [{ provide: PeopleService, useValue: people }]
         });
-        guard = TestBed.inject(EmailQueryParamGuard);
         router = TestBed.inject(Router);
         vi.spyOn(console, 'info').mockReturnValue(undefined);
     });
