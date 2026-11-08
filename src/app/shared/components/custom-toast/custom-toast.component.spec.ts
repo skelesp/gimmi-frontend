@@ -32,7 +32,7 @@ describe('CustomToastComponent', () => {
   });
 
   it('kruisje sluit de toast', () => {
-    fixture.nativeElement.querySelector('button.close').click();
+    fixture.nativeElement.querySelector('button.btn-close').click();
     expect(toast.close).toHaveBeenCalled();
   });
 });

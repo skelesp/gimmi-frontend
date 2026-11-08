@@ -7,9 +7,9 @@
         <div class="col-auto">
             <h1>{{person?.firstName}} {{person?.lastName}}</h1>
         </div>
-        <div class="col col-sm-4 float-left">
+        <div class="col col-sm-4 float-start">
             <gimmi-share [personToShare]="person"></gimmi-share>
-            <a  class="badge badge-pill badge-secondary float-right" 
+            <a  class="badge rounded-pill text-bg-secondary float-end" 
                 [hidden]='currrentUser?.id === person?.id'
                 [routerLink]='["/people", currrentUser?.id]'
                 *ngIf='currrentUser'>

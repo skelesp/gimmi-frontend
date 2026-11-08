@@ -1,8 +1,6 @@
 <div class="modal-header">
     <h3 class="modal-title">Geef feedback op een ontvangen cadeau</h3>
-    <button type="button" class="close" aria-label="Close" (click)="activeModal.dismiss('Cross click')">
-    <span aria-hidden="true">&times;</span>
-    </button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
 </div>
 <div class="modal-body">
     <form [formGroup]="giftFeedbackForm">
@@ -18,15 +16,15 @@
                         formControlName="satisfaction">
                         <ng-template let-fill="fill">
                             <fa-icon    [icon]="ratingIcon" size="2x" 
-                                        class="mr-2 text-secondary" 
+                                        class="me-2 text-secondary" 
                                         [class.text-success]="fill === 100"></fa-icon>
                         </ng-template>
             </ngb-rating> 
-            <span class="ml-2 font-weight-light text-secondary" [ngClass]="{'text-danger': (selectedRate < 1 && !hoveredRate)}">
+            <span class="ms-2 fw-light text-secondary" [ngClass]="{'text-danger': (selectedRate < 1 && !hoveredRate)}">
                 {{ hoveredRate ? satisfactionLevels[hoveredRate] : satisfactionLevels[selectedRate] }}
             </span>
         </div>
-        <div class="form-group">
+        <div class="mb-3">
             <label class="form-control-label" for="receivedOn">Wanneer heb je het cadeau ontvangen?</label>
             <input type="date" class="form-control" formControlName="receivedOn" [max]="maxDate">
             <div class="form-text text-danger" *ngIf="giftFeedbackForm.get('receivedOn').invalid 
@@ -34,7 +32,7 @@
                 <small>De afgiftedatum moet ingevuld worden.</small>
             </div>
         </div>
-        <div class="form-group">
+        <div class="mb-3">
             <label for="message" class="form-control-label">Wil je nog een boodschap sturen naar
                 {{wish.reservation.reservedBy.fullName}}?</label>
             <textarea   type="text" class="form-control" id="message" aria-describedby="message"

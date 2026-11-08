@@ -1,8 +1,6 @@
 <div class="modal-header">
     <h3 class="modal-title">{{popupTitle}}</h3>
-    <button type="button" class="close" aria-label="Close" (click)="activeModal.dismiss('Cross click')">
-        <span aria-hidden="true">&times;</span>
-    </button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
 </div>
 
 <ngb-alert type="warning" *ngIf="showWarningExistingCopy" (close)="showWarningExistingCopy = false">
@@ -13,7 +11,7 @@
     <div class="modal-body container">
         <div class="row">
             <div class="col-7">
-                <div class="form-group required">
+                <div class="mb-3 required">
                     <label for="wishTitle" class="form-control-label">Titel</label>
                     <input  type="text" class="form-control form-control-sm" name="wishTitle" id="wishTitle"
                             placeholder="Titel"
@@ -22,7 +20,7 @@
                     <small *ngIf="wishForm.get('title').errors?.required" class="text-danger">
                         Titel is een verplicht veld</small>
                 </div>
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="wishPrice" class="form-control-label">Prijs</label>
                     <div class="input-group input-group-sm mb-2">
                         <div class="input-group-prepend">
@@ -33,7 +31,7 @@
                                 formControlName="price" />
                     </div>
                 </div>
-                <div class="form-group mt-2">
+                <div class="mb-3 mt-2">
                     <gimmi-image-upload 
                         [searchTerm]="wishForm.get('title').value"
                         (previewChanged)="imagePreview = $event"
@@ -42,9 +40,9 @@
                 </div>
             </div>
             <div class="col-5">
-                <div class="form-group">
+                <div class="mb-3">
                     <gimmi-image-view
-                        class="img-fluid rounded float-right"
+                        class="img-fluid rounded float-end"
                         [image]="wishForm.get('image').value"
                         sizes="200px"
                         [preview]="imagePreview"
@@ -53,25 +51,25 @@
             </div>
         </div>
         <div class="row">
-            <div class="form-group col-12">
+            <div class="mb-3 col-12">
                 <label for="wishUrl" class="form-control-label">Website/webshop</label>
                 <input type="text" class="form-control form-control-sm" id="WishUrl"
                         placeholder="Link naar externe website"
                         formControlName="url"/>
             </div>
-            <div class="form-group col-6">
+            <div class="mb-3 col-6">
                 <label for="wishColor" class="form-control-label">Kleur</label>
                 <input type="text" class="form-control form-control-sm" id="wishColor"
                         placeholder="Gewenste kleur"
                         formControlName="color" />
             </div>
-            <div class="form-group col-6">
+            <div class="mb-3 col-6">
                 <label for="wishSize" class="form-control-label">Grootte/Maat</label>
                 <input type="text" class="form-control form-control-sm" id="WishSize"
                         placeholder="Gewenste maat" 
                         formControlName="size"/>
             </div>
-            <div class="form-group col-12">
+            <div class="mb-3 col-12">
                 <label for="wishDescription" class="form-control-label">Beschrijving</label>
                 <textarea class="form-control form-control-sm" rows="3" id="wishDescription"
                         placeholder="Geef een korte beschrijving van je wens"

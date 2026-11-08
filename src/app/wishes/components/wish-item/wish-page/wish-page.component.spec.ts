@@ -75,8 +75,8 @@ describe('WishPageComponent', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.querySelector('h2').textContent).toBe('Fiets');
     expect(el.querySelector('h6').textContent).toContain('voor Ria Receiver');
-    expect(el.querySelector('.badge-warning').textContent).toContain('250.00');
-    const terug = el.querySelector('a.badge-secondary');
+    expect(el.querySelector('.text-bg-warning').textContent).toContain('250.00');
+    const terug = el.querySelector('a.text-bg-secondary');
     expect(terug.textContent).toContain('Terug naar lijst');
     expect(terug.getAttribute('href')).toBe('/people/ria');
   });

@@ -1,4 +1,4 @@
-<button *ngIf="itemConfig.onClick" class="btn btn-outline-light btn-block border-0 text-muted text-left"
+<button *ngIf="itemConfig.onClick" class="btn btn-outline-light w-100 border-0 text-muted text-start"
     (click)="itemConfig.onClick()">
     <div class="row">
         <div class="col-1">
@@ -8,7 +8,7 @@
     </div>
 </button>
 
-<a *ngIf="itemConfig.url" class="btn btn-outline-light btn-block border-0 text-muted text-left" href="{{itemConfig.url}}" target="_blank">
+<a *ngIf="itemConfig.url" class="btn btn-outline-light w-100 border-0 text-muted text-start" href="{{itemConfig.url}}" target="_blank">
     <div class="row">
         <div class="col-1">
             <fa-icon [icon]="itemConfig.icon"></fa-icon>

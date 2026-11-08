@@ -137,7 +137,7 @@ describe('WishPopupComponent', () => {
     open('create');
     fixture.nativeElement.querySelector('.modal-footer .btn-outline-danger').click();
     expect(activeModal.dismiss).toHaveBeenCalledWith('Cancel');
-    fixture.nativeElement.querySelector('button.close').click();
+    fixture.nativeElement.querySelector('button.btn-close').click();
     expect(activeModal.dismiss).toHaveBeenCalledWith('Cross click');
     expect(activeModal.close).not.toHaveBeenCalled();
   });

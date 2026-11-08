@@ -9,7 +9,7 @@
             <div class="col-md-9 col-lg-8">
                 <div class="row justify-content-center">
                     <div class="col-md-8 col-lg-7">
-                        <h5 class="text-dark text-right d-block d-md-none">Hoe krijg of geef je <strong>het perfecte
+                        <h5 class="text-dark text-end d-block d-md-none">Hoe krijg of geef je <strong>het perfecte
                                 cadeau</strong>?</h5>
                         <h1 class="text-dark d-none d-md-block mt-lg-5">Hoe krijg of geef je <strong>het perfecte
                                 cadeau</strong>?</h1>
@@ -17,14 +17,14 @@
                 </div>
                 <div class="row justify-content-center">
                     <div class="col-md-7 col-lg-6">
-                        <ul class="list-unstyled mt-2 text-left">
-                            <li class="font-weight-bold">
+                        <ul class="list-unstyled mt-2 text-start">
+                            <li class="fw-bold">
                                 <fa-icon [icon]="checkIcon" class="text-white" size="lg"></fa-icon> Gratis
                             </li>
-                            <li class="font-weight-bold">
+                            <li class="fw-bold">
                                 <fa-icon [icon]="checkIcon" class="text-white" size="lg"></fa-icon> Zonder keuzestress
                             </li>
-                            <li class="font-weight-bold">
+                            <li class="fw-bold">
                                 <fa-icon [icon]="checkIcon" class="text-white" size="lg"></fa-icon> Gegarandeerd juist
                             </li>
                         </ul>
@@ -32,11 +32,11 @@
                 </div>
                 <div class="row justify-content-center">
                     <div class="col-md-8 col-lg-7">
-                        <a  class="btn btn-lg btn-warning mt-2 font-weight-bold shadow" 
+                        <a  class="btn btn-lg btn-warning mt-2 fw-bold shadow" 
                             [hidden]="currentUser"
                             [routerLink]="['/users', 'register']"> 
                             Start nu met Gimmi en ontdek het zelf!</a>
-                        <a  class="btn btn-lg btn-warning mt-2 font-weight-bold shadow" 
+                        <a  class="btn btn-lg btn-warning mt-2 fw-bold shadow" 
                             *ngIf="currentUser" 
                             [routerLink]="['/people', currentUser.id]"> 
                             Ga naar je overzichtspagina, {{ currentUser.firstName }}!</a>
@@ -51,7 +51,7 @@
     <div class="container">
         <div class="row">
             <div class="col-8">
-                <h5 class="text-dark text-left d-block d-md-none">Hoe krijg of geef je <strong>het perfecte
+                <h5 class="text-dark text-start d-block d-md-none">Hoe krijg of geef je <strong>het perfecte
                         cadeau</strong>?</h5>
             </div>
             <div class="col-4">
@@ -59,23 +59,23 @@
                     class="img-fluid rounded">
             </div>
             <div class="col-12">
-                <ul class="list-unstyled mt-2 text-left">
-                    <li class="font-weight-bold">
+                <ul class="list-unstyled mt-2 text-start">
+                    <li class="fw-bold">
                         <fa-icon [icon]="checkIcon" class="text-white" size="lg"></fa-icon> Gratis
                     </li>
-                    <li class="font-weight-bold">
+                    <li class="fw-bold">
                         <fa-icon [icon]="checkIcon" class="text-white" size="lg"></fa-icon> Zonder keuzestress
                     </li>
-                    <li class="font-weight-bold">
+                    <li class="fw-bold">
                         <fa-icon [icon]="checkIcon" class="text-white" size="lg"></fa-icon> Gegarandeerd juist
                     </li>
                 </ul>
             </div>
             <div class="col-12">
-                <a class="btn btn-lg btn-warning mt-2 font-weight-bold shadow" [hidden]="currentUser"
+                <a class="btn btn-lg btn-warning mt-2 fw-bold shadow" [hidden]="currentUser"
                     [routerLink]="['/users', 'register']">
                     Start nu met Gimmi en ontdek het zelf!</a>
-                <a class="btn btn-lg btn-warning mt-2 font-weight-bold shadow" *ngIf="currentUser"
+                <a class="btn btn-lg btn-warning mt-2 fw-bold shadow" *ngIf="currentUser"
                     [routerLink]="['/people', currentUser.id]">
                     Ga naar je overzichtspagina, {{ currentUser.firstName }}!</a>
             </div>
