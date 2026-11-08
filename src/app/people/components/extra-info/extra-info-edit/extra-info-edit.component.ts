@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ILike } from 'src/app/people/models/person.model';
 import { itemTypes } from '../extra-info.component';
 import { faPlus, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
@@ -13,9 +13,9 @@ export class ExtraInfoEditComponent implements OnInit {
   @Input() firstName: string;
   @Input() items: ILike[] = [];
   @Input() itemType: itemTypes;
-  @Input() parentForm: FormGroup;
+  @Input() parentForm: UntypedFormGroup;
 
-  formItems: FormArray = new FormArray([]);
+  formItems: UntypedFormArray = new UntypedFormArray([]);
 
   deleteIcon = faTrashAlt;
   addIcon = faPlus;
@@ -31,9 +31,9 @@ export class ExtraInfoEditComponent implements OnInit {
   }
 
   addItem(item: ILike = { text:'', url: ''} ) {
-    const itemControlGroup = new FormGroup({
-      text: new FormControl(item.text, Validators.required),
-      url: new FormControl(item.url)
+    const itemControlGroup = new UntypedFormGroup({
+      text: new UntypedFormControl(item.text, Validators.required),
+      url: new UntypedFormControl(item.url)
     })
     this.formItems.push(itemControlGroup);
   }

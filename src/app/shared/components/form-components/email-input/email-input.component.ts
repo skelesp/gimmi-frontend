@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { AbstractControlOptions, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { faAt } from '@fortawesome/free-solid-svg-icons'
@@ -13,7 +13,7 @@ type EmailExistsRedirectType = "wishlist" | "login";
   styleUrls: ['./email-input.component.css']
 })
 export class EmailInputComponent implements OnInit {
-  @Input() parentFormGroup: FormGroup;
+  @Input() parentFormGroup: UntypedFormGroup;
   @Input() label: string = null;
   @Input() bindedQueryParam: string = null;
   @Input() controlName: string = 'email';
@@ -36,11 +36,11 @@ export class EmailInputComponent implements OnInit {
     }
     this.parentFormGroup.addControl(
       this.controlName,
-      new FormControl(null, emailControlOptions)
+      new UntypedFormControl(null, emailControlOptions)
     );
   }
 
-  emailExists(control: FormControl): Promise<any> | Observable<any> {
+  emailExists(control: UntypedFormControl): Promise<any> | Observable<any> {
     return this._peopleService.findPersonByEmail(control.value)
       .pipe(
         tap(value => this.knownPerson = value),

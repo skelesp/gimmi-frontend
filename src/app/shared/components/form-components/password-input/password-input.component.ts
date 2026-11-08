@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { faUnlockAlt, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 const resolvedPromise = Promise.resolve(null);
@@ -9,7 +9,7 @@ const resolvedPromise = Promise.resolve(null);
   styleUrls: ['./password-input.component.css']
 })
 export class PasswordInputComponent implements OnInit {
-  @Input() parentFormGroup : FormGroup;
+  @Input() parentFormGroup : UntypedFormGroup;
   @Input() controlName : string = 'password';
   @Input() placeholder : string = 'Wachtwoord';
   @Input() label : string = null;
@@ -21,7 +21,7 @@ export class PasswordInputComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
-    this.parentFormGroup.addControl(this.controlName, new FormControl(null));
+    this.parentFormGroup.addControl(this.controlName, new UntypedFormControl(null));
     /* Add validators asynchronously to controls to prevent ExpressionChangedAfterItHasBeenCheckedError 
     Source: https://stackoverflow.com/questions/45661010/dynamic-nested-reactive-form-expressionchangedafterithasbeencheckederror
     */
