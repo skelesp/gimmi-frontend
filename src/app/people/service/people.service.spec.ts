@@ -1,11 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { environment } from 'src/environments/environment';
 import { CommunicationService } from 'src/app/shared/services/communication.service';
 import { UserService } from 'src/app/users/service/user.service';
 import { Person } from '../models/person.model';
 import { PeopleService } from './people.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('PeopleService', () => {
   let service: PeopleService;
@@ -17,12 +18,14 @@ describe('PeopleService', () => {
     userService = { currentUser: { id: 'ik' } };
     communication = jasmine.createSpyObj<CommunicationService>('CommunicationService', ['sendMail']);
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         { provide: UserService, useValue: userService },
-        { provide: CommunicationService, useValue: communication }
-      ]
-    });
+        { provide: CommunicationService, useValue: communication },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+});
     service = TestBed.inject(PeopleService);
     http = TestBed.inject(HttpTestingController);
   });

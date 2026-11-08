@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 
 import { environment } from 'src/environments/environment';
@@ -9,6 +9,7 @@ import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
 import { Wish } from '../models/wish.model';
 import { imageUitApi, imageVoorApi, WishService } from './wish.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 // Legt vast hoe de app met de wish- en wishlist-API praat (sc-2979). Dekt onder meer
 // wens aanmaken (sc-1977), reserveren (sc-1979) en reservatie verwijderen (sc-2515),
@@ -42,12 +43,14 @@ describe('WishService', () => {
   beforeEach(() => {
     people = jasmine.createSpyObj<PeopleService>('PeopleService', ['getPersonById']);
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         { provide: UserService, useValue: { currentUser: new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', []) } },
-        { provide: PeopleService, useValue: people }
-      ]
-    });
+        { provide: PeopleService, useValue: people },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+});
     service = TestBed.inject(WishService);
     http = TestBed.inject(HttpTestingController);
   });
