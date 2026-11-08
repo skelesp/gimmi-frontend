@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { faUnlockAlt, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
@@ -7,15 +7,16 @@ const resolvedPromise = Promise.resolve(null);
     selector: 'gimmi-password-input',
     templateUrl: './password-input.component.html',
     styleUrls: ['./password-input.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class PasswordInputComponent implements OnInit {
   @Input() parentFormGroup : UntypedFormGroup;
-  @Input() controlName : string = 'password';
-  @Input() placeholder : string = 'Wachtwoord';
+  @Input() controlName  = 'password';
+  @Input() placeholder  = 'Wachtwoord';
   @Input() label : string = null;
   
-  showPassword: boolean = false;
+  showPassword = false;
   passwordIcon = faUnlockAlt;
   showPasswordIcon = faEye;
 

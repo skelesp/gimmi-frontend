@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { faThumbsUp } from '@fortawesome/free-regular-svg-icons';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -13,6 +13,7 @@ import { WishService } from '../../services/wish.service';
     selector: 'gimmi-gift-feedback',
     templateUrl: './gift-feedback.component.html',
     styleUrls: ['./gift-feedback.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class GiftFeedbackComponent implements OnInit {
@@ -29,7 +30,7 @@ export class GiftFeedbackComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    let defaultReceivedDate = new Date(this.wish.reservation.reservationDate).toISOString().slice(0, 10);
+    const defaultReceivedDate = new Date(this.wish.reservation.reservationDate).toISOString().slice(0, 10);
     this.giftFeedbackForm = new UntypedFormGroup({
       'satisfaction': new UntypedFormControl(null, [Validators.required]),
       'receivedOn': new UntypedFormControl( defaultReceivedDate, [Validators.required]),
@@ -39,7 +40,7 @@ export class GiftFeedbackComponent implements OnInit {
   }
 
   saveGiftFeedback() {
-    let giftFeedback: IGiftFeedback = {
+    const giftFeedback: IGiftFeedback = {
       satisfaction: this.satisfactionLevels[this.giftFeedbackForm.value.satisfaction],
       receivedOn: this.giftFeedbackForm.value.receivedOn,
       message: this.giftFeedbackForm.value.message,

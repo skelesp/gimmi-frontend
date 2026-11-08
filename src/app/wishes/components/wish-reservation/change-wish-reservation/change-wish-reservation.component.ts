@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { Wish } from 'src/app/wishes/models/wish.model';
@@ -8,6 +8,7 @@ import { WishService } from 'src/app/wishes/services/wish.service';
     selector: 'gimmi-change-wish-reservation',
     templateUrl: './change-wish-reservation.component.html',
     styleUrls: ['./change-wish-reservation.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ChangeWishReservationComponent implements OnInit {

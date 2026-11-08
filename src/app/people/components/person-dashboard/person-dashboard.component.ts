@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
@@ -9,6 +9,7 @@ import { PeopleService } from '../../service/people.service';
     selector: 'gimmi-person-dashboard',
     templateUrl: './person-dashboard.component.html',
     styleUrls: ['./person-dashboard.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class PersonDashboardComponent implements OnInit {

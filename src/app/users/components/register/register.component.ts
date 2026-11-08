@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
@@ -9,6 +9,7 @@ import { UserService } from '../../service/user.service';
     selector: 'gimmi-register',
     templateUrl: './register.component.html',
     styleUrls: ['./register.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class RegisterComponent implements OnInit {
@@ -35,7 +36,7 @@ export class RegisterComponent implements OnInit {
   }
 
   register () {
-    let newUser : INewUserRequestInfo = {
+    const newUser : INewUserRequestInfo = {
       firstname: this.registrationForm.value.personData.firstName,
       lastname: this.registrationForm.value.personData.lastName,
       birthday: this.registrationForm.value.personData.birthday,

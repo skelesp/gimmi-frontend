@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs';
 import { Person } from 'src/app/people/models/person.model';
@@ -9,13 +9,14 @@ import { UserService } from 'src/app/users/service/user.service';
     selector: 'gimmi-share-popup',
     templateUrl: './share-popup.component.html',
     styleUrls: ['./share-popup.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SharePopupComponent implements OnInit, OnDestroy {
   @Input() linkToShare : string;
   @Input() personToShare : Person;
   currentUser: User; currentUserSubscription: Subscription;
-  message: string = 'Hey, op volgende link vind je mijn wensenlijst voor een cadeautje.';
+  message = 'Hey, op volgende link vind je mijn wensenlijst voor een cadeautje.';
   
   constructor(
     public activeModal: NgbActiveModal,

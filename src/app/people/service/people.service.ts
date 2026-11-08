@@ -61,7 +61,7 @@ export class PeopleService {
     this.http$.get<IPersonNameResponse[]>(environment.apiUrl + 'people')
     .pipe(
       map( peopleFromResponse => {
-        let people: Person[] = [];
+        const people: Person[] = [];
         peopleFromResponse.forEach(person => {
           people.push(this.convertPersonResponseToPerson(person));
         });
@@ -120,7 +120,7 @@ export class PeopleService {
    * @param mailInfo The info necessary to send an email (to, cc, subject, body, ...)
    */
   public invite (inviteInfo: InvitePersonData) {
-    let mailInfo: MailInfo = {
+    const mailInfo: MailInfo = {
       to: inviteInfo.email,
       subject: "[DEV@GIMMI] Iemand vraagt je om een wensenlijst aan te maken op Gimmi",
       html: `Beste,<br/>
@@ -192,7 +192,7 @@ export class PeopleService {
   * @returns A Person class instance that is usable in the app
   */
   private convertPersonResponseToPerson(personResponse: IPersonSearchResponse | IPersonSearchResponseWithUserInfo | IPersonNameResponse | IPersonEmailResponse): Person {
-    let person = new Person( personResponse.id, personResponse.firstName, personResponse.lastName );
+    const person = new Person( personResponse.id, personResponse.firstName, personResponse.lastName );
     if (this.isInstanceOfIPersonSearchResponse(personResponse)) {
       if (personResponse.birthday) person.birthday = personResponse.birthday;
       if (personResponse.extraInfo) person.extraInfo = personResponse.extraInfo; 

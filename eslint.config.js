@@ -1,0 +1,62 @@
+// @ts-check
+const eslint = require("@eslint/js");
+const { defineConfig } = require("eslint/config");
+const tseslint = require("typescript-eslint");
+const angular = require("angular-eslint");
+
+module.exports = defineConfig([
+  {
+    files: ["**/*.ts"],
+    extends: [
+      eslint.configs.recommended,
+      tseslint.configs.recommended,
+      tseslint.configs.stylistic,
+      angular.configs.tsRecommended,
+    ],
+    processor: angular.processInlineTemplates,
+    rules: {
+      // Hoort bij de mechanische modernisering (sc-3280); daar weer aanzetten.
+      "@angular-eslint/prefer-inject": "off",
+      "@angular-eslint/prefer-standalone": "off",
+      "@angular-eslint/prefer-on-push-component-change-detection": "off",
+      // Bestaande code; zichtbaar als waarschuwing, per onderwerp op te ruimen.
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-empty-function": "warn",
+      "@angular-eslint/no-empty-lifecycle-method": "warn",
+      "no-useless-assignment": "warn",
+      "@angular-eslint/directive-selector": [
+        "warn",
+        {
+          type: "attribute",
+          prefix: "gimmi",
+          style: "camelCase",
+        },
+      ],
+      "@angular-eslint/component-selector": [
+        "error",
+        {
+          type: "element",
+          prefix: "gimmi",
+          style: "kebab-case",
+        },
+      ],
+    },
+  },
+  {
+    files: ["**/*.html"],
+    extends: [
+      angular.configs.templateRecommended,
+      angular.configs.templateAccessibility,
+    ],
+    rules: {
+      // Hoort bij sc-3280 (control flow).
+      "@angular-eslint/template/prefer-control-flow": "off",
+      // Toegankelijkheid van bestaande templates; zichtbaar als waarschuwing.
+      "@angular-eslint/template/label-has-associated-control": "warn",
+      "@angular-eslint/template/interactive-supports-focus": "warn",
+      "@angular-eslint/template/click-events-have-key-events": "warn",
+      "@angular-eslint/template/alt-text": "warn",
+    },
+  }
+]);

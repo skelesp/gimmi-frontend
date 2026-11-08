@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { User } from 'src/app/users/models/user.model';
@@ -10,6 +10,7 @@ import { WishService } from 'src/app/wishes/services/wish.service';
     selector: 'gimmi-wish-popup',
     templateUrl: './wish-popup.component.html',
     styleUrls: ['./wish-popup.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class WishPopupComponent implements OnInit {
@@ -18,8 +19,8 @@ export class WishPopupComponent implements OnInit {
   wishForm: UntypedFormGroup;
   actionButtonText: string;
   popupTitle: string;
-  saving: boolean = false;
-  showWarningExistingCopy: boolean = false;
+  saving = false;
+  showWarningExistingCopy = false;
   currentUser: User;
   /** Voorvertoning van een net gekozen afbeelding, tot de popup sluit (sc-3028). */
   imagePreview: string = null;
@@ -81,7 +82,7 @@ export class WishPopupComponent implements OnInit {
 
   saveWish () {
     this.saving = true;
-    let returnedWish: Wish = { ...this.wish, ...this.wishForm.value };
+    const returnedWish: Wish = { ...this.wish, ...this.wishForm.value };
     this.activeModal.close(returnedWish);    
   }
 

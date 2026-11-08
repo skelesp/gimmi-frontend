@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
@@ -7,9 +7,10 @@ import { UserService } from 'src/app/users/service/user.service';
     selector: 'gimmi-navigation-bar',
     templateUrl: './navigation-bar.component.html',
     styleUrls: ['./navigation-bar.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
-export class NavigationBarComponent {
+export class NavigationBarComponent implements OnInit, OnDestroy {
   public isNavbarCollapsed = true;
 
   currentUser: User;

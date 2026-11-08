@@ -6,7 +6,7 @@ import { CommunicationService } from 'src/app/shared/services/communication.serv
 import { UserService } from 'src/app/users/service/user.service';
 import { Person } from '../models/person.model';
 import { PeopleService } from './people.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 describe('PeopleService', () => {
   let service: PeopleService;
@@ -22,7 +22,7 @@ describe('PeopleService', () => {
     providers: [
         { provide: UserService, useValue: userService },
         { provide: CommunicationService, useValue: communication },
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting()
     ]
 });
@@ -103,7 +103,7 @@ describe('PeopleService', () => {
 
   describe('getNameById en getEmailById', () => {
     it('zonder id: fout zonder request', () => {
-      let fouten: string[] = [];
+      const fouten: string[] = [];
       service.getNameById('').subscribe({ error: e => fouten.push(e) });
       service.getEmailById('').subscribe({ error: e => fouten.push(e) });
       expect(fouten).toEqual(['No personId provided', 'No personId provided']);

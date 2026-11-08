@@ -175,7 +175,7 @@ export class WishService {
       environment.apiUrl + 'wishlist/' + receiver.id
     ).pipe(
       tap(wishlistResponse => {
-        let receiver : Person = new Person(
+        const receiver : Person = new Person(
           wishlistResponse[0]._id.receiver._id,
           wishlistResponse[0]._id.receiver.firstName,
           wishlistResponse[0]._id.receiver.lastName
@@ -188,13 +188,13 @@ export class WishService {
         )
       ),
       // Default case if wishlist is empty
-      defaultIfEmpty(<Wish[]>[]),
+      defaultIfEmpty(([] as Wish[])),
       tap(wishes => this._wishes$.next(wishes))
     );
   }
 
   public addReservation(wish: Wish, reservation: IReservation) : Observable<Wish>{
-    let reservationRequestData: IReservationResponse = { ...reservation, reservedBy: reservation.reservedBy.id };
+    const reservationRequestData: IReservationResponse = { ...reservation, reservedBy: reservation.reservedBy.id };
 
     return this.http$.post<IWishReservationResponse>(
       environment.apiUrl + 'wish/' + wish.id + '/reservation', 
@@ -232,7 +232,7 @@ export class WishService {
   }
   
   public create ( newWish : Wish) : Observable<Wish>{
-    let wishCreatePayload : IWishCreateRequest = {
+    const wishCreatePayload : IWishCreateRequest = {
       title: newWish.title,
       price: newWish.price,
       url: newWish.url,
@@ -259,13 +259,13 @@ export class WishService {
   }
 
   public update ( wish : Wish ) : Observable<Wish>{
-    const wishRequest = <IWishRequest>{
+    const wishRequest = {
       ...wish,
       _id: wish.id,
       receiver: wish.receiver,
       // De API bewaart van het afbeeldingsveld alleen de sleutel.
       image: imageVoorApi(wish.image)
-    };
+    } as IWishRequest;
     return this.http$.put<IWishReservationResponse>(
       environment.apiUrl + 'wish/' + wish.id,
       wishRequest
@@ -275,7 +275,7 @@ export class WishService {
   }
 
   public close (wish: Wish) : Observable<Wish>{
-    let closure: IClosureResponse = {
+    const closure: IClosureResponse = {
       closedBy: this.userService.currentUser.id,
       closedOn: new Date(),
       reason: "Cadeau ontvangen"
@@ -302,9 +302,9 @@ export class WishService {
     // Check wish caches for wishID
     if (this._selectedWish$.value?.id === wishID) return of(this._selectedWish$.value);
     
-    let index = this.findWishInWishlist(wishID);
+    const index = this.findWishInWishlist(wishID);
     if (index !== -1) {
-      let cachedWish: Wish = this._wishes$.value[index];
+      const cachedWish: Wish = this._wishes$.value[index];
       this.updateSelectedWish(cachedWish);
       return of(cachedWish);
     }
@@ -331,9 +331,9 @@ export class WishService {
   }
 
   private updateWishInWishlist(updatedWish: Wish): void {
-    let currentWishlist = [...this._wishes$.value]; //spread operator passes a copy of the array, so change detection will detect this change.
+    const currentWishlist = [...this._wishes$.value]; //spread operator passes a copy of the array, so change detection will detect this change.
     if (currentWishlist.length !== 0) {
-      let index = this.findWishInWishlist(updatedWish.id);
+      const index = this.findWishInWishlist(updatedWish.id);
       currentWishlist[index] = updatedWish;
     }
     this._wishes$.next(currentWishlist);
@@ -343,14 +343,14 @@ export class WishService {
 
   private addWishToWishlist ( newWish : Wish) : void {
     if (this._currentReceiver$.value.id === newWish.receiver.id) {
-      let wishlist = this._wishes$.value;
+      const wishlist = this._wishes$.value;
       wishlist.unshift(newWish);
       this._wishes$.next(wishlist);
     }
   }
 
   private deleteWishFromWishlist (deletedWish : Wish) {
-    let filteredWishlist = this._wishes$.value.filter( wish => {
+    const filteredWishlist = this._wishes$.value.filter( wish => {
       return wish.id !== deletedWish.id;
     }); // Filter always returns copy of array
     
@@ -361,7 +361,7 @@ export class WishService {
     return of(wishReservationResponse).pipe(
       // !! Dit is een nutteloze actie puur om ervoor te zorgen dat de wishResponse van deze call gelijk is aan deze van de getWishlist
       map(wishResponse => {
-        let newWishResponse: any = { ...wishResponse };
+        const newWishResponse: any = { ...wishResponse };
         if (newWishResponse.reservation)
           newWishResponse.reservation.reservedBy = newWishResponse.reservation.reservedBy.id;
         return newWishResponse;
@@ -374,7 +374,7 @@ export class WishService {
 
   private convertWishResponseToFullWishInstance(wishResponse : IWishResponse | IWishResponseWithFullCreatedBy, receiver : Person) : Observable<Wish>{
     // Create wish without reservation and closure
-    let wish = this.createBasicWishInstanceFromResponse(wishResponse, receiver);
+    const wish = this.createBasicWishInstanceFromResponse(wishResponse, receiver);
     // Fetch Person corresponding to closedBy and reservedBy objectID's
     // !! This can be avoided if the API returns fully populated wish object...
     return forkJoin([
@@ -470,7 +470,7 @@ export class WishService {
   }
   
   private createBasicWishInstanceFromResponse ( wishResponse : IWishResponse, receiver: Person ) : Wish {
-    let wish : Wish = new Wish (
+    const wish : Wish = new Wish (
       wishResponse._id,
       wishResponse.title,
       wishResponse.price,

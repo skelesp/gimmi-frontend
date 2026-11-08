@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { IExtraPersonInfo, ILike } from '../../models/person.model';
 import { faPencilAlt, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { UntypedFormGroup } from '@angular/forms';
@@ -10,17 +10,18 @@ export type itemTypes = 'like' | 'dislike';
     selector: 'gimmi-extra-info',
     templateUrl: './extra-info.component.html',
     styleUrls: ['./extra-info.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ExtraInfoComponent implements OnInit {
   @Input() firstName : string;
   @Input() likes: ILike[] = [];
   @Input() dislikes: ILike[] = [];
-  @Input() personIsUser: boolean = false;
+  @Input() personIsUser = false;
   @Output() extraInfoSaved = new EventEmitter<IExtraPersonInfo>();
 
   editItemsForm: UntypedFormGroup;
-  editMode: boolean = false;
+  editMode = false;
   pencilIcon = faPencilAlt;
   checkIcon = faCheck;
   cancelIcon = faTimes;

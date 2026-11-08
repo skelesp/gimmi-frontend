@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
@@ -11,15 +11,16 @@ type EmailExistsRedirectType = "wishlist" | "login";
     selector: 'gimmi-email-input',
     templateUrl: './email-input.component.html',
     styleUrls: ['./email-input.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class EmailInputComponent implements OnInit {
   @Input() parentFormGroup: UntypedFormGroup;
   @Input() label: string = null;
   @Input() bindedQueryParam: string = null;
-  @Input() controlName: string = 'email';
-  @Input() placeholder: string = 'Email (login)';
-  @Input() emailExistsValidation: boolean = false;
+  @Input() controlName = 'email';
+  @Input() placeholder = 'Email (login)';
+  @Input() emailExistsValidation = false;
   @Input() emailExistsRedirectTo: EmailExistsRedirectType = "wishlist";
 
   mailIcon = faAt;
@@ -28,7 +29,7 @@ export class EmailInputComponent implements OnInit {
   constructor(private _peopleService: PeopleService) { }
 
   ngOnInit(): void {
-    let emailControlOptions : AbstractControlOptions = {
+    const emailControlOptions : AbstractControlOptions = {
       validators: [Validators.required, Validators.email]
     };
     if (this.emailExistsValidation) {

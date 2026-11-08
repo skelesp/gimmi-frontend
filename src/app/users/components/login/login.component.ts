@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { UserService } from '../../service/user.service';
 import { ILocalLoginInfo } from "../../models/user.model";
@@ -10,11 +10,12 @@ import { environment } from 'src/environments/environment';
     selector: 'gimmi-login',
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginForm: UntypedFormGroup;
-  authenticationError: boolean = false;
+  authenticationError = false;
   loggedInUser: User;
   currentUserSubscription: Subscription;
   redirectUrl: string;
@@ -34,7 +35,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   login() {
-    let credentials : ILocalLoginInfo = {
+    const credentials : ILocalLoginInfo = {
       email: this.loginForm.value.email,
       password: this.loginForm.value.password
     }

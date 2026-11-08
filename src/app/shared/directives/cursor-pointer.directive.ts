@@ -8,6 +8,6 @@ export class CursorPointerDirective {
 
   constructor(private el: ElementRef) { }
 
-  @HostBinding('style.cursor') cursor: string = 'pointer';
+  @HostBinding('style.cursor') cursor = 'pointer';
 
 }
