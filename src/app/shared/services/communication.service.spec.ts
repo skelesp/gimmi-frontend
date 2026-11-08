@@ -4,7 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { environment } from 'src/environments/environment';
 import { CommunicationService, MailInfo } from './communication.service';
 import { NotificationService } from './notification.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 // sc-1998: mail versturen via de API, met melding aan de gebruiker.
 describe('CommunicationService', () => {
@@ -17,7 +17,7 @@ describe('CommunicationService', () => {
     notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['showNotification']);
     TestBed.configureTestingModule({
     imports: [],
-    providers: [{ provide: NotificationService, useValue: notifications }, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [{ provide: NotificationService, useValue: notifications }, provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     service = TestBed.inject(CommunicationService);
     http = TestBed.inject(HttpTestingController);

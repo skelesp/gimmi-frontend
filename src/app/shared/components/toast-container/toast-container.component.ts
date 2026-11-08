@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Toaster } from '../../services/toaster.service';
 
 // Zelfde plaatsing en schaduw als de vroegere ngx-toast-notifications: rechtsboven vanaf 576px,
@@ -19,6 +19,7 @@ import { Toaster } from '../../services/toaster.service';
     @media (max-width: 575px) { .toast-overlay { display: flex; justify-content: flex-end; flex-direction: column; } .toast-panel { padding-bottom: 2px; } }
     @media (min-width: 576px) { .toast-panel { position: absolute; max-width: 20rem; top: 0; right: 1rem; } }
   `],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ToastContainerComponent {

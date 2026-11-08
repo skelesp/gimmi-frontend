@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faCalendarPlus, faCheck, faComment, faExpand, faExternalLinkAlt, faGift, faListAlt, faPaintBrush, faUser } from '@fortawesome/free-solid-svg-icons';
@@ -16,6 +16,7 @@ import { CommunicationService } from 'src/app/shared/services/communication.serv
     selector: 'gimmi-wish-page',
     templateUrl: './wish-page.component.html',
     styleUrls: ['./wish-page.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class WishPageComponent extends WishItemComponent implements OnInit {

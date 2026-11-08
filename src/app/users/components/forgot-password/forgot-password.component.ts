@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from '../../service/user.service';
@@ -7,6 +7,7 @@ import { UserService } from '../../service/user.service';
     selector: 'gimmi-forgot-password',
     templateUrl: './forgot-password.component.html',
     styleUrls: ['./forgot-password.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ForgotPasswordComponent implements OnInit {

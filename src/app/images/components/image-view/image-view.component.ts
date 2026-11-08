@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { ImageService, STANDAARD_AFBEELDING } from '../../services/image.service';
 
@@ -13,6 +13,7 @@ import { ImageService, STANDAARD_AFBEELDING } from '../../services/image.service
     selector: 'gimmi-image-view',
     templateUrl: './image-view.component.html',
     styleUrls: ['./image-view.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ImageViewComponent implements OnChanges {

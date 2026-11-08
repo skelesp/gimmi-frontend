@@ -65,7 +65,7 @@
                 </li>
                 <li class="list-group-item" [hidden]="!wish.closure">
                     <fa-icon [icon]="doneIcon" class="me-2"></fa-icon>Afgesloten op:
-                    {{wish.closure?.closedOn | date: 'dd / MM / \'yy'}}
+                    {{$safeNavigationMigration(wish.closure?.closedOn) | date: 'dd / MM / \'yy'}}
                 </li>
             </ul>
         </div>

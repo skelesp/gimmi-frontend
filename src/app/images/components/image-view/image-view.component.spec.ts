@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { STANDAARD_AFBEELDING } from '../../services/image.service';
 import { ImageViewComponent } from './image-view.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 // Een gewone <img> met srcset (sc-2911), in plaats van <cl-image> van de Cloudinary-SDK.
 describe('ImageViewComponent', () => {
@@ -21,7 +21,7 @@ describe('ImageViewComponent', () => {
     TestBed.configureTestingModule({
     declarations: [ImageViewComponent],
     imports: [],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();
   }));

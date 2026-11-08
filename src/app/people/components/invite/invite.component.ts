@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { InvitePersonData, PeopleService } from '../../service/people.service';
@@ -7,6 +7,7 @@ import { InvitePersonData, PeopleService } from '../../service/people.service';
     selector: 'gimmi-invite',
     templateUrl: './invite.component.html',
     styleUrls: ['./invite.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class InviteComponent implements OnInit {

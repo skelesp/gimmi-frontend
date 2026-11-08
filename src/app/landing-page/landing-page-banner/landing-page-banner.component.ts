@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { UserService } from '../../users/service/user.service';
 import { Subscription } from 'rxjs';
@@ -8,6 +8,7 @@ import { User } from 'src/app/users/models/user.model';
     selector: 'gimmi-landing-page-banner',
     templateUrl: './landing-page-banner.component.html',
     styleUrls: ['./landing-page-banner.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class LandingPageBannerComponent implements OnInit, OnDestroy {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
@@ -11,6 +11,7 @@ type EmailExistsRedirectType = "wishlist" | "login";
     selector: 'gimmi-email-input',
     templateUrl: './email-input.component.html',
     styleUrls: ['./email-input.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class EmailInputComponent implements OnInit {

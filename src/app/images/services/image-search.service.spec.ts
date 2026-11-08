@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 
 import { environment } from 'src/environments/environment';
 import { IImageSearchResult, ImageSearchService } from './image-search.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 // Afbeeldingen zoeken via de backend (Brave Search, sc-3028).
 describe('ImageSearchService', () => {
@@ -11,7 +11,7 @@ describe('ImageSearchService', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()] });
     service = TestBed.inject(ImageSearchService);
     http = TestBed.inject(HttpTestingController);
   });

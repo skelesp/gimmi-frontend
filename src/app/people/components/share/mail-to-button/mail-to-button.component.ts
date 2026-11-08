@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { Person } from 'src/app/people/models/person.model';
@@ -9,6 +9,7 @@ import { NotificationService } from 'src/app/shared/services/notification.servic
     selector: 'gimmi-mail-to-button',
     templateUrl: './mail-to-button.component.html',
     styleUrls: ['./mail-to-button.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class MailToButtonComponent {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Person } from 'src/app/people/models/person.model';
@@ -11,6 +11,7 @@ import { WishService } from '../../services/wish.service';
     selector: 'gimmi-wish-reservation',
     templateUrl: './wish-reservation.component.html',
     styleUrls: ['./wish-reservation.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class WishReservationComponent implements OnInit {

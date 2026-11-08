@@ -6,7 +6,7 @@ import { environment } from 'src/environments/environment';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { User } from '../models/user.model';
 import { UserService } from './user.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 // sc-1995 (auth local), sc-2004 (wachtwoord vergeten/reset), sc-2041 (attemptedUrl).
 // logout() herlaadt de pagina en wordt daarom hier niet aangeroepen.
@@ -42,7 +42,7 @@ describe('UserService', () => {
     providers: [
         { provide: Router, useValue: router },
         { provide: NotificationService, useValue: notifications },
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting()
     ]
 });

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from "@angular/common/http";
 import { RouterModule } from '@angular/router';
 
 import { ImagesModule } from '../images/images.module';
@@ -54,5 +54,5 @@ import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-poli
         RouterModule,
         ReactiveFormsModule,
         ImagesModule,
-        ClipboardModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
+        ClipboardModule], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] })
 export class SharedModule { }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { User } from 'src/app/users/models/user.model';
@@ -10,6 +10,7 @@ import { WishService } from 'src/app/wishes/services/wish.service';
     selector: 'gimmi-wish-popup',
     templateUrl: './wish-popup.component.html',
     styleUrls: ['./wish-popup.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class WishPopupComponent implements OnInit {
