@@ -30,7 +30,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
-      # Met --code-coverage; faalt onder de drempels in karma.conf.js (sc-2979).
+      # Vitest draait in echte Chromium (Playwright); faalt onder de coverage-drempels in angular.json (sc-2979).
+      - run: npx playwright install --with-deps chromium
       - run: npm run test:ci
       - uses: actions/upload-artifact@v7
         if: always()

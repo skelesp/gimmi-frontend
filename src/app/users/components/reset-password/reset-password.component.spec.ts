@@ -1,5 +1,6 @@
+
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -15,95 +16,108 @@ import { ResetPasswordComponent } from './reset-password.component';
 // Wachtwoord resetten met de link uit de mail: /users/resetpassword/:token (sc-2004). De resolver
 // zegt of het token geldig is; daarna kiest de gebruiker een nieuw wachtwoord en gaat naar login.
 describe('ResetPasswordComponent', () => {
-  let fixture: ComponentFixture<ResetPasswordComponent>;
-  let users: jasmine.SpyObj<UserService>;
-  let notifications: jasmine.SpyObj<NotificationService>;
-  let router: jasmine.SpyObj<Router>;
-
-  function open(validToken: boolean) {
-    TestBed.overrideProvider(ActivatedRoute, {
-      useValue: { data: of({ validToken }), snapshot: { paramMap: convertToParamMap({ token: 'abc123' }) } }
+    beforeEach(() => {
+        vi.useFakeTimers({ advanceTimeDelta: 1, shouldAdvanceTime: true });
     });
-    fixture = TestBed.createComponent(ResetPasswordComponent);
-    fixture.detectChanges();
-    flushMicrotasks();
-    fixture.detectChanges();
-  }
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+    let fixture: ComponentFixture<ResetPasswordComponent>;
+    let users: Record<string, any>;
+    let notifications: Record<string, any>;
+    let router: Record<string, any>;
 
-  function el(): HTMLElement { return fixture.nativeElement; }
-
-  function vulIn(wachtwoord: string, herhaling: string) {
-    const [pw, check] = Array.from(el().querySelectorAll('input')) as HTMLInputElement[];
-    for (const [input, waarde] of [[pw, wachtwoord], [check, herhaling]] as [HTMLInputElement, string][]) {
-      input.value = waarde;
-      input.dispatchEvent(new Event('input'));
-      input.dispatchEvent(new Event('blur'));
+    async function open(validToken: boolean) {
+        TestBed.overrideProvider(ActivatedRoute, {
+            useValue: { data: of({ validToken }), snapshot: { paramMap: convertToParamMap({ token: 'abc123' }) } }
+        });
+        fixture = TestBed.createComponent(ResetPasswordComponent);
+        fixture.detectChanges();
+        await vi.advanceTimersByTimeAsync(0);
+        fixture.detectChanges();
     }
-    fixture.detectChanges();
-  }
 
-  function knop(): HTMLButtonElement { return el().querySelector('button[type="submit"]'); }
+    function el(): HTMLElement { return fixture.nativeElement; }
 
-  beforeEach(async () => {
-    users = jasmine.createSpyObj<UserService>('UserService', ['resetPassword']);
-    notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['showNotification']);
-    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
-    await TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule, FontAwesomeModule, NgbAlertModule],
-      declarations: [ResetPasswordComponent, PasswordCheckComponent, PasswordInputComponent],
-      providers: [
-        { provide: UserService, useValue: users },
-        { provide: NotificationService, useValue: notifications },
-        { provide: Router, useValue: router },
-        { provide: ActivatedRoute, useValue: {} }
-      ],
-      schemas: [NO_ERRORS_SCHEMA]
-    }).compileComponents();
-  });
+    function vulIn(wachtwoord: string, herhaling: string) {
+        const [pw, check] = Array.from(el().querySelectorAll('input')) as HTMLInputElement[];
+        for (const [input, waarde] of [[pw, wachtwoord], [check, herhaling]] as [
+            HTMLInputElement,
+            string
+        ][]) {
+            input.value = waarde;
+            input.dispatchEvent(new Event('input'));
+            input.dispatchEvent(new Event('blur'));
+        }
+        fixture.detectChanges();
+    }
 
-  it('ongeldige of vervallen link: uitleg en een link om opnieuw aan te vragen, geen formulier', fakeAsync(() => {
-    open(false);
-    expect(el().querySelector('ngb-alert').textContent).toContain('Uw link is ofwel vervallen (= ouder dan 1u) of ongeldig.');
-    expect(el().querySelector('gimmi-forgot-password-link')).toBeTruthy();
-    expect(el().querySelector('form')).toBeNull();
-  }));
+    function knop(): HTMLButtonElement { return el().querySelector('button[type="submit"]'); }
 
-  it('geldige link: formulier met twee wachtwoordvelden, knop pas actief als ze overeenkomen', fakeAsync(() => {
-    open(true);
-    expect(el().querySelector('ngb-alert')).toBeNull();
-    expect(el().querySelectorAll('input').length).toBe(2);
-    expect(knop().disabled).toBeTrue();
+    beforeEach(async () => {
+        users = {
+            resetPassword: vi.fn().mockName("UserService.resetPassword")
+        };
+        notifications = {
+            showNotification: vi.fn().mockName("NotificationService.showNotification")
+        };
+        router = {
+            navigate: vi.fn().mockName("Router.navigate")
+        };
+        await TestBed.configureTestingModule({
+            imports: [ReactiveFormsModule, FontAwesomeModule, NgbAlertModule],
+            declarations: [ResetPasswordComponent, PasswordCheckComponent, PasswordInputComponent],
+            providers: [
+                { provide: UserService, useValue: users },
+                { provide: NotificationService, useValue: notifications },
+                { provide: Router, useValue: router },
+                { provide: ActivatedRoute, useValue: {} }
+            ],
+            schemas: [NO_ERRORS_SCHEMA]
+        }).compileComponents();
+    });
 
-    vulIn('Nieuw-geheim-1', 'Iets-anders-1');
-    expect(knop().disabled).toBeTrue();
+    it('ongeldige of vervallen link: uitleg en een link om opnieuw aan te vragen, geen formulier', async () => {
+        await open(false);
+        expect(el().querySelector('ngb-alert').textContent).toContain('Uw link is ofwel vervallen (= ouder dan 1u) of ongeldig.');
+        expect(el().querySelector('gimmi-forgot-password-link')).toBeTruthy();
+        expect(el().querySelector('form')).toBeNull();
+    });
 
-    vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
-    expect(knop().disabled).toBeFalse();
-  }));
+    it('geldige link: formulier met twee wachtwoordvelden, knop pas actief als ze overeenkomen', async () => {
+        await open(true);
+        expect(el().querySelector('ngb-alert')).toBeNull();
+        expect(el().querySelectorAll('input').length).toBe(2);
+        expect(knop().disabled).toBe(true);
 
-  it('opslaan: nieuw wachtwoord met het token uit de link, melding en naar login met het e-mailadres', fakeAsync(() => {
-    users.resetPassword.and.returnValue(of({ email: 'ria@gimmi.be', usedToken: 'abc123' }));
-    open(true);
-    vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
-    knop().click();
+        vulIn('Nieuw-geheim-1', 'Iets-anders-1');
+        expect(knop().disabled).toBe(true);
 
-    expect(users.resetPassword).toHaveBeenCalledWith('Nieuw-geheim-1', 'abc123');
-    expect(notifications.showNotification).toHaveBeenCalledWith(
-      'Wachtwoord reset is succesvol uitgevoerd. Je kan nu opnieuw inloggen.', 'success', 'Wachtwoord aangepast');
-    expect(router.navigate).toHaveBeenCalledWith(['/users/login'], { queryParams: { e: 'ria@gimmi.be' } });
-  }));
+        vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        expect(knop().disabled).toBe(false);
+    });
 
-  it('token intussen vervallen: foutmelding en de uitleg in plaats van het formulier', fakeAsync(() => {
-    users.resetPassword.and.returnValue(throwError({ status: 404 }));
-    open(true);
-    vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
-    knop().click();
-    fixture.detectChanges();
+    it('opslaan: nieuw wachtwoord met het token uit de link, melding en naar login met het e-mailadres', async () => {
+        users.resetPassword.mockReturnValue(of({ email: 'ria@gimmi.be', usedToken: 'abc123' }));
+        await open(true);
+        vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        knop().click();
 
-    expect(notifications.showNotification).toHaveBeenCalledWith(
-      'Wachtwoord reset is gefaald. Vermoedelijk is de link vervallen. Vraag een nieuwe link aan.', 'error', 'Link vervallen');
-    expect(router.navigate).not.toHaveBeenCalled();
-    expect(el().querySelector('form')).toBeNull();
-    expect(el().querySelector('ngb-alert')).toBeTruthy();
-  }));
+        expect(users.resetPassword).toHaveBeenCalledWith('Nieuw-geheim-1', 'abc123');
+        expect(notifications.showNotification).toHaveBeenCalledWith('Wachtwoord reset is succesvol uitgevoerd. Je kan nu opnieuw inloggen.', 'success', 'Wachtwoord aangepast');
+        expect(router.navigate).toHaveBeenCalledWith(['/users/login'], { queryParams: { e: 'ria@gimmi.be' } });
+    });
+
+    it('token intussen vervallen: foutmelding en de uitleg in plaats van het formulier', async () => {
+        users.resetPassword.mockReturnValue(throwError({ status: 404 }));
+        await open(true);
+        vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        knop().click();
+        fixture.detectChanges();
+
+        expect(notifications.showNotification).toHaveBeenCalledWith('Wachtwoord reset is gefaald. Vermoedelijk is de link vervallen. Vraag een nieuwe link aan.', 'error', 'Link vervallen');
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(el().querySelector('form')).toBeNull();
+        expect(el().querySelector('ngb-alert')).toBeTruthy();
+    });
 });

@@ -9,37 +9,40 @@ import { AuthGuard } from './auth.guard';
 
 // sc-2041: niet ingelogd -> naar login, en onthouden waar de gebruiker heen wilde.
 describe('AuthGuard', () => {
-  let guard: AuthGuard;
-  let router: Router;
-  let users: { currentUser$: BehaviorSubject<User>; attemptedUrl: string };
+    let guard: AuthGuard;
+    let router: Router;
+    let users: {
+        currentUser$: BehaviorSubject<User>;
+        attemptedUrl: string;
+    };
 
-  function check(url: string): boolean | UrlTree {
-    let resultaat: boolean | UrlTree;
-    (guard.canActivate({} as ActivatedRouteSnapshot, { url } as RouterStateSnapshot) as Observable<boolean | UrlTree>)
-      .subscribe(v => resultaat = v);
-    return resultaat;
-  }
+    function check(url: string): boolean | UrlTree {
+        let resultaat: boolean | UrlTree;
+        (guard.canActivate({} as ActivatedRouteSnapshot, { url } as RouterStateSnapshot) as Observable<boolean | UrlTree>)
+            .subscribe(v => resultaat = v);
+        return resultaat;
+    }
 
-  beforeEach(() => {
-    users = { currentUser$: new BehaviorSubject<User>(null), attemptedUrl: null };
-    TestBed.configureTestingModule({
-      imports: [RouterTestingModule],
-      providers: [{ provide: UserService, useValue: users }]
+    beforeEach(() => {
+        users = { currentUser$: new BehaviorSubject<User>(null), attemptedUrl: null };
+        TestBed.configureTestingModule({
+            imports: [RouterTestingModule],
+            providers: [{ provide: UserService, useValue: users }]
+        });
+        guard = TestBed.inject(AuthGuard);
+        router = TestBed.inject(Router);
     });
-    guard = TestBed.inject(AuthGuard);
-    router = TestBed.inject(Router);
-  });
 
-  it('ingelogd: doorlaten', () => {
-    users.currentUser$.next(new User('u1', 'R', 'Ria', 'ria@gimmi.be', 'local', 't', []));
-    expect(check('/people/p9')).toBeTrue();
-    expect(users.attemptedUrl).toBeNull();
-  });
+    it('ingelogd: doorlaten', () => {
+        users.currentUser$.next(new User('u1', 'R', 'Ria', 'ria@gimmi.be', 'local', 't', []));
+        expect(check('/people/p9')).toBe(true);
+        expect(users.attemptedUrl).toBeNull();
+    });
 
-  it('niet ingelogd: naar login en de gevraagde url onthouden', () => {
-    spyOn(console, 'error');
-    const r = check('/people/p9');
-    expect(router.serializeUrl(r as UrlTree)).toBe('/users/login');
-    expect(users.attemptedUrl).toBe('/people/p9');
-  });
+    it('niet ingelogd: naar login en de gevraagde url onthouden', () => {
+        vi.spyOn(console, 'error').mockReturnValue(undefined);
+        const r = check('/people/p9');
+        expect(router.serializeUrl(r as UrlTree)).toBe('/users/login');
+        expect(users.attemptedUrl).toBe('/people/p9');
+    });
 });

@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ForgotPasswordLinkComponent } from './forgot-password-link.component';
 
@@ -6,12 +7,13 @@ describe('ForgotPasswordLinkComponent', () => {
   let component: ForgotPasswordLinkComponent;
   let fixture: ComponentFixture<ForgotPasswordLinkComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ ForgotPasswordLinkComponent ]
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [ ForgotPasswordLinkComponent ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ForgotPasswordLinkComponent);
