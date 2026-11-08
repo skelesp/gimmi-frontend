@@ -29,8 +29,6 @@
     "@fortawesome/free-regular-svg-icons": "^5.15.4",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@ng-bootstrap/ng-bootstrap": "^11.0.0",
-    "@types/facebook-js-sdk": "^3.3.5",
-    "angularx-social-login": "^4.0.1",
     "bootstrap": "^4.6.0",
     "jwt-decode": "^3.1.2",
     "ngx-clipboard": "^15.0.1",

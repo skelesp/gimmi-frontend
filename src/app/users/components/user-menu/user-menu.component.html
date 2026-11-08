@@ -1,9 +1,7 @@
 
 <div ngbDropdown class="d-inline-block">
     <div ngbDropdownToggle>
-        <img *ngIf="currentUser.loginStrategy === 'facebook'" class="rounded-circle avatar mr-1"
-            [src]="currentUser.accounts.facebook.profile_pic">
-        <fa-icon *ngIf="currentUser.loginStrategy !== 'facebook'" [icon]="userIcon" size="2x" class="mr-1"></fa-icon>
+        <fa-icon [icon]="userIcon" size="2x" class="mr-1"></fa-icon>
         <span class="mr-1 align-baseline">{{currentUser.firstName}}</span>
     </div>
     <div ngbDropdownMenu class="dropdown-menu dropdown-menu-right">
