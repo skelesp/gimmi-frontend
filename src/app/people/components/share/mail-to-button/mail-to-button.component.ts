@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { Person } from 'src/app/people/models/person.model';
@@ -6,15 +6,17 @@ import { CommunicationService, MailInfo } from 'src/app/shared/services/communic
 import { NotificationService } from 'src/app/shared/services/notification.service';
 
 @Component({
-  selector: 'gimmi-mail-to-button',
-  templateUrl: './mail-to-button.component.html',
-  styleUrls: ['./mail-to-button.component.css']
+    selector: 'gimmi-mail-to-button',
+    templateUrl: './mail-to-button.component.html',
+    styleUrls: ['./mail-to-button.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class MailToButtonComponent {
   @Input() url: string;
   @Input() person: Person;
   mailIcon: IconDefinition = faEnvelope;
-  hideMailInfo: boolean = true;
+  hideMailInfo = true;
   mailAddresses: string;
   
   constructor(
@@ -25,10 +27,10 @@ export class MailToButtonComponent {
   send () {
     this.hideMailInfo = true;
     
-    let mailTo: string[] = this.mailAddresses.split(",");
+    const mailTo: string[] = this.mailAddresses.split(",");
     mailTo.forEach((email ) => {
-      let urlInMail: string = this.url + "?e=" + encodeURIComponent(email);
-      let mailInfo: MailInfo = {
+      const urlInMail: string = this.url + "?e=" + encodeURIComponent(email);
+      const mailInfo: MailInfo = {
         to: email,
         subject: `[GIMMI] ${this.person.fullName} nodigt je uit.`,
         html: `<html>

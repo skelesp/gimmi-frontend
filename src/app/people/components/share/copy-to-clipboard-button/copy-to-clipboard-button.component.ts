@@ -1,12 +1,14 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faCopy } from '@fortawesome/free-solid-svg-icons';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 
 @Component({
-  selector: 'gimmi-copy-to-clipboard-button',
-  templateUrl: './copy-to-clipboard-button.component.html',
-  styleUrls: ['./copy-to-clipboard-button.component.css']
+    selector: 'gimmi-copy-to-clipboard-button',
+    templateUrl: './copy-to-clipboard-button.component.html',
+    styleUrls: ['./copy-to-clipboard-button.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class CopyToClipboardButtonComponent{
   @Input() url: string;

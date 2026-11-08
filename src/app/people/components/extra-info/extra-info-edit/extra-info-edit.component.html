@@ -3,12 +3,12 @@
         <span *ngSwitchCase="'likes'">Waarmee kan men je een plezier doen?</span>
         <span *ngSwitchCase="'dislikes'">Wat krijgt je liever niet?</span>
     </div>
-    <div class="row no-gutters mb-1" *ngFor="let item of formItems.controls; index as i">
+    <div class="row g-0 mb-1" *ngFor="let item of formItems.controls; index as i">
         <ng-container [formGroup]="item">
-            <div class="col-5 mr-1">
+            <div class="col-5 me-1">
                 <input type="text" class="form-control form-control-sm" formControlName="text" placeholder="Beschrijving"/>
             </div>
-            <div class="col-5 mr-1">
+            <div class="col-5 me-1">
                 <input type="text" class="form-control form-control-sm" formControlName="url" placeholder="url (optioneel)"/>
             </div>
             <div class="col-1">
@@ -21,5 +21,5 @@
             (click)="addItem()"
             [disabled]="formItems.invalid">
             <fa-icon [icon]="addIcon"></fa-icon></button>
-            <span *ngIf="formItems.invalid" class="text-danger font-sm font-sm ml-1">Beschrijving moet ingevuld worden (of verwijder lege lijn)</span>
+            <span *ngIf="formItems.invalid" class="text-danger font-sm font-sm ms-1">Beschrijving moet ingevuld worden (of verwijder lege lijn)</span>
 </div>

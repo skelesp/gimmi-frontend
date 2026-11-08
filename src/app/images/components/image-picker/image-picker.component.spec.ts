@@ -74,7 +74,7 @@ describe('ImagePickerComponent', () => {
     it('Annuleer en het kruisje sluiten de popup zonder resultaat', () => {
       maak();
       klik('Annuleer');
-      (el('.modal-header .close')).click();
+      (el('.modal-header .btn-close')).click();
       expect(modal.dismiss).toHaveBeenCalledTimes(2);
       expect(modal.close).not.toHaveBeenCalled();
     });

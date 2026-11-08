@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faShareAlt } from '@fortawesome/free-solid-svg-icons';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -7,21 +7,23 @@ import { Person } from '../../models/person.model';
 import { SharePopupComponent } from './share-popup/share-popup.component';
 
 @Component({
-  selector: 'gimmi-share',
-  templateUrl: './share.component.html',
-  styleUrls: ['./share.component.css']
+    selector: 'gimmi-share',
+    templateUrl: './share.component.html',
+    styleUrls: ['./share.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ShareComponent {
   @Input() personToShare: Person;
   @Input() shareIcon: IconDefinition = faShareAlt;
-  @Input() iconSize: string = "lg";
+  @Input() iconSize = "lg";
 
   constructor(
     private modalService: NgbModal
   ) { }
 
   activate() {
-    let sharePopup = this.modalService.open(SharePopupComponent);
+    const sharePopup = this.modalService.open(SharePopupComponent);
     sharePopup.componentInstance.linkToShare = environment.rootSiteUrl + '/people/' + this.personToShare?.id;
     sharePopup.componentInstance.personToShare = this.personToShare;
   }

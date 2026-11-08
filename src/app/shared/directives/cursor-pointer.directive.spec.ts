@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
@@ -7,11 +7,13 @@ import { CursorPointerDirective } from './cursor-pointer.directive';
 
 // sc-2038: een "pointer" op elk klikbaar element: alles met (click), ngbDropdown of routerLink.
 @Component({
-  template: `
+    template: `
     <span id="klik" (click)="geklikt = true">klik</span>
     <div id="dropdown" ngbDropdown>menu</div>
     <a id="link" routerLink="/home">link</a>
-    <span id="gewoon">tekst</span>`
+    <span id="gewoon">tekst</span>`,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 class TestHostComponent {
   geklikt = false;

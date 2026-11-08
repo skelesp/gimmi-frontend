@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { ImageService, STANDAARD_AFBEELDING } from '../../services/image.service';
 
@@ -10,15 +10,17 @@ import { ImageService, STANDAARD_AFBEELDING } from '../../services/image.service
  * niet, dan de standaardafbeelding.
  */
 @Component({
-  selector: 'gimmi-image-view',
-  templateUrl: './image-view.component.html',
-  styleUrls: ['./image-view.component.css']
+    selector: 'gimmi-image-view',
+    templateUrl: './image-view.component.html',
+    styleUrls: ['./image-view.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ImageViewComponent implements OnChanges {
   @Input() image : IWishImage = null;
-  @Input() class : string = "";
+  @Input() class  = "";
   /** Hoe breed het beeld getoond wordt, voor de keuze uit de srcset. */
-  @Input() sizes : string = "(max-width: 574px) 50vw, (max-width: 766px) 33vw, 25vw";
+  @Input() sizes  = "(max-width: 574px) 50vw, (max-width: 766px) 33vw, 25vw";
   /**
    * Toon deze URL of data-URI in plaats van het opgeslagen beeld (sc-3028): net na het
    * kiezen heeft de browser de nieuwe afbeelding al.

@@ -1,10 +1,5 @@
 import { Injectable } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor
-} from '@angular/common/http';
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { UserService } from '../service/user.service';
 import { catchError } from 'rxjs/operators';
@@ -26,7 +21,7 @@ export class AuthErrorInterceptor implements HttpInterceptor {
       catchError( err => {
         if ([401, 403].indexOf(err.status) !== -1){
           switch (err.status) {
-            case 401:
+            case 401: {
               // Failed login call: the login screen shows its own error. Don't navigate and don't
               // remember the login page as attemptedUrl, or the next successful login redirects
               // back to the login page.
@@ -55,6 +50,7 @@ export class AuthErrorInterceptor implements HttpInterceptor {
               }
               this.router.navigate(['users/login'], {queryParams: queryParams});
               break;
+            }
             case 403:
               this.notificationService.showNotification(
                 "Uw gebruiker is niet gemachtigd om deze pagina te bezoeken of deze actie uit te voeren.",

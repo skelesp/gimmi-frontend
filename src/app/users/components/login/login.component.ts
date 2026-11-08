@@ -1,5 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { UntypedFormGroup } from '@angular/forms';
 import { UserService } from '../../service/user.service';
 import { ILocalLoginInfo } from "../../models/user.model";
 import { Subscription } from 'rxjs';
@@ -7,13 +7,15 @@ import { User } from '../../models/user.model';
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'gimmi-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+    selector: 'gimmi-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class LoginComponent implements OnInit, OnDestroy {
-  loginForm: FormGroup;
-  authenticationError: boolean = false;
+  loginForm: UntypedFormGroup;
+  authenticationError = false;
   loggedInUser: User;
   currentUserSubscription: Subscription;
   redirectUrl: string;
@@ -23,7 +25,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.loginForm = new FormGroup({});
+    this.loginForm = new UntypedFormGroup({});
 
     this.currentUserSubscription = this.userService.currentUser$.subscribe( user => {
       this.loggedInUser = user;
@@ -33,7 +35,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   login() {
-    let credentials : ILocalLoginInfo = {
+    const credentials : ILocalLoginInfo = {
       email: this.loginForm.value.email,
       password: this.loginForm.value.password
     }

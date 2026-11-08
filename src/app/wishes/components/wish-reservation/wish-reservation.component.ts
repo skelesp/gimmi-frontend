@@ -1,5 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Person } from 'src/app/people/models/person.model';
 import { NotificationService } from 'src/app/shared/services/notification.service';
@@ -8,13 +8,15 @@ import { IReservation, Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 
 @Component({
-  selector: 'gimmi-wish-reservation',
-  templateUrl: './wish-reservation.component.html',
-  styleUrls: ['./wish-reservation.component.css']
+    selector: 'gimmi-wish-reservation',
+    templateUrl: './wish-reservation.component.html',
+    styleUrls: ['./wish-reservation.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class WishReservationComponent implements OnInit {
   @Input() wish: Wish;
-  reservationForm: FormGroup;
+  reservationForm: UntypedFormGroup;
   readonly reasonOptions: string[] = ['Verjaardag', 'Sinterklaas', 'Kerstmis', 'Nieuwjaar', 'Housewarming', 'Geboorte', 'Huwelijk', 'Afscheid collega', 'Afscheid', 'Communie / Lentefeest', 'Vader/moederdag', 'Andere reden']
 
   constructor( 
@@ -25,14 +27,14 @@ export class WishReservationComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.reservationForm = new FormGroup({
-      'handoverDate': new FormControl(new Date().toISOString().substring(0, 10), Validators.required), //https://stackoverflow.com/questions/45330319/angular2-setting-date-field-on-reactive-form
-      'reason': new FormControl(null, Validators.required)
+    this.reservationForm = new UntypedFormGroup({
+      'handoverDate': new UntypedFormControl(new Date().toISOString().substring(0, 10), Validators.required), //https://stackoverflow.com/questions/45330319/angular2-setting-date-field-on-reactive-form
+      'reason': new UntypedFormControl(null, Validators.required)
     })
   }
 
   saveReservation() {
-    let reservation: IReservation = { 
+    const reservation: IReservation = { 
       reason: this.reservationForm.value.reason,
       handoverDate: new Date(this.reservationForm.value.handoverDate),
       amount: 1,

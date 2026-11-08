@@ -40,7 +40,7 @@ export class Wish {
     public closure: IClosure;
     public copyOf: string;
     public createdAt: Date;
-    private _userIs : {[key: string]:boolean} = {
+    private _userIs : Record<string, boolean> = {
         receiver: null,
         creator: null,
         reservator: null

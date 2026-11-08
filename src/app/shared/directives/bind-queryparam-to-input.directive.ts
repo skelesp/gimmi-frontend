@@ -1,10 +1,11 @@
-import { Directive, Input } from '@angular/core';
+import { Directive, Input, OnInit } from '@angular/core';
 import { NgControl } from '@angular/forms';
 
 @Directive({
-  selector: '[bindQueryParamToInput]'
+    selector: '[bindQueryParamToInput]',
+    standalone: false
 })
-export class BindQueryparamToInputDirective {
+export class BindQueryparamToInputDirective implements OnInit {
   @Input('bindQueryParamToInput') paramKey: string;
 
   constructor( 

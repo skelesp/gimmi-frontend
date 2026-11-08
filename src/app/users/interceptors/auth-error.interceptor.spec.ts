@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 
 import { NotificationService } from 'src/app/shared/services/notification.service';
@@ -28,14 +28,16 @@ describe('AuthErrorInterceptor', () => {
     notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['showNotification']);
     users = { currentUser: null, attemptedUrl: null, logout: jasmine.createSpy('logout') };
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         { provide: HTTP_INTERCEPTORS, useClass: AuthErrorInterceptor, multi: true },
         { provide: Router, useValue: router },
         { provide: NotificationService, useValue: notifications },
-        { provide: UserService, useValue: users }
-      ]
-    });
+        { provide: UserService, useValue: users },
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+});
     http = TestBed.inject(HttpClient);
     backend = TestBed.inject(HttpTestingController);
   });

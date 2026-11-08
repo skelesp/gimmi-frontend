@@ -7,11 +7,11 @@
         <div class="col-auto">
             <h1>{{person?.firstName}} {{person?.lastName}}</h1>
         </div>
-        <div class="col col-sm-4 float-left">
+        <div class="col col-sm-4 float-start">
             <gimmi-share [personToShare]="person"></gimmi-share>
-            <a  class="badge badge-pill badge-secondary float-right" 
+            <a  class="badge rounded-pill text-bg-secondary float-end" 
                 [hidden]='currrentUser?.id === person?.id'
-                [routerLink]='["/people", currrentUser?.id]'
+                [routerLink]='["/people", $safeNavigationMigration(currrentUser?.id)]'
                 *ngIf='currrentUser'>
                 Ga naar mijn lijst
             </a>
@@ -22,8 +22,8 @@
         <div class="col">
             <gimmi-extra-info 
                 [firstName]="person.firstName" 
-                [likes]="person.extraInfo?.likes" 
-                [dislikes]="person.extraInfo?.dislikes"
+                [likes]="$safeNavigationMigration(person.extraInfo?.likes)" 
+                [dislikes]="$safeNavigationMigration(person.extraInfo?.dislikes)"
                 [personIsUser]="person?.id === currrentUser?.id"
                 (extraInfoSaved)="updateExtraInfo($event)">
             </gimmi-extra-info>

@@ -1,5 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
@@ -7,18 +7,20 @@ import { IWishImage, Wish } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
 
 @Component({
-  selector: 'gimmi-wish-popup',
-  templateUrl: './wish-popup.component.html',
-  styleUrls: ['./wish-popup.component.css']
+    selector: 'gimmi-wish-popup',
+    templateUrl: './wish-popup.component.html',
+    styleUrls: ['./wish-popup.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class WishPopupComponent implements OnInit {
   @Input() wish: Wish = new Wish(null, null, null, null, null, null, null, null, null, 1);
   @Input() mode: 'edit' | 'create' | 'copy';
-  wishForm: FormGroup;
+  wishForm: UntypedFormGroup;
   actionButtonText: string;
   popupTitle: string;
-  saving: boolean = false;
-  showWarningExistingCopy: boolean = false;
+  saving = false;
+  showWarningExistingCopy = false;
   currentUser: User;
   /** Voorvertoning van een net gekozen afbeelding, tot de popup sluit (sc-3028). */
   imagePreview: string = null;
@@ -30,14 +32,14 @@ export class WishPopupComponent implements OnInit {
   ){}
 
   ngOnInit(): void {
-    this.wishForm = new FormGroup({
-      'title': new FormControl(this.wish?.title, [Validators.required]),
-      'price': new FormControl(this.wish?.price),
-      'image': new FormControl(this.wish?.image),
-      'url': new FormControl(this.wish?.url),
-      'color': new FormControl(this.wish?.color),
-      'size': new FormControl(this.wish?.size),
-      'description': new FormControl(this.wish?.description)
+    this.wishForm = new UntypedFormGroup({
+      'title': new UntypedFormControl(this.wish?.title, [Validators.required]),
+      'price': new UntypedFormControl(this.wish?.price),
+      'image': new UntypedFormControl(this.wish?.image),
+      'url': new UntypedFormControl(this.wish?.url),
+      'color': new UntypedFormControl(this.wish?.color),
+      'size': new UntypedFormControl(this.wish?.size),
+      'description': new UntypedFormControl(this.wish?.description)
     });
     
     this.setSaveButtonText();
@@ -80,7 +82,7 @@ export class WishPopupComponent implements OnInit {
 
   saveWish () {
     this.saving = true;
-    let returnedWish: Wish = { ...this.wish, ...this.wishForm.value };
+    const returnedWish: Wish = { ...this.wish, ...this.wishForm.value };
     this.activeModal.close(returnedWish);    
   }
 

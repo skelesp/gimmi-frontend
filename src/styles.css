@@ -1,1 +1,23 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* Bootstrap 5 kent .jumbotron en .card-columns niet meer; deze regels houden het uiterlijk van Bootstrap 4 (sc-3279). */
+.jumbotron {
+  padding: 2rem 1rem;
+  margin-bottom: 2rem;
+  background-color: #e9ecef;
+  border-radius: .3rem;
+}
+@media (min-width: 576px) {
+  .jumbotron { padding: 4rem 2rem; }
+  .card-columns { column-gap: 1.25rem; orphans: 1; widows: 1; }
+  .card-columns .card { display: inline-block; width: 100%; }
+}
+.card-columns .card { margin-bottom: .75rem; }
+
+/* Uiterlijk van Bootstrap 4 behouden (sc-3279): lettertype en links. */
+:root {
+  --bs-font-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+a.btn:hover, .btn:hover, .nav-link:hover, .navbar-brand:hover, .dropdown-item:hover, .page-link:hover { text-decoration: none; }

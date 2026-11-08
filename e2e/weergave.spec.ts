@@ -48,7 +48,7 @@ test.describe('weergave', () => {
     const page = await pagina(browser, 375, 812);
     await page.goto('/');
     await expect(input(page, 'Zoek wensenlijst van...')).toBeVisible();
-    await expect(page.locator('gimmi-people-search .input-group-prepend')).toBeHidden();
+    await expect(page.locator('gimmi-people-search .input-group-text')).toBeHidden();
     await expect(page.locator('nav .navbar-collapse')).toBeHidden();
     await page.locator('button.navbar-toggler').click();
     await expect(page.locator('nav .navbar-collapse gimmi-unknown-user-menu')).toBeVisible();
@@ -59,7 +59,7 @@ test.describe('weergave', () => {
   test('groot scherm: zoekveld met zoekicoon, geen menuknop (sc-41)', async ({ browser }) => {
     const page = await pagina(browser, 1280);
     await page.goto('/');
-    await expect(page.locator('gimmi-people-search .input-group-prepend')).toBeVisible();
+    await expect(page.locator('gimmi-people-search .input-group-text')).toBeVisible();
     await expect(page.locator('button.navbar-toggler')).toBeHidden();
     await page.close();
   });

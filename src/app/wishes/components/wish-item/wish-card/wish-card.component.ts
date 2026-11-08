@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { WishItemComponent } from '../wish-item.component';
 
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -10,9 +10,11 @@ import { PeopleService } from 'src/app/people/service/people.service';
 import { CommunicationService } from 'src/app/shared/services/communication.service';
 
 @Component({
-  selector: 'gimmi-wish-card',
-  templateUrl: './wish-card.component.html',
-  styleUrls: ['./wish-card.component.css']
+    selector: 'gimmi-wish-card',
+    templateUrl: './wish-card.component.html',
+    styleUrls: ['./wish-card.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class WishCardComponent extends WishItemComponent {
 

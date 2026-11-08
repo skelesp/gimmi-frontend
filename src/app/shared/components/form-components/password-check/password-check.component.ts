@@ -1,24 +1,26 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { UntypedFormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 @Component({
-  selector: 'gimmi-password-check',
-  templateUrl: './password-check.component.html',
-  styleUrls: ['./password-check.component.css']
+    selector: 'gimmi-password-check',
+    templateUrl: './password-check.component.html',
+    styleUrls: ['./password-check.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class PasswordCheckComponent implements OnInit {
-  @Input() parentFormGroup : FormGroup;
-  @Input() controlName : string = 'passwordGroup';
+  @Input() parentFormGroup : UntypedFormGroup;
+  @Input() controlName  = 'passwordGroup';
 
   constructor() { }
 
   ngOnInit(): void {
-    this.parentFormGroup.addControl(this.controlName, new FormGroup({}, {
+    this.parentFormGroup.addControl(this.controlName, new UntypedFormGroup({}, {
       validators: this.passwordMatchValidator
     }));
   }
 
-   passwordMatchValidator : ValidatorFn = (control : FormGroup) : ValidationErrors | null => {
+   passwordMatchValidator : ValidatorFn = (control : UntypedFormGroup) : ValidationErrors | null => {
     const password = control.get('password');
     const passwordCheck = control.get('passwordCheck');
 

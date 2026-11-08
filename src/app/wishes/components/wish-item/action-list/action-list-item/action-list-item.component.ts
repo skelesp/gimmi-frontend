@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 
 export interface ActionListItemConfig {
@@ -9,9 +9,11 @@ export interface ActionListItemConfig {
 }
 
 @Component({
-  selector: 'gimmi-action-list-item',
-  templateUrl: './action-list-item.component.html',
-  styleUrls: ['./action-list-item.component.css']
+    selector: 'gimmi-action-list-item',
+    templateUrl: './action-list-item.component.html',
+    styleUrls: ['./action-list-item.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ActionListItemComponent {
   @Input() itemConfig: ActionListItemConfig;

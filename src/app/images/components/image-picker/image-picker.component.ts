@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { Subscription } from 'rxjs';
@@ -26,7 +26,7 @@ export const MAX_BESTAND_BYTES = 30 * 1024 * 1024;
 const BESTAND = 'bestand';
 
 // Uitleg per `reason` van de backend (sc-2960, sc-3028).
-const BOODSCHAPPEN: { [reason: string]: string } = {
+const BOODSCHAPPEN: Record<string, string> = {
   'bron-weigert': 'Deze website laat niet toe dat we de afbeelding overnemen. Kies een andere.',
   'niet-gevonden': 'Deze afbeelding bestaat niet meer. Kies een andere.',
   'geen-afbeelding': 'Dit resultaat is geen bruikbare afbeelding. Kies een andere.',
@@ -58,12 +58,14 @@ export function boodschapVoor(err: HttpErrorResponse): string {
  * andere manier, dan worden zoeken en opladen afgebroken (was sc-1391).
  */
 @Component({
-  selector: 'gimmi-image-picker',
-  templateUrl: './image-picker.component.html',
-  styleUrls: ['./image-picker.component.css']
+    selector: 'gimmi-image-picker',
+    templateUrl: './image-picker.component.html',
+    styleUrls: ['./image-picker.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ImagePickerComponent implements OnInit, OnDestroy {
-  @Input() searchTerm: string = "";
+  @Input() searchTerm = "";
 
   tab: KiezerTab = 'zoeken';
   zoekterm = '';

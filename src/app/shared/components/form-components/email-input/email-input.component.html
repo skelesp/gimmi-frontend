@@ -1,11 +1,9 @@
 <div [formGroup]='parentFormGroup' class='mb-3'>
     <label *ngIf="label">{{label}}</label>
     <div class="input-group">
-        <div class="input-group-prepend">
-            <span class="input-group-text">
+        <span class="input-group-text">
                 <fa-icon [icon]="mailIcon"></fa-icon>
             </span>
-        </div>
         <input  [formControlName]="controlName" 
                 type="text" 
                 class="form-control" 
@@ -17,7 +15,7 @@
         <small *ngIf="parentFormGroup.get(controlName).errors?.required">
             Email is een verplicht veld</small>
         <small *ngIf="parentFormGroup.get(controlName).errors?.email">
-            Geef een geldig emailadres in (formaat: *** @ *** . **)</small>
+            Geef een geldig emailadres in (formaat: *** &#64; *** . **)</small>
         <small *ngIf="parentFormGroup.get(controlName).errors?.emailExists" class="text-success">
             Er is al een wishlist gekoppeld aan dit emailadres:
             <a *ngIf='emailExistsRedirectTo === "wishlist"' [routerLink]="['/people', knownPerson.id]">Bekijk de wensen van {{knownPerson.fullName}}</a>

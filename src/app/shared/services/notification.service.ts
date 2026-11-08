@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Toaster, ToastType } from 'ngx-toast-notifications';
+import { Toaster, ToastType } from './toaster.service';
 
 type NotificationType = "success" | "warning" | "info" | "error";
 
@@ -34,7 +34,7 @@ export class NotificationService {
   }
 
   private setTitle (type: NotificationType) : string {
-    let title : string = "Notificatie";
+    let title  = "Notificatie";
     switch (type) {
       case "success":
         title = "Gelukt!!";       

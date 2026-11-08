@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faCalendarPlus, faCheck, faComment, faExpand, faExternalLinkAlt, faGift, faListAlt, faPaintBrush, faUser } from '@fortawesome/free-solid-svg-icons';
@@ -13,9 +13,11 @@ import { PeopleService } from 'src/app/people/service/people.service';
 import { CommunicationService } from 'src/app/shared/services/communication.service';
 
 @Component({
-  selector: 'gimmi-wish-page',
-  templateUrl: './wish-page.component.html',
-  styleUrls: ['./wish-page.component.css']
+    selector: 'gimmi-wish-page',
+    templateUrl: './wish-page.component.html',
+    styleUrls: ['./wish-page.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class WishPageComponent extends WishItemComponent implements OnInit {
   wishID: string;

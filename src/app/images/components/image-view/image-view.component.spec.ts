@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { STANDAARD_AFBEELDING } from '../../services/image.service';
 import { ImageViewComponent } from './image-view.component';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 // Een gewone <img> met srcset (sc-2911), in plaats van <cl-image> van de Cloudinary-SDK.
 describe('ImageViewComponent', () => {
@@ -18,9 +19,10 @@ describe('ImageViewComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      declarations: [ ImageViewComponent ]
-    })
+    declarations: [ImageViewComponent],
+    imports: [],
+    providers: [provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
   }));
 

@@ -28,6 +28,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm run build
       # Met --code-coverage; faalt onder de drempels in karma.conf.js (sc-2979).
       - run: npm run test:ci

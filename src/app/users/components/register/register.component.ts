@@ -1,19 +1,21 @@
-import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { INewUserRequestInfo } from '../../service/user.service';
 import { UserService } from '../../service/user.service';
 
 @Component({
-  selector: 'gimmi-register',
-  templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css']
+    selector: 'gimmi-register',
+    templateUrl: './register.component.html',
+    styleUrls: ['./register.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class RegisterComponent implements OnInit {
   invitedFor: string;
   knownUser: boolean;
-  registrationForm: FormGroup;
+  registrationForm: UntypedFormGroup;
   infoAlertClosed: boolean;
 
   constructor( 
@@ -23,18 +25,18 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.invitedFor = null; // Wordt pas geïmplementeerd als wishlist geïmplementeerd worden.
-    this.registrationForm = new FormGroup ({
-      'personData': new FormGroup({
-        'firstName': new FormControl(null, Validators.required),
-        'lastName': new FormControl(null, Validators.required),
-        'birthday': new FormControl(null, Validators.required)
+    this.registrationForm = new UntypedFormGroup ({
+      'personData': new UntypedFormGroup({
+        'firstName': new UntypedFormControl(null, Validators.required),
+        'lastName': new UntypedFormControl(null, Validators.required),
+        'birthday': new UntypedFormControl(null, Validators.required)
       }),
-      'localAccountData': new FormGroup({})
+      'localAccountData': new UntypedFormGroup({})
     });
   }
 
   register () {
-    let newUser : INewUserRequestInfo = {
+    const newUser : INewUserRequestInfo = {
       firstname: this.registrationForm.value.personData.firstName,
       lastname: this.registrationForm.value.personData.lastName,
       birthday: this.registrationForm.value.personData.birthday,
