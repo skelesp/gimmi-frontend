@@ -33,7 +33,7 @@ export class WishCreateCardComponent implements OnInit {
   }
 
   openCreateWish () {
-    let wishCreatePopup = this.modalService.open(WishPopupComponent);
+    const wishCreatePopup = this.modalService.open(WishPopupComponent);
     wishCreatePopup.componentInstance.mode = 'create';
 
     (wishCreatePopup.result as Promise<Wish>)

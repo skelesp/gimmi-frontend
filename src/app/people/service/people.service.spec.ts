@@ -103,7 +103,7 @@ describe('PeopleService', () => {
 
   describe('getNameById en getEmailById', () => {
     it('zonder id: fout zonder request', () => {
-      let fouten: string[] = [];
+      const fouten: string[] = [];
       service.getNameById('').subscribe({ error: e => fouten.push(e) });
       service.getEmailById('').subscribe({ error: e => fouten.push(e) });
       expect(fouten).toEqual(['No personId provided', 'No personId provided']);

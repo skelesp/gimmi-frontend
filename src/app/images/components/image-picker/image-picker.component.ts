@@ -26,7 +26,7 @@ export const MAX_BESTAND_BYTES = 30 * 1024 * 1024;
 const BESTAND = 'bestand';
 
 // Uitleg per `reason` van de backend (sc-2960, sc-3028).
-const BOODSCHAPPEN: { [reason: string]: string } = {
+const BOODSCHAPPEN: Record<string, string> = {
   'bron-weigert': 'Deze website laat niet toe dat we de afbeelding overnemen. Kies een andere.',
   'niet-gevonden': 'Deze afbeelding bestaat niet meer. Kies een andere.',
   'geen-afbeelding': 'Dit resultaat is geen bruikbare afbeelding. Kies een andere.',
@@ -65,7 +65,7 @@ export function boodschapVoor(err: HttpErrorResponse): string {
     standalone: false
 })
 export class ImagePickerComponent implements OnInit, OnDestroy {
-  @Input() searchTerm: string = "";
+  @Input() searchTerm = "";
 
   tab: KiezerTab = 'zoeken';
   zoekterm = '';

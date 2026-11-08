@@ -12,11 +12,11 @@ const resolvedPromise = Promise.resolve(null);
 })
 export class PasswordInputComponent implements OnInit {
   @Input() parentFormGroup : UntypedFormGroup;
-  @Input() controlName : string = 'password';
-  @Input() placeholder : string = 'Wachtwoord';
+  @Input() controlName  = 'password';
+  @Input() placeholder  = 'Wachtwoord';
   @Input() label : string = null;
   
-  showPassword: boolean = false;
+  showPassword = false;
   passwordIcon = faUnlockAlt;
   showPasswordIcon = faEye;
 

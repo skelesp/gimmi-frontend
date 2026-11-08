@@ -31,13 +31,13 @@ export class WishItemComponent implements OnInit {
   @Input() wish: Wish;
   wishActionItems : ActionListItemConfig[] = [];
 
-  readonly CTAbuttonConfigs: { [key: string]: CTAButtonConfig } = {
+  readonly CTAbuttonConfigs: Record<string, CTAButtonConfig> = {
     noButton: { text: null, icon: null },
     reserve: { text: "Reserveer", icon: faGift, onClick: this.reserve.bind(this) },
     cancel: { text: "Verwijder reservatie", icon: faBan, onClick: this.changeReservation.bind(this) },
     feedback: { text: "Geef feedback", icon: faComment, onClick: this.giveFeedback.bind(this) }
   };
-  readonly bannerConfigs: { [key: string]: BannerConfig} = {
+  readonly bannerConfigs: Record<string, BannerConfig> = {
     noBanner: { text: null, backgroundColor: null, bannerIcon: null },
     yourIdea: { text: "Jouw idee", backgroundColor: 'warning', bannerIcon: faLightbulb },
     reserved: { text: "Gereserveerd", backgroundColor: 'danger', bannerIcon: faCartArrowDown },
@@ -47,13 +47,13 @@ export class WishItemComponent implements OnInit {
     fulfilled: { text: "Wens vervuld", backgroundColor: 'success', bannerIcon: faThumbsUp },
     fulfilledByUser: { text: "Wens vervuld door jou", backgroundColor: 'success', bannerIcon: faThumbsUp }
   };
-  readonly actionListItemConfigs: { [key: string] : ActionListItemConfig } = {
+  readonly actionListItemConfigs: Record<string, ActionListItemConfig> = {
     edit: { text: "Aanpassen", icon: faEdit, onClick: this.edit.bind(this) },
     copy: { text: "Zet op eigen lijst", icon: faClone, onClick: this.copy.bind(this) },
     delete: { text: "Verwijderen", icon: faTrashAlt, onClick: this.delete.bind(this) },
     externalSite: { text: "Externe website", icon: faGlobeEurope }
   };
-  readonly wishScenarioConfig: { [key in WishScenario]: { CTAbutton: CTAButtonConfig, bannerConfig: BannerConfig} } = {
+  readonly wishScenarioConfig: Record<WishScenario, { CTAbutton: CTAButtonConfig, bannerConfig: BannerConfig}> = {
     'OPEN_WISH': { 
       CTAbutton: this.CTAbuttonConfigs.reserve,
       bannerConfig: this.bannerConfigs.noBanner 
@@ -127,17 +127,17 @@ export class WishItemComponent implements OnInit {
   }
   
   reserve() {
-    let reservationPopup = this.modalService.open(WishReservationComponent);
+    const reservationPopup = this.modalService.open(WishReservationComponent);
     reservationPopup.componentInstance.wish = this.wish;
   }
 
   changeReservation() {
-    let cancelReservationPopup = this.modalService.open(ChangeWishReservationComponent);
+    const cancelReservationPopup = this.modalService.open(ChangeWishReservationComponent);
     cancelReservationPopup.componentInstance.wish = this.wish;
   }
 
   giveFeedback() {
-    let giftFeedbackPopup = this.modalService.open(GiftFeedbackComponent);
+    const giftFeedbackPopup = this.modalService.open(GiftFeedbackComponent);
     giftFeedbackPopup.componentInstance.wish = this.wish;
 
     (giftFeedbackPopup.result as Promise<IGiftFeedback>).then( giftFeedback => {
@@ -164,7 +164,7 @@ export class WishItemComponent implements OnInit {
   }
   
   edit () {
-    let editPopup = this.modalService.open(WishPopupComponent);
+    const editPopup = this.modalService.open(WishPopupComponent);
     editPopup.componentInstance.wish = this.wish;
     editPopup.componentInstance.mode = 'edit';
 
@@ -176,14 +176,13 @@ export class WishItemComponent implements OnInit {
   }
 
   copy() {
-    let copyPopup;
-    let currentUser = new Person(
+    const currentUser = new Person(
       this.userService.currentUser.id,
       this.userService.currentUser.firstName,
       this.userService.currentUser.lastName
     );
 
-    copyPopup = this.modalService.open(WishPopupComponent);
+    const copyPopup = this.modalService.open(WishPopupComponent);
     copyPopup.componentInstance.mode = 'copy';
     copyPopup.componentInstance.wish = { 
       ...this.wish, 
@@ -208,7 +207,7 @@ export class WishItemComponent implements OnInit {
   }
 
   delete() {
-    let wishDeletePopup = this.modalService.open(WishDeleteComponent);
+    const wishDeletePopup = this.modalService.open(WishDeleteComponent);
     wishDeletePopup.componentInstance.wish = this.wish;
   }
 

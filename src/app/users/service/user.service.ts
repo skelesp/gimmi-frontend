@@ -118,10 +118,10 @@ export class UserService {
    */
   public redirectAfterAuthentication () : void {
     if (this.currentUser) { // Should always be true because only called after authentication...
-      let defaultRedirect = `/people/${this.currentUser.id}`;
+      const defaultRedirect = `/people/${this.currentUser.id}`;
       
       // Set redirect url
-      let redirectUrl = this.attemptedUrl ? this.attemptedUrl : defaultRedirect;
+      const redirectUrl = this.attemptedUrl ? this.attemptedUrl : defaultRedirect;
       
       // Redirect user after authentication
       console.info(`[UserService] User is redirected to ${redirectUrl}`);
@@ -145,7 +145,7 @@ export class UserService {
    * @description 
    */
   public requestPasswordReset(email: string): Observable<any> {
-    let body: IPasswordResetRequest = {
+    const body: IPasswordResetRequest = {
       email: email,
       resetPasswordRoute: environment.rootSiteUrl + "/users/resetpassword"
     }
@@ -200,7 +200,7 @@ export class UserService {
   }
 
   private getUserFromStoredToken () : User {
-    let token = localStorage.getItem('currentUser');
+    const token = localStorage.getItem('currentUser');
     if (!token) {
       console.info("[UserService] No token found in local storage");
       return null;
@@ -211,7 +211,7 @@ export class UserService {
       return null;
     }
     
-    let decodedToken: IDecodedUserToken = jwtService.decodeToken(token);
+    const decodedToken: IDecodedUserToken = jwtService.decodeToken(token);
     console.info("[UserService] User decoded from valid token");
     return new User(
       decodedToken.id,

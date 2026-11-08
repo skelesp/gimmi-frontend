@@ -17,11 +17,11 @@ export class ExtraInfoComponent implements OnInit {
   @Input() firstName : string;
   @Input() likes: ILike[] = [];
   @Input() dislikes: ILike[] = [];
-  @Input() personIsUser: boolean = false;
+  @Input() personIsUser = false;
   @Output() extraInfoSaved = new EventEmitter<IExtraPersonInfo>();
 
   editItemsForm: UntypedFormGroup;
-  editMode: boolean = false;
+  editMode = false;
   pencilIcon = faPencilAlt;
   checkIcon = faCheck;
   cancelIcon = faTimes;

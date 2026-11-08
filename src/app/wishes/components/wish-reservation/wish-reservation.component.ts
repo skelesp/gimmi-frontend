@@ -34,7 +34,7 @@ export class WishReservationComponent implements OnInit {
   }
 
   saveReservation() {
-    let reservation: IReservation = { 
+    const reservation: IReservation = { 
       reason: this.reservationForm.value.reason,
       handoverDate: new Date(this.reservationForm.value.handoverDate),
       amount: 1,
