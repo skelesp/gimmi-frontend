@@ -7,9 +7,10 @@ import { User } from '../../models/user.model';
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'gimmi-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+    selector: 'gimmi-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.css'],
+    standalone: false
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginForm: UntypedFormGroup;

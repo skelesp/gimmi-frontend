@@ -6,9 +6,10 @@ import { INewUserRequestInfo } from '../../service/user.service';
 import { UserService } from '../../service/user.service';
 
 @Component({
-  selector: 'gimmi-register',
-  templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css']
+    selector: 'gimmi-register',
+    templateUrl: './register.component.html',
+    styleUrls: ['./register.component.css'],
+    standalone: false
 })
 export class RegisterComponent implements OnInit {
   invitedFor: string;

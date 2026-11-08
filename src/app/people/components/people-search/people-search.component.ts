@@ -8,9 +8,10 @@ import { PeopleService } from '../../service/people.service';
 import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
-  selector: 'gimmi-people-search',
-  templateUrl: './people-search.component.html',
-  styleUrls: ['./people-search.component.css']
+    selector: 'gimmi-people-search',
+    templateUrl: './people-search.component.html',
+    styleUrls: ['./people-search.component.css'],
+    standalone: false
 })
 export class PeopleSearchComponent implements OnInit, OnDestroy {  
   // Ngbtypeahead variables

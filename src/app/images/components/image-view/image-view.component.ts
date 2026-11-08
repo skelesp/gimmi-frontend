@@ -10,9 +10,10 @@ import { ImageService, STANDAARD_AFBEELDING } from '../../services/image.service
  * niet, dan de standaardafbeelding.
  */
 @Component({
-  selector: 'gimmi-image-view',
-  templateUrl: './image-view.component.html',
-  styleUrls: ['./image-view.component.css']
+    selector: 'gimmi-image-view',
+    templateUrl: './image-view.component.html',
+    styleUrls: ['./image-view.component.css'],
+    standalone: false
 })
 export class ImageViewComponent implements OnChanges {
   @Input() image : IWishImage = null;

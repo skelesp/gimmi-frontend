@@ -22,8 +22,9 @@ import { CommunicationService } from 'src/app/shared/services/communication.serv
 import { PeopleService } from 'src/app/people/service/people.service';
 
 @Component({
-  template: '',
-  styleUrls: ['./wish-item.component.css']
+    template: '',
+    styleUrls: ['./wish-item.component.css'],
+    standalone: false
 })
 export class WishItemComponent implements OnInit {
   @Input() wish: Wish;

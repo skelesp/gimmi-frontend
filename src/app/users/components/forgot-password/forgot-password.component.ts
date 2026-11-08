@@ -4,9 +4,10 @@ import { NotificationService } from 'src/app/shared/services/notification.servic
 import { UserService } from '../../service/user.service';
 
 @Component({
-  selector: 'gimmi-forgot-password',
-  templateUrl: './forgot-password.component.html',
-  styleUrls: ['./forgot-password.component.css']
+    selector: 'gimmi-forgot-password',
+    templateUrl: './forgot-password.component.html',
+    styleUrls: ['./forgot-password.component.css'],
+    standalone: false
 })
 export class ForgotPasswordComponent implements OnInit {
   forgotPasswordForm : UntypedFormGroup;

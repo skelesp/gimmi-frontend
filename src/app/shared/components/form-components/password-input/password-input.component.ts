@@ -4,9 +4,10 @@ import { faUnlockAlt, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icon
 
 const resolvedPromise = Promise.resolve(null);
 @Component({
-  selector: 'gimmi-password-input',
-  templateUrl: './password-input.component.html',
-  styleUrls: ['./password-input.component.css']
+    selector: 'gimmi-password-input',
+    templateUrl: './password-input.component.html',
+    styleUrls: ['./password-input.component.css'],
+    standalone: false
 })
 export class PasswordInputComponent implements OnInit {
   @Input() parentFormGroup : UntypedFormGroup;

@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { faTwitterSquare, faFacebookSquare, faLinkedin } from "@fortawesome/free-brands-svg-icons";
 
 @Component({
-  selector: 'gimmi-social-buttons',
-  templateUrl: './social-buttons.component.html',
-  styleUrls: ['./social-buttons.component.css']
+    selector: 'gimmi-social-buttons',
+    templateUrl: './social-buttons.component.html',
+    styleUrls: ['./social-buttons.component.css'],
+    standalone: false
 })
 export class SocialButtonsComponent implements OnInit {
   facebookIcon = faFacebookSquare;

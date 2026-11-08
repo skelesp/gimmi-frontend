@@ -13,9 +13,10 @@ import { PeopleService } from 'src/app/people/service/people.service';
 import { CommunicationService } from 'src/app/shared/services/communication.service';
 
 @Component({
-  selector: 'gimmi-wish-page',
-  templateUrl: './wish-page.component.html',
-  styleUrls: ['./wish-page.component.css']
+    selector: 'gimmi-wish-page',
+    templateUrl: './wish-page.component.html',
+    styleUrls: ['./wish-page.component.css'],
+    standalone: false
 })
 export class WishPageComponent extends WishItemComponent implements OnInit {
   wishID: string;

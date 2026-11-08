@@ -6,9 +6,10 @@ import { IExtraPersonInfo, Person } from '../../models/person.model';
 import { PeopleService } from '../../service/people.service';
 
 @Component({
-  selector: 'gimmi-person-dashboard',
-  templateUrl: './person-dashboard.component.html',
-  styleUrls: ['./person-dashboard.component.css']
+    selector: 'gimmi-person-dashboard',
+    templateUrl: './person-dashboard.component.html',
+    styleUrls: ['./person-dashboard.component.css'],
+    standalone: false
 })
 export class PersonDashboardComponent implements OnInit {
   person : Person;

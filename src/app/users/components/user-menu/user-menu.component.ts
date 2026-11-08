@@ -5,9 +5,10 @@ import { faUserCircle } from "@fortawesome/free-solid-svg-icons";
 import { User } from '../../models/user.model';
 
 @Component({
-  selector: 'gimmi-user-menu',
-  templateUrl: './user-menu.component.html',
-  styleUrls: ['./user-menu.component.css']
+    selector: 'gimmi-user-menu',
+    templateUrl: './user-menu.component.html',
+    styleUrls: ['./user-menu.component.css'],
+    standalone: false
 })
 export class UserMenuComponent implements OnInit, OnDestroy {
   @Input() currentUser: User;

@@ -8,9 +8,10 @@ import { IReservation, Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 
 @Component({
-  selector: 'gimmi-wish-reservation',
-  templateUrl: './wish-reservation.component.html',
-  styleUrls: ['./wish-reservation.component.css']
+    selector: 'gimmi-wish-reservation',
+    templateUrl: './wish-reservation.component.html',
+    styleUrls: ['./wish-reservation.component.css'],
+    standalone: false
 })
 export class WishReservationComponent implements OnInit {
   @Input() wish: Wish;

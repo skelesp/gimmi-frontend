@@ -2,7 +2,8 @@ import { Directive, Input } from '@angular/core';
 import { NgControl } from '@angular/forms';
 
 @Directive({
-  selector: '[bindQueryParamToInput]'
+    selector: '[bindQueryParamToInput]',
+    standalone: false
 })
 export class BindQueryparamToInputDirective {
   @Input('bindQueryParamToInput') paramKey: string;

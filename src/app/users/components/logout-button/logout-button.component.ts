@@ -4,9 +4,10 @@ import { UserService } from '../../service/user.service';
 import { User } from '../../models/user.model';
 
 @Component({
-  selector: 'gimmi-logout-button',
-  templateUrl: './logout-button.component.html',
-  styleUrls: ['./logout-button.component.css']
+    selector: 'gimmi-logout-button',
+    templateUrl: './logout-button.component.html',
+    styleUrls: ['./logout-button.component.css'],
+    standalone: false
 })
 export class LogoutButtonComponent {
   @Input() currentUser : User;

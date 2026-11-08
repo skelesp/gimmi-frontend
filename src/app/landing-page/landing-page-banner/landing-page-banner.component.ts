@@ -5,9 +5,10 @@ import { Subscription } from 'rxjs';
 import { User } from 'src/app/users/models/user.model';
 
 @Component({
-  selector: 'gimmi-landing-page-banner',
-  templateUrl: './landing-page-banner.component.html',
-  styleUrls: ['./landing-page-banner.component.css']
+    selector: 'gimmi-landing-page-banner',
+    templateUrl: './landing-page-banner.component.html',
+    styleUrls: ['./landing-page-banner.component.css'],
+    standalone: false
 })
 export class LandingPageBannerComponent implements OnInit, OnDestroy {
   checkIcon = faCheckCircle;

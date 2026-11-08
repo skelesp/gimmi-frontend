@@ -10,9 +10,10 @@ import { IGiftFeedback, Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 
 @Component({
-  selector: 'gimmi-gift-feedback',
-  templateUrl: './gift-feedback.component.html',
-  styleUrls: ['./gift-feedback.component.css']
+    selector: 'gimmi-gift-feedback',
+    templateUrl: './gift-feedback.component.html',
+    styleUrls: ['./gift-feedback.component.css'],
+    standalone: false
 })
 export class GiftFeedbackComponent implements OnInit {
   @Input() wish: Wish;

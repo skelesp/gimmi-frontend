@@ -5,9 +5,10 @@ import { itemTypes } from '../extra-info.component';
 import { faPlus, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 
 @Component({
-  selector: 'gimmi-extra-info-edit',
-  templateUrl: './extra-info-edit.component.html',
-  styleUrls: ['./extra-info-edit.component.css']
+    selector: 'gimmi-extra-info-edit',
+    templateUrl: './extra-info-edit.component.html',
+    styleUrls: ['./extra-info-edit.component.css'],
+    standalone: false
 })
 export class ExtraInfoEditComponent implements OnInit {
   @Input() firstName: string;

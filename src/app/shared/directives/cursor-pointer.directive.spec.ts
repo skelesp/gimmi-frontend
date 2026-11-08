@@ -7,11 +7,12 @@ import { CursorPointerDirective } from './cursor-pointer.directive';
 
 // sc-2038: een "pointer" op elk klikbaar element: alles met (click), ngbDropdown of routerLink.
 @Component({
-  template: `
+    template: `
     <span id="klik" (click)="geklikt = true">klik</span>
     <div id="dropdown" ngbDropdown>menu</div>
     <a id="link" routerLink="/home">link</a>
-    <span id="gewoon">tekst</span>`
+    <span id="gewoon">tekst</span>`,
+    standalone: false
 })
 class TestHostComponent {
   geklikt = false;

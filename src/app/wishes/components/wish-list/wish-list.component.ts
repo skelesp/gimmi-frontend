@@ -4,9 +4,10 @@ import { Wish, wishStatus } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 
 @Component({
-  selector: 'gimmi-wish-list',
-  templateUrl: './wish-list.component.html',
-  styleUrls: ['./wish-list.component.css']
+    selector: 'gimmi-wish-list',
+    templateUrl: './wish-list.component.html',
+    styleUrls: ['./wish-list.component.css'],
+    standalone: false
 })
 export class WishListComponent implements OnInit, OnChanges {
   @Input() receiver : Person;

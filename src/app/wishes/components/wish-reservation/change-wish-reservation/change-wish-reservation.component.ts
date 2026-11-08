@@ -5,9 +5,10 @@ import { Wish } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
 
 @Component({
-  selector: 'gimmi-change-wish-reservation',
-  templateUrl: './change-wish-reservation.component.html',
-  styleUrls: ['./change-wish-reservation.component.css']
+    selector: 'gimmi-change-wish-reservation',
+    templateUrl: './change-wish-reservation.component.html',
+    styleUrls: ['./change-wish-reservation.component.css'],
+    standalone: false
 })
 export class ChangeWishReservationComponent implements OnInit {
   @Input() wish: Wish;
