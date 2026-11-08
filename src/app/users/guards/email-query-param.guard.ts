@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router, NavigationExtras } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router, NavigationExtras } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { PeopleService } from 'src/app/people/service/people.service';
@@ -7,7 +7,7 @@ import { PeopleService } from 'src/app/people/service/people.service';
 @Injectable({
   providedIn: 'root'
 })
-export class EmailQueryParamGuard implements CanActivate {
+export class EmailQueryParamGuard  {
   
   constructor(
     private _peopleService : PeopleService,

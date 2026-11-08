@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Toast } from 'ngx-toast-notifications';
+import { Toast } from '../../services/toaster.service';
 
 @Component({
   selector: 'gimmi-custom-toast',

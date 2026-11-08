@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Toaster, ToastType } from 'ngx-toast-notifications';
+import { Toaster, ToastType } from './toaster.service';
 
 type NotificationType = "success" | "warning" | "info" | "error";
 

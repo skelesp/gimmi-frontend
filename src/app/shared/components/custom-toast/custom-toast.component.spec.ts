@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Toast } from 'ngx-toast-notifications';
+import { Toast } from '../../services/toaster.service';
 
 import { CustomToastComponent } from './custom-toast.component';
 
