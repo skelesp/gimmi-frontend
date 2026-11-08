@@ -6,7 +6,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from "@angular/common/http";
 import { RouterModule } from '@angular/router';
 
-import { ImagesModule } from '../images/images.module';
+
 import { ClipboardModule } from 'ngx-clipboard';
 
 import { BrandLogoComponent } from './components/brand-logo/brand-logo.component';
@@ -21,36 +21,34 @@ import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-poli
 
 @NgModule({
     exports: [
-        CommonModule,
-        NgbModule,
-        FontAwesomeModule,
-        FormsModule,
-        ReactiveFormsModule,
-        BrandLogoComponent,
-        CursorPointerDirective,
-        CustomToastComponent,
-        BindQueryparamToInputDirective,
-        EmailInputComponent,
-        PasswordInputComponent,
-        PasswordCheckComponent,
-        ImagesModule,
-        ClipboardModule,
-        PrivacyPolicyComponent,
-        SocialButtonsComponent
-    ], imports: [CommonModule,
-        NgbModule,
-        FontAwesomeModule,
-        FormsModule,
-        RouterModule,
-        ReactiveFormsModule,
-        ImagesModule,
-        ClipboardModule, BrandLogoComponent,
-        CursorPointerDirective,
-        CustomToastComponent,
-        BindQueryparamToInputDirective,
-        EmailInputComponent,
-        PasswordInputComponent,
-        PasswordCheckComponent,
-        SocialButtonsComponent,
-        PrivacyPolicyComponent], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] })
+    CommonModule,
+    NgbModule,
+    FontAwesomeModule,
+    FormsModule,
+    ReactiveFormsModule,
+    BrandLogoComponent,
+    CursorPointerDirective,
+    CustomToastComponent,
+    BindQueryparamToInputDirective,
+    EmailInputComponent,
+    PasswordInputComponent,
+    PasswordCheckComponent,
+    ClipboardModule,
+    PrivacyPolicyComponent,
+    SocialButtonsComponent
+], imports: [CommonModule,
+    NgbModule,
+    FontAwesomeModule,
+    FormsModule,
+    RouterModule,
+    ReactiveFormsModule,
+    ClipboardModule, BrandLogoComponent,
+    CursorPointerDirective,
+    CustomToastComponent,
+    BindQueryparamToInputDirective,
+    EmailInputComponent,
+    PasswordInputComponent,
+    PasswordCheckComponent,
+    SocialButtonsComponent,
+    PrivacyPolicyComponent], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] })
 export class SharedModule { }
