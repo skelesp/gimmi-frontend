@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router, NavigationExtras } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -8,11 +8,9 @@ import { PeopleService } from 'src/app/people/service/people.service';
   providedIn: 'root'
 })
 export class EmailQueryParamGuard  {
-  
-  constructor(
-    private _peopleService : PeopleService,
-    private router : Router
-  ) { }
+  private _peopleService = inject(PeopleService);
+  private router = inject(Router);
+
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {

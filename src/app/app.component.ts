@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { NavigationError, Router, RouterOutlet } from '@angular/router';
 import { NavigationBarComponent } from './shared/components/navigation-bar/navigation-bar.component';
@@ -15,9 +15,9 @@ import { environment } from 'src/environments/environment';
     imports: [NavigationBarComponent, ToastContainerComponent, RouterOutlet, SocialButtonsComponent, PrivacyPolicyComponent]
 })
 export class AppComponent implements OnInit {
-  public constructor(
-    private titleService: Title,
-    private router: Router) { }
+  private titleService = inject(Title);
+  private router = inject(Router);
+
 
   ngOnInit(): void {
     this.setTitle(environment.title);

@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
 import { UserService } from '../../service/user.service';
 import { User } from '../../models/user.model';
@@ -14,12 +14,10 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     imports: [NgbDropdownItem, CursorPointerDirective, FaIconComponent]
 })
 export class LogoutButtonComponent {
+  private userService = inject(UserService);
+
   @Input() currentUser : User;
   logoutIcon = faSignOutAlt;
-
-  constructor(
-    private userService: UserService
-  ) { }
 
   logout(): void {
     this.userService.logout("USER_EVENT");

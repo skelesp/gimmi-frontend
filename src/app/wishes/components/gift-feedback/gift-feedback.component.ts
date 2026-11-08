@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { faThumbsUp } from '@fortawesome/free-regular-svg-icons';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -21,6 +21,8 @@ import { NgClass } from '@angular/common';
     imports: [CursorPointerDirective, FormsModule, ReactiveFormsModule, NgbRating, FaIconComponent, NgClass]
 })
 export class GiftFeedbackComponent implements OnInit {
+  activeModal = inject(NgbActiveModal);
+
   @Input() wish: Wish;
   giftFeedbackForm : UntypedFormGroup;
   hoveredRate: number;
@@ -28,10 +30,6 @@ export class GiftFeedbackComponent implements OnInit {
   satisfactionLevels: string[] = ['Duid je tevredenheid aan...','Helemaal niet blij', 'Niet blij', 'Neutraal', 'Blij', 'Heel blij'];
   ratingIcon = faThumbsUp;
   maxDate: string = new Date().toISOString().slice(0, 10);
-
-  constructor( 
-    public activeModal : NgbActiveModal
-  ) { }
 
   ngOnInit(): void {
     const defaultReceivedDate = new Date(this.wish.reservation.reservationDate).toISOString().slice(0, 10);

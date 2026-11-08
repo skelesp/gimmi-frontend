@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { UserService } from '../service/user.service';
@@ -8,12 +8,10 @@ import { NotificationService } from 'src/app/shared/services/notification.servic
 
 @Injectable()
 export class AuthErrorInterceptor implements HttpInterceptor {
+  private userService = inject(UserService);
+  private router = inject(Router);
+  private notificationService = inject(NotificationService);
 
-  constructor( 
-    private userService: UserService,
-    private router: Router,
-    private notificationService: NotificationService
-    ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     

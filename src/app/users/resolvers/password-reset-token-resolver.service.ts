@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -8,8 +8,8 @@ import { UserService } from '../service/user.service';
   providedIn: 'root'
 })
 export class PasswordResetTokenResolver  {
+  private userService = inject(UserService);
 
-  constructor( private userService : UserService ) { }
   
   resolve ( route : ActivatedRouteSnapshot, state: RouterStateSnapshot ) : Observable<boolean> | boolean {
     return this.userService.validatePasswordResetToken(route.paramMap.get('token')).pipe(

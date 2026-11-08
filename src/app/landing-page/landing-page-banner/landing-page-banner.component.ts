@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { UserService } from '../../users/service/user.service';
 import { Subscription } from 'rxjs';
@@ -16,11 +16,11 @@ import { CursorPointerDirective } from '../../shared/directives/cursor-pointer.d
     imports: [FaIconComponent, RouterLink, CursorPointerDirective]
 })
 export class LandingPageBannerComponent implements OnInit, OnDestroy {
+  private userService = inject(UserService);
+
   checkIcon = faCheckCircle;
   currentUser: User;
   currentUserSubscription: Subscription;
-
-  constructor( private userService: UserService) { }
 
   ngOnInit(): void {
     this.currentUserSubscription = this.userService.currentUser$.subscribe(user => {

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Toaster } from '../../services/toaster.service';
 
 import { CustomToastComponent } from '../custom-toast/custom-toast.component';
@@ -26,6 +26,6 @@ import { CustomToastComponent } from '../custom-toast/custom-toast.component';
     changeDetection: ChangeDetectionStrategy.Eager,
     imports: [CustomToastComponent]
 })
-export class ToastContainerComponent {
-  constructor(public toaster: Toaster) { }
+export class ToastContainerComponent {  toaster = inject(Toaster);
+
 }

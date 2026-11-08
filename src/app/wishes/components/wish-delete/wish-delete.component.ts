@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 
@@ -14,13 +14,11 @@ import { CursorPointerDirective } from '../../../shared/directives/cursor-pointe
     imports: [CursorPointerDirective]
 })
 export class WishDeleteComponent {
-  @Input() wish: Wish;
+  activeModal = inject(NgbActiveModal);
+  private wishService = inject(WishService);
+  private notificationService = inject(NotificationService);
 
-  constructor(
-    public activeModal: NgbActiveModal,
-    private wishService: WishService,
-    private notificationService: NotificationService
-  ) { }
+  @Input() wish: Wish;
 
   executeDeletion() {
     this.activeModal.close();

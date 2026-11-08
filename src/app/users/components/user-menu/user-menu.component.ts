@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { UserService } from 'src/app/users/service/user.service';
 import { Subscription } from 'rxjs';
 import { faUserCircle } from "@fortawesome/free-solid-svg-icons";
@@ -17,14 +17,12 @@ import { LogoutButtonComponent } from '../logout-button/logout-button.component'
     imports: [NgbDropdown, CursorPointerDirective, NgbDropdownToggle, FaIconComponent, NgbDropdownMenu, NgbDropdownItem, RouterLink, LogoutButtonComponent]
 })
 export class UserMenuComponent implements OnInit, OnDestroy {
+  private userService = inject(UserService);
+
   @Input() currentUser: User;
   currentUserSubscription: Subscription;
 
   userIcon = faUserCircle;
-
-  constructor( 
-    private userService: UserService
-  ) { }
 
   ngOnInit(): void {
     this.currentUserSubscription = this.userService.currentUser$.subscribe( user => {

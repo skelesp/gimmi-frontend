@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Person } from 'src/app/people/models/person.model';
@@ -17,16 +17,14 @@ import { CursorPointerDirective } from '../../../shared/directives/cursor-pointe
     imports: [CursorPointerDirective, FormsModule, ReactiveFormsModule]
 })
 export class WishReservationComponent implements OnInit {
+  activeModal = inject(NgbActiveModal);
+  private userService = inject(UserService);
+  private wishService = inject(WishService);
+  private notificationService = inject(NotificationService);
+
   @Input() wish: Wish;
   reservationForm: UntypedFormGroup;
   readonly reasonOptions: string[] = ['Verjaardag', 'Sinterklaas', 'Kerstmis', 'Nieuwjaar', 'Housewarming', 'Geboorte', 'Huwelijk', 'Afscheid collega', 'Afscheid', 'Communie / Lentefeest', 'Vader/moederdag', 'Andere reden']
-
-  constructor( 
-    public activeModal: NgbActiveModal,
-    private userService: UserService,
-    private wishService: WishService,
-    private notificationService: NotificationService
-  ) { }
 
   ngOnInit(): void {
     this.reservationForm = new UntypedFormGroup({

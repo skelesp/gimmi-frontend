@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, Subject, merge, Subscription } from 'rxjs';
 import { debounceTime, map, distinctUntilChanged, filter } from "rxjs/operators";
@@ -18,7 +18,10 @@ import { FormsModule } from '@angular/forms';
     changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FaIconComponent, NgbHighlight, FormsModule, NgbTypeahead_1]
 })
-export class PeopleSearchComponent implements OnInit, OnDestroy {  
+export class PeopleSearchComponent implements OnInit, OnDestroy {
+  private peopleService = inject(PeopleService);
+  private router = inject(Router);
+  
   // Ngbtypeahead variables
   @ViewChild('instance', { static: true}) instance: NgbTypeahead;
   focus$ = new Subject<string>();
@@ -30,8 +33,6 @@ export class PeopleSearchComponent implements OnInit, OnDestroy {
   people: Person[] = [];
   selectedPerson: Person;
   private peopleSubscription: Subscription;
-
-  constructor( private peopleService : PeopleService, private router : Router) { }
 
   ngOnInit(): void {
     this.peopleSubscription = this.peopleService.people.subscribe( people => {

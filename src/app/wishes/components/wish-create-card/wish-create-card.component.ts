@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ModalDismissReasons, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -21,15 +21,14 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     imports: [ImageViewComponent, CursorPointerDirective, FaIconComponent]
 })
 export class WishCreateCardComponent implements OnInit {
+  private modalService = inject(NgbModal);
+  private wishService = inject(WishService);
+  private userService = inject(UserService);
+  private notificationService = inject(NotificationService);
+
   @Input() receiver : Person;
   plusIcon : IconDefinition = faPlus;
   currentUser: User;
-
-  constructor( 
-    private modalService : NgbModal,
-    private wishService : WishService,
-    private userService : UserService,
-    private notificationService: NotificationService ) { }
 
   ngOnInit(): void {
     this.currentUser = this.userService.currentUser;

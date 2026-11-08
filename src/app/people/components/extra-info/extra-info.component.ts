@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy, inject } from '@angular/core';
 import { IExtraPersonInfo, ILike } from '../../models/person.model';
 import { faPencilAlt, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -19,6 +19,9 @@ export type itemTypes = 'likes' | 'dislikes';
     imports: [ExtraInfoViewComponent, FaIconComponent, CursorPointerDirective, FormsModule, ReactiveFormsModule, ExtraInfoEditComponent]
 })
 export class ExtraInfoComponent implements OnInit {
+  private _peopleService = inject(PeopleService);
+  private route = inject(ActivatedRoute);
+
   @Input() firstName : string;
   @Input() likes: ILike[] = [];
   @Input() dislikes: ILike[] = [];
@@ -30,11 +33,6 @@ export class ExtraInfoComponent implements OnInit {
   pencilIcon = faPencilAlt;
   checkIcon = faCheck;
   cancelIcon = faTimes;
-
-  constructor( 
-    private _peopleService: PeopleService,
-    private route: ActivatedRoute
-     ) { }
 
   ngOnInit(): void { 
     this.editItemsForm = new UntypedFormGroup({});

@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faShareAlt } from '@fortawesome/free-solid-svg-icons';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -16,13 +16,11 @@ import { CursorPointerDirective } from '../../../shared/directives/cursor-pointe
     imports: [FaIconComponent, CursorPointerDirective]
 })
 export class ShareComponent {
+  private modalService = inject(NgbModal);
+
   @Input() personToShare: Person;
   @Input() shareIcon: IconDefinition = faShareAlt;
   @Input() iconSize = "lg";
-
-  constructor(
-    private modalService: NgbModal
-  ) { }
 
   activate() {
     const sharePopup = this.modalService.open(SharePopupComponent);

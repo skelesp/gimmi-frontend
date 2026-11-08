@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from '../../service/user.service';
@@ -14,14 +14,12 @@ import { EmailInputComponent } from '../../../shared/components/form-components/
     imports: [NgbAlert, FormsModule, ReactiveFormsModule, EmailInputComponent]
 })
 export class ForgotPasswordComponent implements OnInit {
+  private userService = inject(UserService);
+  private notificationService = inject(NotificationService);
+
   forgotPasswordForm : UntypedFormGroup;
   successAlertClosed : boolean;
   requestSent  = false;
-  
-  constructor( 
-    private userService : UserService,
-    private notificationService : NotificationService
-  ) { }
 
   ngOnInit(): void {
     this.forgotPasswordForm = new UntypedFormGroup ({});

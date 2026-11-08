@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
@@ -18,12 +18,12 @@ import { UnknownUserMenuComponent } from '../../../users/components/unknown-user
     imports: [BrandLogoComponent, PeopleSearchComponent, CursorPointerDirective, UserMenuComponent, NgbCollapse, UnknownUserMenuComponent]
 })
 export class NavigationBarComponent implements OnInit, OnDestroy {
+  private userService = inject(UserService);
+
   public isNavbarCollapsed = true;
 
   currentUser: User;
   currentUserSubscription: Subscription;
-
-  constructor( private userService: UserService) {}
 
   toggleNavbarCollapseState () {
     this.isNavbarCollapsed = !this.isNavbarCollapsed;

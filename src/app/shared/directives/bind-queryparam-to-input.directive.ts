@@ -1,13 +1,11 @@
-import { Directive, Input, OnInit } from '@angular/core';
+import { Directive, Input, OnInit, inject } from '@angular/core';
 import { NgControl } from '@angular/forms';
 
 @Directive({ selector: '[bindQueryParamToInput]' })
 export class BindQueryparamToInputDirective implements OnInit {
-  @Input('bindQueryParamToInput') paramKey: string;
+  private ngControl = inject(NgControl);
 
-  constructor( 
-    private ngControl : NgControl
-    ) { }
+  @Input('bindQueryParamToInput') paramKey: string;
 
   ngOnInit() {
     const queryParams = new URLSearchParams(location.search);

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -9,10 +9,8 @@ import { WishService } from '../services/wish.service';
   providedIn: 'root'
 })
 export class WishResolver {
+  private wishService = inject(WishService);
 
-  constructor(
-    private wishService : WishService
-  ) { }
 
   resolve ( route : ActivatedRouteSnapshot, state: RouterStateSnapshot) : Observable<Wish> {
     return this.wishService.getWishById(route.paramMap.get('wishId'))

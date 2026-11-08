@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { faBan, faGift, faStar, faLightbulb, faCartArrowDown, faThumbsUp, faTrashAlt, faGlobeEurope } from '@fortawesome/free-solid-svg-icons';
 import { faClone, faComment, faEdit } from '@fortawesome/free-regular-svg-icons';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -27,6 +27,14 @@ import { PeopleService } from 'src/app/people/service/people.service';
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class WishItemComponent implements OnInit {
+  protected modalService = inject(NgbModal);
+  protected wishService = inject(WishService);
+  protected notificationService = inject(NotificationService);
+  protected userService = inject(UserService);
+  protected imageService = inject(ImageService);
+  protected peopleService = inject(PeopleService);
+  protected communicationService = inject(CommunicationService);
+
   @Input() wish: Wish;
   wishActionItems : ActionListItemConfig[] = [];
 
@@ -94,16 +102,6 @@ export class WishItemComponent implements OnInit {
       bannerConfig: this.bannerConfigs.fulfilledByUser
     }
   };
-
-  constructor(
-    protected modalService: NgbModal,
-    protected wishService: WishService,
-    protected notificationService: NotificationService,
-    protected userService: UserService,
-    protected imageService: ImageService,
-    protected peopleService: PeopleService,
-    protected communicationService: CommunicationService
-  ) { }
 
   ngOnInit(): void {
     this.defineWishActions();

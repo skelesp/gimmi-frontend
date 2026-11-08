@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { IGekozenAfbeelding, ImagePickerComponent } from '../image-picker/image-picker.component';
@@ -18,6 +18,8 @@ import { IGekozenAfbeelding, ImagePickerComponent } from '../image-picker/image-
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class ImageUploadComponent implements OnDestroy {
+  private modalService = inject(NgbModal);
+
   @Input() searchTerm = "";
 
   @Output() imageUploaded = new EventEmitter<IWishImage>();
@@ -25,8 +27,6 @@ export class ImageUploadComponent implements OnDestroy {
   @Output() previewChanged = new EventEmitter<string>();
 
   private kiezer: NgbModalRef = null;
-
-  constructor(private modalService: NgbModal) { }
 
   openKiezer(): void {
     this.kiezer = this.modalService.open(ImagePickerComponent, { size: 'lg', scrollable: true, ariaLabelledBy: 'kiezer-titel' });

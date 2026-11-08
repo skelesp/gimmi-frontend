@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { faUserPlus, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { faListAlt, faPaperPlane } from "@fortawesome/free-regular-svg-icons";
 import { UserService } from 'src/app/users/service/user.service';
@@ -19,13 +19,13 @@ import { ShareComponent } from '../../people/components/share/share.component';
     imports: [FaIconComponent, NgbTooltip, RouterLink, CursorPointerDirective, ShareComponent]
 })
 export class HowToUseComponent implements OnInit, OnDestroy {
+  private userService = inject(UserService);
+
   registerIcon : IconDefinition = faUserPlus;
   listIcon : IconDefinition = faListAlt;
   sendIcon : IconDefinition = faPaperPlane;
   currentUser : User;
   currentUserSubscription : Subscription;
-  
-  constructor( private userService : UserService) { }
 
   ngOnInit(): void {
     this.currentUserSubscription = this.userService.currentUser$.subscribe( user => {

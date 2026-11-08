@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
@@ -13,16 +13,15 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     imports: [FaIconComponent]
 })
 export class WhatsappButtonComponent {
+  private deviceService = inject(DeviceDetectorService);
+  private sanitizer = inject(DomSanitizer);
+
   @Input() message: string;
   whatsappIcon : IconDefinition = faWhatsapp;
   whatsappUrl: Record<string, string> = {
     web: "https://web.whatsapp.com/send?text=",
     mobile: "whatsapp://send?text="
   };
-
-  constructor ( 
-    private deviceService: DeviceDetectorService,
-    private sanitizer: DomSanitizer ) {}
 
   generateUrl () : SafeUrl {
     const url = this.deviceService.isMobile() ? this.whatsappUrl.mobile : this.whatsappUrl.web;

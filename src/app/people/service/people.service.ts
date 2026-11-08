@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { map, catchError } from 'rxjs/operators';
@@ -44,14 +44,12 @@ export interface IPersonSearchResponseWithUserInfo extends IPersonSearchResponse
   providedIn: 'root'
 })
 export class PeopleService {
+  private http$ = inject(HttpClient);
+  private communicationService = inject(CommunicationService);
+  private userService = inject(UserService);
+
   private _people$ : BehaviorSubject<Person[]> = new BehaviorSubject<Person[]>([]);
   public readonly people: Observable<Person[]> = this._people$.asObservable();
-
-  constructor( 
-    private http$: HttpClient,
-    private communicationService: CommunicationService,
-    private userService: UserService
-  ) { }
 
   /**
    * @method @public

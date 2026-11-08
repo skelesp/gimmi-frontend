@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
@@ -20,15 +20,13 @@ import { PasswordCheckComponent } from '../../../shared/components/form-componen
     imports: [NgbAlert, CursorPointerDirective, RouterLink, ForgotPasswordLinkComponent, FormsModule, ReactiveFormsModule, EmailInputComponent, PasswordCheckComponent]
 })
 export class RegisterComponent implements OnInit {
+  private userService = inject(UserService);
+  private peopleService = inject(PeopleService);
+
   invitedFor: string;
   knownUser: boolean;
   registrationForm: UntypedFormGroup;
   infoAlertClosed: boolean;
-
-  constructor( 
-    private userService : UserService,
-    private peopleService : PeopleService
-  ) { }
 
   ngOnInit(): void {
     this.invitedFor = null; // Wordt pas geïmplementeerd als wishlist geïmplementeerd worden.

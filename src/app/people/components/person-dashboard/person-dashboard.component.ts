@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
@@ -19,15 +19,13 @@ import { WishListComponent } from '../../../wishes/components/wish-list/wish-lis
     imports: [NgbAlert, ShareComponent, CursorPointerDirective, RouterLink, ExtraInfoComponent, WishListComponent]
 })
 export class PersonDashboardComponent implements OnInit {
+  private userService = inject(UserService);
+  private personService = inject(PeopleService);
+  private route = inject(ActivatedRoute);
+
   person : Person;
   currrentUser : User;
   personIsUser : boolean;
-
-  constructor(
-    private userService : UserService,
-    private personService: PeopleService,
-    private route : ActivatedRoute
-  ) { }
 
   ngOnInit(): void {
     this.userService.currentUser$.subscribe( (currentUser) => {

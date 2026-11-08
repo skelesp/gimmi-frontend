@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs';
 import { Person } from 'src/app/people/models/person.model';
@@ -17,15 +17,13 @@ import { WhatsappButtonComponent } from '../whatsapp-button/whatsapp-button.comp
     imports: [CursorPointerDirective, CopyToClipboardButtonComponent, MailToButtonComponent, WhatsappButtonComponent]
 })
 export class SharePopupComponent implements OnInit, OnDestroy {
+  activeModal = inject(NgbActiveModal);
+  private userService = inject(UserService);
+
   @Input() linkToShare : string;
   @Input() personToShare : Person;
   currentUser: User; currentUserSubscription: Subscription;
   message = 'Hey, op volgende link vind je mijn wensenlijst voor een cadeautje.';
-  
-  constructor(
-    public activeModal: NgbActiveModal,
-    private userService: UserService
-  ) { }
 
   ngOnInit(): void {
     this.currentUserSubscription = this.userService.currentUser$.subscribe(user => {

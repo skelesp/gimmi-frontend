@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { InvitePersonData, PeopleService } from '../../service/people.service';
@@ -13,10 +13,10 @@ import { EmailInputComponent } from '../../../shared/components/form-components/
     imports: [FormsModule, ReactiveFormsModule, FaIconComponent, EmailInputComponent]
 })
 export class InviteComponent implements OnInit {
+  private _peopleService = inject(PeopleService);
+
   mailIcon = faEnvelope;
   invitationForm: UntypedFormGroup;
-
-  constructor(private _peopleService: PeopleService) { }
 
   ngOnInit(): void {
     this.invitationForm = new UntypedFormGroup({

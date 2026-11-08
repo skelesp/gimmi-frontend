@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
@@ -20,6 +20,8 @@ type EmailExistsRedirectType = "wishlist" | "login";
     imports: [FormsModule, ReactiveFormsModule, FaIconComponent, BindQueryparamToInputDirective, RouterLink, CursorPointerDirective]
 })
 export class EmailInputComponent implements OnInit {
+  private _peopleService = inject(PeopleService);
+
   @Input() parentFormGroup: UntypedFormGroup;
   @Input() label: string = null;
   @Input() bindedQueryParam: string = null;
@@ -30,8 +32,6 @@ export class EmailInputComponent implements OnInit {
 
   mailIcon = faAt;
   knownPerson: Person;
-
-  constructor(private _peopleService: PeopleService) { }
 
   ngOnInit(): void {
     const emailControlOptions : AbstractControlOptions = {

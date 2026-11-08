@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NgbActiveModal, NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, NgbNavContent, NgbAlert, NgbNavOutlet } from '@ng-bootstrap/ng-bootstrap';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { Subscription } from 'rxjs';
@@ -67,6 +67,11 @@ export function boodschapVoor(err: HttpErrorResponse): string {
     imports: [NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, NgbNavContent, FormsModule, NgbAlert, NgbNavOutlet]
 })
 export class ImagePickerComponent implements OnInit, OnDestroy {
+  activeModal = inject(NgbActiveModal);
+  private imageService = inject(ImageService);
+  private imageSearchService = inject(ImageSearchService);
+  private deviceService = inject(DeviceDetectorService);
+
   @Input() searchTerm = "";
 
   tab: KiezerTab = 'zoeken';
@@ -82,12 +87,6 @@ export class ImagePickerComponent implements OnInit, OnDestroy {
   private zoekSub: Subscription;
   private uploadSub: Subscription;
   private vernietigd = false;
-
-  constructor(
-    public activeModal: NgbActiveModal,
-    private imageService: ImageService,
-    private imageSearchService: ImageSearchService,
-    private deviceService: DeviceDetectorService) { }
 
   ngOnInit(): void {
     this.toonCamera = this.deviceService.isMobile() || this.deviceService.isTablet();

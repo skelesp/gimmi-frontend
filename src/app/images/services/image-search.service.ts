@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -23,8 +23,8 @@ export interface IImageSearchResult {
   providedIn: 'root'
 })
 export class ImageSearchService {
+  private http$ = inject(HttpClient);
 
-  constructor(private http$: HttpClient) { }
 
   public search(query: string): Observable<IImageSearchResult[]> {
     return this.http$.get<{ results: IImageSearchResult[] }>(
