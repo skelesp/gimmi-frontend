@@ -96,9 +96,6 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "ssl": true,
-            "sslCert": "C:/users/skelesp/projects/gimmi/gimmi-backend/sslcert/localhost.crt",
-            "sslKey": "C:/users/skelesp/projects/gimmi/gimmi-backend/sslcert/localhost.key",
             "buildTarget": "gimmi:build"
           },
           "configurations": {
