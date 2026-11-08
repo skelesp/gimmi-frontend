@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, Subject, merge, Subscription } from 'rxjs';
 import { debounceTime, map, distinctUntilChanged, filter } from "rxjs/operators";
@@ -23,7 +23,7 @@ export class PeopleSearchComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   
   // Ngbtypeahead variables
-  @ViewChild('instance', { static: true}) instance: NgbTypeahead;
+  readonly instance = viewChild<NgbTypeahead>('instance');
   focus$ = new Subject<string>();
   click$ = new Subject<string>();
   // Icons variables
@@ -46,7 +46,7 @@ export class PeopleSearchComponent implements OnInit, OnDestroy {
       debounceTime(200),
       distinctUntilChanged()
     );
-    const clickWithClosedPopup$ = this.click$.pipe(filter(() => !this.instance.isPopupOpen()));
+    const clickWithClosedPopup$ = this.click$.pipe(filter(() => !this.instance().isPopupOpen()));
     const inputFocused$ = this.focus$;
     
     return merge(debouncedText$, clickWithClosedPopup$, inputFocused$).pipe(

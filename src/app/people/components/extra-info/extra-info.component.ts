@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject, output } from '@angular/core';
 import { IExtraPersonInfo, ILike } from '../../models/person.model';
 import { faPencilAlt, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -26,7 +26,7 @@ export class ExtraInfoComponent implements OnInit {
   @Input() likes: ILike[] = [];
   @Input() dislikes: ILike[] = [];
   @Input() personIsUser = false;
-  @Output() extraInfoSaved = new EventEmitter<IExtraPersonInfo>();
+  readonly extraInfoSaved = output<IExtraPersonInfo>();
 
   editItemsForm: UntypedFormGroup;
   editMode = false;

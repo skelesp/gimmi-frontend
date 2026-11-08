@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, Output, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, Input, OnDestroy, ChangeDetectionStrategy, inject, output } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { IGekozenAfbeelding, ImagePickerComponent } from '../image-picker/image-picker.component';
@@ -22,9 +22,9 @@ export class ImageUploadComponent implements OnDestroy {
 
   @Input() searchTerm = "";
 
-  @Output() imageUploaded = new EventEmitter<IWishImage>();
+  readonly imageUploaded = output<IWishImage>();
   /** Komt vlak vóór imageUploaded: een URL of data-URI die de browser meteen kan tonen. */
-  @Output() previewChanged = new EventEmitter<string>();
+  readonly previewChanged = output<string>();
 
   private kiezer: NgbModalRef = null;
 
