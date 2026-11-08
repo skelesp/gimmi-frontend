@@ -1,4 +1,4 @@
-export function validateUrl(url : string = "") {
+export function validateUrl(url  = "") {
     let newUrl = window.decodeURIComponent(url);
     newUrl = newUrl.trim().replace(/\s/g, "");
 

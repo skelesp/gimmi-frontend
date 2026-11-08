@@ -16,7 +16,7 @@ export class MailToButtonComponent {
   @Input() url: string;
   @Input() person: Person;
   mailIcon: IconDefinition = faEnvelope;
-  hideMailInfo: boolean = true;
+  hideMailInfo = true;
   mailAddresses: string;
   
   constructor(
@@ -27,10 +27,10 @@ export class MailToButtonComponent {
   send () {
     this.hideMailInfo = true;
     
-    let mailTo: string[] = this.mailAddresses.split(",");
+    const mailTo: string[] = this.mailAddresses.split(",");
     mailTo.forEach((email ) => {
-      let urlInMail: string = this.url + "?e=" + encodeURIComponent(email);
-      let mailInfo: MailInfo = {
+      const urlInMail: string = this.url + "?e=" + encodeURIComponent(email);
+      const mailInfo: MailInfo = {
         to: email,
         subject: `[GIMMI] ${this.person.fullName} nodigt je uit.`,
         html: `<html>

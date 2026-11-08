@@ -25,7 +25,7 @@ export class InviteComponent implements OnInit {
   }
 
   invitePerson() {
-    let inviteInfo: InvitePersonData = {
+    const inviteInfo: InvitePersonData = {
       email: this.invitationForm.value.invitationData.emailaddress,
       notifyOnRegistration: this.invitationForm.value.invitationData.notifyOnRegistration
     }

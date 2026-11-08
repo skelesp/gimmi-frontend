@@ -14,7 +14,7 @@ import { DeviceDetectorService } from 'ngx-device-detector';
 export class WhatsappButtonComponent {
   @Input() message: string;
   whatsappIcon : IconDefinition = faWhatsapp;
-  whatsappUrl: { [key: string] : string} = {
+  whatsappUrl: Record<string, string> = {
     web: "https://web.whatsapp.com/send?text=",
     mobile: "whatsapp://send?text="
   };
@@ -24,7 +24,7 @@ export class WhatsappButtonComponent {
     private sanitizer: DomSanitizer ) {}
 
   generateUrl () : SafeUrl {
-    let url = this.deviceService.isMobile() ? this.whatsappUrl.mobile : this.whatsappUrl.web;
+    const url = this.deviceService.isMobile() ? this.whatsappUrl.mobile : this.whatsappUrl.web;
     return this.sanitizer.bypassSecurityTrustUrl(url + this.message);
   }
 }

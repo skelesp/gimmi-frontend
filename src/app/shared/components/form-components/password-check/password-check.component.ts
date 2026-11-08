@@ -10,7 +10,7 @@ import { UntypedFormGroup, ValidationErrors, ValidatorFn } from '@angular/forms'
 })
 export class PasswordCheckComponent implements OnInit {
   @Input() parentFormGroup : UntypedFormGroup;
-  @Input() controlName : string = 'passwordGroup';
+  @Input() controlName  = 'passwordGroup';
 
   constructor() { }
 

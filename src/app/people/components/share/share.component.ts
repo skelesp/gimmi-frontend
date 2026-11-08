@@ -16,14 +16,14 @@ import { SharePopupComponent } from './share-popup/share-popup.component';
 export class ShareComponent {
   @Input() personToShare: Person;
   @Input() shareIcon: IconDefinition = faShareAlt;
-  @Input() iconSize: string = "lg";
+  @Input() iconSize = "lg";
 
   constructor(
     private modalService: NgbModal
   ) { }
 
   activate() {
-    let sharePopup = this.modalService.open(SharePopupComponent);
+    const sharePopup = this.modalService.open(SharePopupComponent);
     sharePopup.componentInstance.linkToShare = environment.rootSiteUrl + '/people/' + this.personToShare?.id;
     sharePopup.componentInstance.personToShare = this.personToShare;
   }

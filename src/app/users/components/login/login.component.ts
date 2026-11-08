@@ -15,7 +15,7 @@ import { environment } from 'src/environments/environment';
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginForm: UntypedFormGroup;
-  authenticationError: boolean = false;
+  authenticationError = false;
   loggedInUser: User;
   currentUserSubscription: Subscription;
   redirectUrl: string;
@@ -35,7 +35,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   login() {
-    let credentials : ILocalLoginInfo = {
+    const credentials : ILocalLoginInfo = {
       email: this.loginForm.value.email,
       password: this.loginForm.value.password
     }

@@ -18,9 +18,9 @@ export class EmailInputComponent implements OnInit {
   @Input() parentFormGroup: UntypedFormGroup;
   @Input() label: string = null;
   @Input() bindedQueryParam: string = null;
-  @Input() controlName: string = 'email';
-  @Input() placeholder: string = 'Email (login)';
-  @Input() emailExistsValidation: boolean = false;
+  @Input() controlName = 'email';
+  @Input() placeholder = 'Email (login)';
+  @Input() emailExistsValidation = false;
   @Input() emailExistsRedirectTo: EmailExistsRedirectType = "wishlist";
 
   mailIcon = faAt;
@@ -29,7 +29,7 @@ export class EmailInputComponent implements OnInit {
   constructor(private _peopleService: PeopleService) { }
 
   ngOnInit(): void {
-    let emailControlOptions : AbstractControlOptions = {
+    const emailControlOptions : AbstractControlOptions = {
       validators: [Validators.required, Validators.email]
     };
     if (this.emailExistsValidation) {

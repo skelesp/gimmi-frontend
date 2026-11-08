@@ -13,7 +13,7 @@ import { UserService } from '../../service/user.service';
 export class ForgotPasswordComponent implements OnInit {
   forgotPasswordForm : UntypedFormGroup;
   successAlertClosed : boolean;
-  requestSent : boolean = false;
+  requestSent  = false;
   
   constructor( 
     private userService : UserService,

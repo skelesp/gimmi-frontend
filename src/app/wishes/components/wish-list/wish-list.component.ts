@@ -14,8 +14,8 @@ export class WishListComponent implements OnInit, OnChanges {
   @Input() receiver : Person;
   @Input() wishlistFilter: wishStatus[];
   wishes: Wish[];
-  loading: boolean = false;
-  activeTab: string = "Open";
+  loading = false;
+  activeTab = "Open";
   
   constructor( 
     private wishService : WishService

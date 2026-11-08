@@ -47,7 +47,7 @@ export class PeopleSearchComponent implements OnInit, OnDestroy {
     return merge(debouncedText$, clickWithClosedPopup$, inputFocused$).pipe(
       map(term => {
         if (term !== '') {
-          let results = this.people
+          const results = this.people
             .filter(person => person.fullName.toLowerCase().indexOf(term.toLowerCase()) > -1)
             .slice(0, 10)
           return results.length > 0 ? results : [null] // [null] is needed to detect the "no results" scenario in the people search HTML, because ng-bootstrap doesn't support "noresults scenario"

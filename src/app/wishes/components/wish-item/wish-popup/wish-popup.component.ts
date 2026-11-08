@@ -19,8 +19,8 @@ export class WishPopupComponent implements OnInit {
   wishForm: UntypedFormGroup;
   actionButtonText: string;
   popupTitle: string;
-  saving: boolean = false;
-  showWarningExistingCopy: boolean = false;
+  saving = false;
+  showWarningExistingCopy = false;
   currentUser: User;
   /** Voorvertoning van een net gekozen afbeelding, tot de popup sluit (sc-3028). */
   imagePreview: string = null;
@@ -82,7 +82,7 @@ export class WishPopupComponent implements OnInit {
 
   saveWish () {
     this.saving = true;
-    let returnedWish: Wish = { ...this.wish, ...this.wishForm.value };
+    const returnedWish: Wish = { ...this.wish, ...this.wishForm.value };
     this.activeModal.close(returnedWish);    
   }
 

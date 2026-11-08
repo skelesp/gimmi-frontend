@@ -30,7 +30,7 @@ export class GiftFeedbackComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    let defaultReceivedDate = new Date(this.wish.reservation.reservationDate).toISOString().slice(0, 10);
+    const defaultReceivedDate = new Date(this.wish.reservation.reservationDate).toISOString().slice(0, 10);
     this.giftFeedbackForm = new UntypedFormGroup({
       'satisfaction': new UntypedFormControl(null, [Validators.required]),
       'receivedOn': new UntypedFormControl( defaultReceivedDate, [Validators.required]),
@@ -40,7 +40,7 @@ export class GiftFeedbackComponent implements OnInit {
   }
 
   saveGiftFeedback() {
-    let giftFeedback: IGiftFeedback = {
+    const giftFeedback: IGiftFeedback = {
       satisfaction: this.satisfactionLevels[this.giftFeedbackForm.value.satisfaction],
       receivedOn: this.giftFeedbackForm.value.receivedOn,
       message: this.giftFeedbackForm.value.message,

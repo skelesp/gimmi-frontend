@@ -36,7 +36,7 @@ export class RegisterComponent implements OnInit {
   }
 
   register () {
-    let newUser : INewUserRequestInfo = {
+    const newUser : INewUserRequestInfo = {
       firstname: this.registrationForm.value.personData.firstName,
       lastname: this.registrationForm.value.personData.lastName,
       birthday: this.registrationForm.value.personData.birthday,

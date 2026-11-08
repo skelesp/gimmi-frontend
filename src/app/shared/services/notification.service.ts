@@ -34,7 +34,7 @@ export class NotificationService {
   }
 
   private setTitle (type: NotificationType) : string {
-    let title : string = "Notificatie";
+    let title  = "Notificatie";
     switch (type) {
       case "success":
         title = "Gelukt!!";       

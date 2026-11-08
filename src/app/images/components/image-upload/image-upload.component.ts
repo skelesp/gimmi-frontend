@@ -19,11 +19,11 @@ import { IGekozenAfbeelding, ImagePickerComponent } from '../image-picker/image-
     standalone: false
 })
 export class ImageUploadComponent implements OnDestroy {
-  @Input() searchTerm: string = "";
+  @Input() searchTerm = "";
 
-  @Output() imageUploaded: EventEmitter<IWishImage> = new EventEmitter();
+  @Output() imageUploaded = new EventEmitter<IWishImage>();
   /** Komt vlak vóór imageUploaded: een URL of data-URI die de browser meteen kan tonen. */
-  @Output() previewChanged: EventEmitter<string> = new EventEmitter();
+  @Output() previewChanged = new EventEmitter<string>();
 
   private kiezer: NgbModalRef = null;
 

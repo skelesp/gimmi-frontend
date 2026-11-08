@@ -16,7 +16,7 @@ export class SharePopupComponent implements OnInit, OnDestroy {
   @Input() linkToShare : string;
   @Input() personToShare : Person;
   currentUser: User; currentUserSubscription: Subscription;
-  message: string = 'Hey, op volgende link vind je mijn wensenlijst voor een cadeautje.';
+  message = 'Hey, op volgende link vind je mijn wensenlijst voor een cadeautje.';
   
   constructor(
     public activeModal: NgbActiveModal,
