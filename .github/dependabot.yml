@@ -1,0 +1,16 @@
+# Alleen beveiligingsupdates: versie-updates staan uit (open-pull-requests-limit: 0). De PR's gaan naar de
+# standaardbranch, en die is `develop` (sinds 08-11-2026), zodat ze eerst op test komen en met de release-PR mee
+# naar productie gaan. Patch- en minor-updates komen gebundeld in één PR; een major blijft een eigen PR.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      security-patch-minor:
+        applies-to: security-updates
+        update-types:
+          - patch
+          - minor
