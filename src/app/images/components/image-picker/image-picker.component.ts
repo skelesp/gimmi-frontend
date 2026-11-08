@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { Subscription } from 'rxjs';
@@ -61,6 +61,7 @@ export function boodschapVoor(err: HttpErrorResponse): string {
     selector: 'gimmi-image-picker',
     templateUrl: './image-picker.component.html',
     styleUrls: ['./image-picker.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ImagePickerComponent implements OnInit, OnDestroy {

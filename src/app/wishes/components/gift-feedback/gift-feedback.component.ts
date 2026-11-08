@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { faThumbsUp } from '@fortawesome/free-regular-svg-icons';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -13,6 +13,7 @@ import { WishService } from '../../services/wish.service';
     selector: 'gimmi-gift-feedback',
     templateUrl: './gift-feedback.component.html',
     styleUrls: ['./gift-feedback.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class GiftFeedbackComponent implements OnInit {

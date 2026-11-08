@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, Subject, merge, Subscription } from 'rxjs';
 import { debounceTime, map, distinctUntilChanged, filter } from "rxjs/operators";
@@ -11,6 +11,7 @@ import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
     selector: 'gimmi-people-search',
     templateUrl: './people-search.component.html',
     styleUrls: ['./people-search.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class PeopleSearchComponent implements OnInit, OnDestroy {  

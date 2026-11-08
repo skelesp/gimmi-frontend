@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { faUserPlus, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { faListAlt, faPaperPlane } from "@fortawesome/free-regular-svg-icons";
 import { UserService } from 'src/app/users/service/user.service';
@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
     selector: 'gimmi-how-to-use',
     templateUrl: './how-to-use.component.html',
     styleUrls: ['./how-to-use.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class HowToUseComponent implements OnInit, OnDestroy {

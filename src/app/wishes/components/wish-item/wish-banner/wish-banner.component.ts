@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 
 type BannerColors = 'danger' | 'warning' | 'success';
@@ -11,6 +11,7 @@ export interface BannerConfig {
     selector: 'gimmi-wish-banner',
     templateUrl: './wish-banner.component.html',
     styleUrls: ['./wish-banner.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class WishBannerComponent {

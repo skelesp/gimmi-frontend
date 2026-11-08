@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, ChangeDetectionStrategy } from '@angular/core';
 import { UserService } from 'src/app/users/service/user.service';
 import { Subscription } from 'rxjs';
 import { faUserCircle } from "@fortawesome/free-solid-svg-icons";
@@ -8,6 +8,7 @@ import { User } from '../../models/user.model';
     selector: 'gimmi-user-menu',
     templateUrl: './user-menu.component.html',
     styleUrls: ['./user-menu.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class UserMenuComponent implements OnInit, OnDestroy {

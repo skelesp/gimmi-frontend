@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
     selector: 'gimmi-forgot-password-link',
@@ -6,6 +6,7 @@ import { Component, Input } from '@angular/core';
                 [queryParams]="{e:attemptedEmail}">
                 {{linkText}}</a>`,
     styleUrls: ['./forgot-password-link.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ForgotPasswordLinkComponent {

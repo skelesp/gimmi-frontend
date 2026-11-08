@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 
 import { environment } from 'src/environments/environment';
 import { BREEDTES, ImageService, STANDAARD_AFBEELDING } from './image.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 // Afbeeldingen in R2 via de backend (sc-2911, sc-3052). Cloudinary is weg sinds sc-3070.
 describe('ImageService', () => {
@@ -13,7 +13,7 @@ describe('ImageService', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()] });
     service = TestBed.inject(ImageService);
     http = TestBed.inject(HttpTestingController);
   });

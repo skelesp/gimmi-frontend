@@ -1,4 +1,4 @@
-import { Component, Input} from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
@@ -8,6 +8,7 @@ import { DeviceDetectorService } from 'ngx-device-detector';
     selector: 'gimmi-whatsapp-button',
     templateUrl: './whatsapp-button.component.html',
     styleUrls: ['./whatsapp-button.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class WhatsappButtonComponent {

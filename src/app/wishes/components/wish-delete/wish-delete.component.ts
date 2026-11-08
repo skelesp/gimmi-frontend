@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 
@@ -9,6 +9,7 @@ import { WishService } from '../../services/wish.service';
     selector: 'gimmi-wish-delete',
     templateUrl: './wish-delete.component.html',
     styleUrls: ['./wish-delete.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class WishDeleteComponent {

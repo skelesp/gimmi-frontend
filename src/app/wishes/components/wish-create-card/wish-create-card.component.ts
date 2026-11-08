@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ModalDismissReasons, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -14,6 +14,7 @@ import { WishPopupComponent } from '../wish-item/wish-popup/wish-popup.component
     selector: 'gimmi-wish-create-card',
     templateUrl: './wish-create-card.component.html',
     styleUrls: ['./wish-create-card.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class WishCreateCardComponent implements OnInit {

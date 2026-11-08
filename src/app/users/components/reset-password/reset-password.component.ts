@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { faWindows } from '@fortawesome/free-brands-svg-icons';
@@ -9,6 +9,7 @@ import { UserService } from '../../service/user.service';
     selector: 'gimmi-reset-password',
     templateUrl: './reset-password.component.html',
     styleUrls: ['./reset-password.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ResetPasswordComponent implements OnInit {

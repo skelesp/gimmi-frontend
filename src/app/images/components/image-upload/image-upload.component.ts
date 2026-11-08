@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, ChangeDetectionStrategy } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { IGekozenAfbeelding, ImagePickerComponent } from '../image-picker/image-picker.component';
@@ -15,6 +15,7 @@ import { IGekozenAfbeelding, ImagePickerComponent } from '../image-picker/image-
 @Component({
     selector: 'gimmi-image-upload',
     templateUrl: './image-upload.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ImageUploadComponent implements OnDestroy {
