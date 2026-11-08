@@ -4,7 +4,7 @@
     <!-- Vertical ellipsis because this is more compact on mobile designs -->
   </div>
   <div ngbDropdownMenu class="mt-3">
-    @for (item of actionListItems; track item) {
+    @for (item of actionListItems(); track item) {
       <gimmi-action-list-item [itemConfig]="item"></gimmi-action-list-item>
     }
   </div>

@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, input } from '@angular/core';
 import { faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
 import { UserService } from '../../service/user.service';
 import { User } from '../../models/user.model';
@@ -16,7 +16,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 export class LogoutButtonComponent {
   private userService = inject(UserService);
 
-  @Input() currentUser : User;
+  readonly currentUser = input<User>(undefined);
   logoutIcon = faSignOutAlt;
 
   logout(): void {

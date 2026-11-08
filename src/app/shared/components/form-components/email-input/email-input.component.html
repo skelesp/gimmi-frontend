@@ -9,8 +9,8 @@
     <input  [formControlName]="controlName"
       type="text"
       class="form-control"
-      [placeholder]="placeholder"
-      [bindQueryParamToInput]="bindedQueryParam">
+      [placeholder]="placeholder()"
+      [bindQueryParamToInput]="bindedQueryParam()">
     </div>
     @if (!parentFormGroup.get(controlName).valid && parentFormGroup.get(controlName).touched) {
       <div id="emailError" class="form-text text-danger"
@@ -26,10 +26,10 @@
         @if (parentFormGroup.get(controlName).errors?.emailExists) {
           <small class="text-success">
             Er is al een wishlist gekoppeld aan dit emailadres:
-            @if (emailExistsRedirectTo === "wishlist") {
+            @if (emailExistsRedirectTo() === "wishlist") {
               <a [routerLink]="['/people', knownPerson.id]">Bekijk de wensen van {{knownPerson.fullName}}</a>
             }
-            @if (emailExistsRedirectTo === "login") {
+            @if (emailExistsRedirectTo() === "login") {
               <a [routerLink]="['/users/login']" [queryParams]="{e: parentFormGroup.get(controlName).value}">Login met dit emailadres</a>
             }
           </small>

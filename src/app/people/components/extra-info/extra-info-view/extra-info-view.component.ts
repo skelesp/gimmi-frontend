@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { ILike } from 'src/app/people/models/person.model';
 import { itemTypes } from '../extra-info.component';
 
@@ -11,9 +11,9 @@ import { itemTypes } from '../extra-info.component';
     imports: []
 })
 export class ExtraInfoViewComponent implements OnInit {
-  @Input() firstName: string;
+  readonly firstName = input<string>(undefined);
   @Input() items: ILike[] = [];
-  @Input() itemType: itemTypes;
+  readonly itemType = input<itemTypes>(undefined);
 
   constructor() { }
 

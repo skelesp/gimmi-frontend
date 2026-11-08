@@ -23,12 +23,12 @@ describe('EmailInputComponent', () => {
     let form: UntypedFormGroup;
     let people: Record<string, any>;
 
-    function create(inputs: Partial<EmailInputComponent> = {}) {
+    function create(inputs: Record<string, unknown> = {}) {
         form = new UntypedFormGroup({});
         fixture = TestBed.createComponent(EmailInputComponent);
         component = fixture.componentInstance;
         component.parentFormGroup = form;
-        Object.assign(component, inputs);
+        for (const [naam, waarde] of Object.entries(inputs)) fixture.componentRef.setInput(naam, waarde);
         fixture.detectChanges();
     }
 

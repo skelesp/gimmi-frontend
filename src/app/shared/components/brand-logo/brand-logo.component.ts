@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CursorPointerDirective } from '../../directives/cursor-pointer.directive';
 
@@ -10,6 +10,6 @@ import { CursorPointerDirective } from '../../directives/cursor-pointer.directiv
     imports: [RouterLink, CursorPointerDirective]
 })
 export class BrandLogoComponent {
-  @Input() link?: string[] = ["/"];
+  readonly link = input<string[]>(["/"]);
 
 }
