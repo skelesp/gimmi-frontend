@@ -96,24 +96,24 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "gimmi:build",
             "ssl": true,
             "sslCert": "C:/users/skelesp/projects/gimmi/gimmi-backend/sslcert/localhost.crt",
-            "sslKey": "C:/users/skelesp/projects/gimmi/gimmi-backend/sslcert/localhost.key"
+            "sslKey": "C:/users/skelesp/projects/gimmi/gimmi-backend/sslcert/localhost.key",
+            "buildTarget": "gimmi:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "gimmi:build:production"
+              "buildTarget": "gimmi:build:production"
             },
             "test": {
-              "browserTarget": "gimmi:build:test"
+              "buildTarget": "gimmi:build:test"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "gimmi:build"
+            "buildTarget": "gimmi:build"
           }
         },
         "test": {
