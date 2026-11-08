@@ -1,18 +1,20 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Person } from 'src/app/people/models/person.model';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from 'src/app/users/service/user.service';
 import { IReservation, Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
+import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
+import { NgFor, NgIf } from '@angular/common';
 
 @Component({
     selector: 'gimmi-wish-reservation',
     templateUrl: './wish-reservation.component.html',
     styleUrls: ['./wish-reservation.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CursorPointerDirective, FormsModule, ReactiveFormsModule, NgFor, NgIf]
 })
 export class WishReservationComponent implements OnInit {
   @Input() wish: Wish;

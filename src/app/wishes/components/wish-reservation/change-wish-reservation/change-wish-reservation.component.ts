@@ -3,13 +3,14 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { Wish } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
+import { CursorPointerDirective } from '../../../../shared/directives/cursor-pointer.directive';
 
 @Component({
     selector: 'gimmi-change-wish-reservation',
     templateUrl: './change-wish-reservation.component.html',
     styleUrls: ['./change-wish-reservation.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CursorPointerDirective]
 })
 export class ChangeWishReservationComponent implements OnInit {
   @Input() wish: Wish;

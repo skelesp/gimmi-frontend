@@ -43,15 +43,14 @@ describe('WishReservationComponent', () => {
             showNotification: vi.fn().mockName("NotificationService.showNotification")
         };
         await TestBed.configureTestingModule({
-            imports: [ReactiveFormsModule],
-            declarations: [WishReservationComponent],
-            providers: [
-                { provide: NgbActiveModal, useValue: activeModal },
-                { provide: UserService, useValue: { currentUser: new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', {}) } },
-                { provide: WishService, useValue: wishService },
-                { provide: NotificationService, useValue: notifications }
-            ]
-        }).compileComponents();
+    imports: [ReactiveFormsModule, WishReservationComponent],
+    providers: [
+        { provide: NgbActiveModal, useValue: activeModal },
+        { provide: UserService, useValue: { currentUser: new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', {}) } },
+        { provide: WishService, useValue: wishService },
+        { provide: NotificationService, useValue: notifications }
+    ]
+}).compileComponents();
         fixture = TestBed.createComponent(WishReservationComponent);
         fixture.componentInstance.wish = new Wish('w1', 'Fiets', 250, null, ria, ria, null, null, null, 1);
         fixture.detectChanges();

@@ -1,16 +1,20 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { faWindows } from '@fortawesome/free-brands-svg-icons';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from '../../service/user.service';
+import { NgIf } from '@angular/common';
+import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
+import { ForgotPasswordLinkComponent } from '../forgot-password-link/forgot-password-link.component';
+import { PasswordCheckComponent } from '../../../shared/components/form-components/password-check/password-check.component';
 
 @Component({
     selector: 'gimmi-reset-password',
     templateUrl: './reset-password.component.html',
     styleUrls: ['./reset-password.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgIf, NgbAlert, ForgotPasswordLinkComponent, FormsModule, ReactiveFormsModule, PasswordCheckComponent]
 })
 export class ResetPasswordComponent implements OnInit {
   resetPasswordForm: UntypedFormGroup;

@@ -6,13 +6,17 @@ import { faSearch, faUserCircle } from "@fortawesome/free-solid-svg-icons";
 import { Person } from '../../models/person.model';
 import { PeopleService } from '../../service/people.service';
 import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
+import { NgIf } from '@angular/common';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { NgbHighlight, NgbTypeahead as NgbTypeahead_1 } from '@ng-bootstrap/ng-bootstrap/typeahead';
+import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'gimmi-people-search',
     templateUrl: './people-search.component.html',
     styleUrls: ['./people-search.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgIf, FaIconComponent, NgbHighlight, FormsModule, NgbTypeahead_1]
 })
 export class PeopleSearchComponent implements OnInit, OnDestroy {  
   // Ngbtypeahead variables

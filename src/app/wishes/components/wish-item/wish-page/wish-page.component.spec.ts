@@ -15,6 +15,11 @@ import { UserService } from 'src/app/users/service/user.service';
 import { Wish, wishStatus } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
 import { WishPageComponent } from './wish-page.component';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { ActionListComponent } from '../action-list/action-list.component';
+import { WishBannerComponent } from '../wish-banner/wish-banner.component';
+import { ImageViewComponent } from '../../../../images/components/image-view/image-view.component';
+import { WishCallToActionButtonComponent } from '../wish-call-to-action-button/wish-call-to-action-button.component';
 
 // Detailpagina van een wens op /wishes/:wishId (sc-1958): toont de geselecteerde wens uit de
 // WishService, hergebruikt banner, knop en actielijst van de wenskaart, en volgt wijzigingen.
@@ -60,23 +65,23 @@ describe('WishPageComponent', () => {
 
     beforeEach(async () => {
         selectedWish$ = new BehaviorSubject<Wish>(null);
+        TestBed.overrideComponent(WishPageComponent, { remove: { imports: [FaIconComponent, ActionListComponent, WishBannerComponent, ImageViewComponent, WishCallToActionButtonComponent] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
-            imports: [RouterTestingModule],
-            declarations: [WishPageComponent],
-            providers: [
-                { provide: WishService, useValue: { selectedWish: selectedWish$.asObservable() } },
-                { provide: NgbModal, useValue: {
-                        open: vi.fn().mockName("NgbModal.open")
-                    } },
-                { provide: NotificationService, useValue: {} },
-                { provide: UserService, useValue: {} },
-                { provide: ImageService, useValue: {} },
-                { provide: PeopleService, useValue: {} },
-                { provide: CommunicationService, useValue: {} },
-                { provide: ActivatedRoute, useValue: {} }
-            ],
-            schemas: [NO_ERRORS_SCHEMA]
-        }).compileComponents();
+    imports: [RouterTestingModule, WishPageComponent],
+    providers: [
+        { provide: WishService, useValue: { selectedWish: selectedWish$.asObservable() } },
+        { provide: NgbModal, useValue: {
+                open: vi.fn().mockName("NgbModal.open")
+            } },
+        { provide: NotificationService, useValue: {} },
+        { provide: UserService, useValue: {} },
+        { provide: ImageService, useValue: {} },
+        { provide: PeopleService, useValue: {} },
+        { provide: CommunicationService, useValue: {} },
+        { provide: ActivatedRoute, useValue: {} }
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
     });
 
     it('toont titel, ontvanger, prijs en een link terug naar de lijst', () => {

@@ -1,6 +1,9 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { faUnlockAlt, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { NgIf } from '@angular/common';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { CursorPointerDirective } from '../../../directives/cursor-pointer.directive';
 
 const resolvedPromise = Promise.resolve(null);
 @Component({
@@ -8,7 +11,7 @@ const resolvedPromise = Promise.resolve(null);
     templateUrl: './password-input.component.html',
     styleUrls: ['./password-input.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FormsModule, ReactiveFormsModule, NgIf, FaIconComponent, CursorPointerDirective]
 })
 export class PasswordInputComponent implements OnInit {
   @Input() parentFormGroup : UntypedFormGroup;

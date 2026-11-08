@@ -64,14 +64,13 @@ describe('ExtraInfoComponent', () => {
             updateExtraInfo: vi.fn().mockName("PeopleService.updateExtraInfo")
         };
         await TestBed.configureTestingModule({
-            imports: [ReactiveFormsModule],
-            declarations: [ExtraInfoComponent, ExtraInfoEditComponent, ExtraInfoViewComponent],
-            providers: [
-                { provide: PeopleService, useValue: people },
-                { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ personId: 'ria' }) } } }
-            ],
-            schemas: [NO_ERRORS_SCHEMA]
-        }).compileComponents();
+    imports: [ReactiveFormsModule, ExtraInfoComponent, ExtraInfoEditComponent, ExtraInfoViewComponent],
+    providers: [
+        { provide: PeopleService, useValue: people },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ personId: 'ria' }) } } }
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
     });
 
     describe('leesmodus (sc-1989)', () => {

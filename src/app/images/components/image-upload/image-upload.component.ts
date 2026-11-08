@@ -15,8 +15,7 @@ import { IGekozenAfbeelding, ImagePickerComponent } from '../image-picker/image-
 @Component({
     selector: 'gimmi-image-upload',
     templateUrl: './image-upload.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class ImageUploadComponent implements OnDestroy {
   @Input() searchTerm = "";

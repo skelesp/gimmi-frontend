@@ -11,16 +11,14 @@ import { HowToUseComponent } from './how-to-use/how-to-use.component';
 
 
 @NgModule({
-  declarations: [
-    LandingPageComponent, 
-    LandingPageBannerComponent, 
-    HowToUseComponent
-  ],
-  imports: [
-    CommonModule,
-    LandingPageRoutingModule,
-    SharedModule,
-    PeopleModule
-  ]
+    imports: [
+        CommonModule,
+        LandingPageRoutingModule,
+        SharedModule,
+        PeopleModule,
+        LandingPageComponent,
+        LandingPageBannerComponent,
+        HowToUseComponent
+    ]
 })
 export class LandingPageModule { }

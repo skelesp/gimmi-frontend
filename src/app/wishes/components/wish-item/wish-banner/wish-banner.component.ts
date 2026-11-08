@@ -1,5 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { NgIf, NgClass } from '@angular/common';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 type BannerColors = 'danger' | 'warning' | 'success';
 export interface BannerConfig { 
@@ -12,7 +14,7 @@ export interface BannerConfig {
     templateUrl: './wish-banner.component.html',
     styleUrls: ['./wish-banner.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgIf, NgClass, FaIconComponent]
 })
 export class WishBannerComponent {
   @Input() bannerConfig : BannerConfig = {text: null, backgroundColor: null, bannerIcon: null};

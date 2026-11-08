@@ -1,5 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Toaster } from '../../services/toaster.service';
+import { NgFor } from '@angular/common';
+import { CustomToastComponent } from '../custom-toast/custom-toast.component';
 
 // Zelfde plaatsing en schaduw als de vroegere ngx-toast-notifications: rechtsboven vanaf 576px,
 // op een kleiner scherm onderaan over de volle breedte.
@@ -20,7 +22,7 @@ import { Toaster } from '../../services/toaster.service';
     @media (min-width: 576px) { .toast-panel { position: absolute; max-width: 20rem; top: 0; right: 1rem; } }
   `],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgFor, CustomToastComponent]
 })
 export class ToastContainerComponent {
   constructor(public toaster: Toaster) { }

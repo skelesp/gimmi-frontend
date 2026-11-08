@@ -1,16 +1,23 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { INewUserRequestInfo } from '../../service/user.service';
 import { UserService } from '../../service/user.service';
+import { NgIf } from '@angular/common';
+import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
+import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
+import { RouterLink } from '@angular/router';
+import { ForgotPasswordLinkComponent } from '../forgot-password-link/forgot-password-link.component';
+import { EmailInputComponent } from '../../../shared/components/form-components/email-input/email-input.component';
+import { PasswordCheckComponent } from '../../../shared/components/form-components/password-check/password-check.component';
 
 @Component({
     selector: 'gimmi-register',
     templateUrl: './register.component.html',
     styleUrls: ['./register.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgIf, NgbAlert, CursorPointerDirective, RouterLink, ForgotPasswordLinkComponent, FormsModule, ReactiveFormsModule, EmailInputComponent, PasswordCheckComponent]
 })
 export class RegisterComponent implements OnInit {
   invitedFor: string;

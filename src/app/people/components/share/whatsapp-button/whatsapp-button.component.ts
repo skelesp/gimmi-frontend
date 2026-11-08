@@ -3,13 +3,14 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 import { DeviceDetectorService } from 'ngx-device-detector';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
     selector: 'gimmi-whatsapp-button',
     templateUrl: './whatsapp-button.component.html',
     styleUrls: ['./whatsapp-button.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FaIconComponent]
 })
 export class WhatsappButtonComponent {
   @Input() message: string;

@@ -49,16 +49,15 @@ describe('LoginComponent', () => {
             redirectAfterAuthentication: vi.fn().mockName("UserService.redirectAfterAuthentication")
         }, { currentUser$: new BehaviorSubject<User>(null), attemptedUrl: null as string });
         TestBed.configureTestingModule({
-            imports: [ReactiveFormsModule, RouterTestingModule, FontAwesomeModule],
-            declarations: [LoginComponent, EmailInputComponent, PasswordInputComponent, ForgotPasswordLinkComponent, BindQueryparamToInputDirective],
-            providers: [
-                { provide: UserService, useValue: users },
-                { provide: PeopleService, useValue: {
-                        findPersonByEmail: vi.fn().mockName("PeopleService.findPersonByEmail")
-                    } }
-            ],
-            schemas: [CUSTOM_ELEMENTS_SCHEMA]
-        }).compileComponents();
+    imports: [ReactiveFormsModule, RouterTestingModule, FontAwesomeModule, LoginComponent, EmailInputComponent, PasswordInputComponent, ForgotPasswordLinkComponent, BindQueryparamToInputDirective],
+    providers: [
+        { provide: UserService, useValue: users },
+        { provide: PeopleService, useValue: {
+                findPersonByEmail: vi.fn().mockName("PeopleService.findPersonByEmail")
+            } }
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+}).compileComponents();
         await vi.runOnlyPendingTimersAsync();
     });
 

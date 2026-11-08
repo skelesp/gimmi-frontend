@@ -52,10 +52,9 @@ describe('EmailInputComponent', () => {
             findPersonByEmail: vi.fn().mockName("PeopleService.findPersonByEmail")
         };
         await TestBed.configureTestingModule({
-            imports: [ReactiveFormsModule, RouterTestingModule, FontAwesomeModule],
-            declarations: [EmailInputComponent, BindQueryparamToInputDirective],
-            providers: [{ provide: PeopleService, useValue: people }]
-        }).compileComponents();
+    imports: [ReactiveFormsModule, RouterTestingModule, FontAwesomeModule, EmailInputComponent, BindQueryparamToInputDirective],
+    providers: [{ provide: PeopleService, useValue: people }]
+}).compileComponents();
     });
 
     it('voegt een control "email" toe aan het parent-formulier', () => {

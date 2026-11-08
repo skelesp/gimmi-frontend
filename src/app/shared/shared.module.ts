@@ -19,17 +19,7 @@ import { PasswordCheckComponent } from './components/form-components/password-ch
 import { SocialButtonsComponent } from './components/social-buttons/social-buttons.component';
 import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-policy.component';
 
-@NgModule({ declarations: [
-        BrandLogoComponent,
-        CursorPointerDirective,
-        CustomToastComponent,
-        BindQueryparamToInputDirective,
-        EmailInputComponent,
-        PasswordInputComponent,
-        PasswordCheckComponent,
-        SocialButtonsComponent,
-        PrivacyPolicyComponent
-    ],
+@NgModule({
     exports: [
         CommonModule,
         NgbModule,
@@ -54,5 +44,13 @@ import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-poli
         RouterModule,
         ReactiveFormsModule,
         ImagesModule,
-        ClipboardModule], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] })
+        ClipboardModule, BrandLogoComponent,
+        CursorPointerDirective,
+        CustomToastComponent,
+        BindQueryparamToInputDirective,
+        EmailInputComponent,
+        PasswordInputComponent,
+        PasswordCheckComponent,
+        SocialButtonsComponent,
+        PrivacyPolicyComponent], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] })
 export class SharedModule { }

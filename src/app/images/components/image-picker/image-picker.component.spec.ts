@@ -65,15 +65,14 @@ describe('ImagePickerComponent', () => {
             dismiss: vi.fn().mockName("NgbActiveModal.dismiss")
         };
         await TestBed.configureTestingModule({
-            declarations: [ImagePickerComponent],
-            imports: [FormsModule, NgbNavModule, NgbAlertModule],
-            providers: [
-                { provide: ImageService, useValue: beelden },
-                { provide: ImageSearchService, useValue: zoekService },
-                { provide: DeviceDetectorService, useValue: toestel },
-                { provide: NgbActiveModal, useValue: modal }
-            ]
-        }).compileComponents();
+    imports: [FormsModule, NgbNavModule, NgbAlertModule, ImagePickerComponent],
+    providers: [
+        { provide: ImageService, useValue: beelden },
+        { provide: ImageSearchService, useValue: zoekService },
+        { provide: DeviceDetectorService, useValue: toestel },
+        { provide: NgbActiveModal, useValue: modal }
+    ]
+}).compileComponents();
     });
 
     describe('popup', () => {

@@ -13,21 +13,19 @@ import { NavigationBarComponent } from './shared/components/navigation-bar/navig
 import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    NavigationBarComponent,
-    ToastContainerComponent
-  ],
-  imports: [
-    BrowserModule,
-    SharedModule,
-    PeopleModule,
-    UsersModule,
-    WishesModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-  ],
-  providers: [ Title ],
-  bootstrap: [AppComponent]
+    declarations: [AppComponent],
+    imports: [
+        BrowserModule,
+        SharedModule,
+        PeopleModule,
+        UsersModule,
+        WishesModule,
+        BrowserAnimationsModule,
+        AppRoutingModule,
+        NavigationBarComponent,
+        ToastContainerComponent,
+    ],
+    providers: [Title],
+    bootstrap: [AppComponent]
 })
 export class AppModule { }

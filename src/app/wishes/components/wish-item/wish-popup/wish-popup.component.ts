@@ -1,17 +1,21 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgbActiveModal, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
 import { IWishImage, Wish } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
+import { CursorPointerDirective } from '../../../../shared/directives/cursor-pointer.directive';
+import { NgIf } from '@angular/common';
+import { ImageUploadComponent } from '../../../../images/components/image-upload/image-upload.component';
+import { ImageViewComponent } from '../../../../images/components/image-view/image-view.component';
 
 @Component({
     selector: 'gimmi-wish-popup',
     templateUrl: './wish-popup.component.html',
     styleUrls: ['./wish-popup.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CursorPointerDirective, NgIf, NgbAlert, FormsModule, ReactiveFormsModule, ImageUploadComponent, ImageViewComponent]
 })
 export class WishPopupComponent implements OnInit {
   @Input() wish: Wish = new Wish(null, null, null, null, null, null, null, null, null, 1);

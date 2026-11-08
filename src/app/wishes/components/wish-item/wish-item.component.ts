@@ -24,8 +24,7 @@ import { PeopleService } from 'src/app/people/service/people.service';
 @Component({
     template: '',
     styleUrls: ['./wish-item.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class WishItemComponent implements OnInit {
   @Input() wish: Wish;

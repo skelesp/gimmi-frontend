@@ -16,28 +16,26 @@ import { CopyToClipboardButtonComponent } from './components/share/copy-to-clipb
 import { MailToButtonComponent } from './components/share/mail-to-button/mail-to-button.component';
 
 @NgModule({
-  declarations: [
-    PeopleSearchComponent,
-    InviteComponent,
-    PersonDashboardComponent,
-    ExtraInfoComponent,
-    ExtraInfoViewComponent,
-    ExtraInfoEditComponent,
-    ShareComponent,
-    SharePopupComponent,
-    WhatsappButtonComponent,
-    CopyToClipboardButtonComponent,
-    MailToButtonComponent
-  ],
-  imports: [
-    SharedModule,
-    PeopleRoutingModule,
-    WishesModule
-  ],
-  exports: [
-    PeopleSearchComponent,
-    InviteComponent,
-    ShareComponent
-  ]
+    imports: [
+        SharedModule,
+        PeopleRoutingModule,
+        WishesModule,
+        PeopleSearchComponent,
+        InviteComponent,
+        PersonDashboardComponent,
+        ExtraInfoComponent,
+        ExtraInfoViewComponent,
+        ExtraInfoEditComponent,
+        ShareComponent,
+        SharePopupComponent,
+        WhatsappButtonComponent,
+        CopyToClipboardButtonComponent,
+        MailToButtonComponent
+    ],
+    exports: [
+        PeopleSearchComponent,
+        InviteComponent,
+        ShareComponent
+    ]
 })
 export class PeopleModule { }

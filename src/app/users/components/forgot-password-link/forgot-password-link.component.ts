@@ -1,4 +1,6 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
+import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'gimmi-forgot-password-link',
@@ -7,7 +9,7 @@ import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
                 {{linkText}}</a>`,
     styleUrls: ['./forgot-password-link.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CursorPointerDirective, RouterLink]
 })
 export class ForgotPasswordLinkComponent {
   @Input() attemptedEmail : string;

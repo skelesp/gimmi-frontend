@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { faThumbsUp } from '@fortawesome/free-regular-svg-icons';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { switchMap} from 'rxjs/operators';
@@ -8,13 +8,17 @@ import { CommunicationService } from 'src/app/shared/services/communication.serv
 
 import { IGiftFeedback, Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
+import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
+import { NgbRating } from '@ng-bootstrap/ng-bootstrap/rating';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { NgClass, NgIf } from '@angular/common';
 
 @Component({
     selector: 'gimmi-gift-feedback',
     templateUrl: './gift-feedback.component.html',
     styleUrls: ['./gift-feedback.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CursorPointerDirective, FormsModule, ReactiveFormsModule, NgbRating, FaIconComponent, NgClass, NgIf]
 })
 export class GiftFeedbackComponent implements OnInit {
   @Input() wish: Wish;

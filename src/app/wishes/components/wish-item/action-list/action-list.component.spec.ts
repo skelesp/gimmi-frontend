@@ -9,9 +9,9 @@ describe('ActionListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ActionListComponent ],
-      schemas: [NO_ERRORS_SCHEMA]
-    })
+    imports: [ActionListComponent],
+    schemas: [NO_ERRORS_SCHEMA]
+})
     .compileComponents();
   });
 

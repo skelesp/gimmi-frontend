@@ -52,14 +52,11 @@ describe('RegisterComponent', () => {
         };
         people.findPersonByEmail.mockReturnValue(throwError('404'));
         TestBed.configureTestingModule({
-            imports: [ReactiveFormsModule, RouterTestingModule, FontAwesomeModule, NgbAlertModule],
-            declarations: [
-                RegisterComponent, EmailInputComponent, PasswordInputComponent, PasswordCheckComponent,
-                ForgotPasswordLinkComponent, BindQueryparamToInputDirective
-            ],
-            providers: [{ provide: UserService, useValue: users }, { provide: PeopleService, useValue: people }],
-            schemas: [CUSTOM_ELEMENTS_SCHEMA]
-        }).compileComponents();
+    imports: [ReactiveFormsModule, RouterTestingModule, FontAwesomeModule, NgbAlertModule, RegisterComponent, EmailInputComponent, PasswordInputComponent, PasswordCheckComponent,
+        ForgotPasswordLinkComponent, BindQueryparamToInputDirective],
+    providers: [{ provide: UserService, useValue: users }, { provide: PeopleService, useValue: people }],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+}).compileComponents();
 
         fixture = TestBed.createComponent(RegisterComponent);
         component = fixture.componentInstance;

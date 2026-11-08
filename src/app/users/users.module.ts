@@ -16,22 +16,22 @@ import { ResetPasswordComponent } from './components/reset-password/reset-passwo
 
 
 @NgModule({
-  declarations: [UserMenuComponent, UnknownUserMenuComponent, LoginComponent, RegisterComponent, LogoutButtonComponent, ForgotPasswordLinkComponent, ForgotPasswordComponent, ResetPasswordComponent],
-  imports: [
-    SharedModule,
-    UsersRoutingModule
-  ],
-  exports: [
-    UserMenuComponent,
-    UnknownUserMenuComponent,
-    LoginComponent,
-    RegisterComponent,
-    LogoutButtonComponent,
-    ForgotPasswordLinkComponent
-  ],
-  providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: AuthErrorInterceptor, multi: true }
-  ]
+    imports: [
+        SharedModule,
+        UsersRoutingModule,
+        UserMenuComponent, UnknownUserMenuComponent, LoginComponent, RegisterComponent, LogoutButtonComponent, ForgotPasswordLinkComponent, ForgotPasswordComponent, ResetPasswordComponent
+    ],
+    exports: [
+        UserMenuComponent,
+        UnknownUserMenuComponent,
+        LoginComponent,
+        RegisterComponent,
+        LogoutButtonComponent,
+        ForgotPasswordLinkComponent
+    ],
+    providers: [
+        { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
+        { provide: HTTP_INTERCEPTORS, useClass: AuthErrorInterceptor, multi: true }
+    ]
 })
 export class UsersModule { }

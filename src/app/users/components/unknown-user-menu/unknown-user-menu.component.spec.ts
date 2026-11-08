@@ -1,4 +1,5 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { UnknownUserMenuComponent } from './unknown-user-menu.component';
@@ -9,7 +10,8 @@ describe('UnknownUserMenuComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ UnknownUserMenuComponent ],
+      imports: [UnknownUserMenuComponent],
+      providers: [provideRouter([])],
       schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();

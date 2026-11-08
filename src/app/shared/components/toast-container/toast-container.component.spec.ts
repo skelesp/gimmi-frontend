@@ -16,8 +16,8 @@ describe('ToastContainerComponent', () => {
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            declarations: [ToastContainerComponent, CustomToastComponent]
-        }).compileComponents();
+    imports: [ToastContainerComponent, CustomToastComponent]
+}).compileComponents();
         toaster = TestBed.inject(Toaster);
         fixture = TestBed.createComponent(ToastContainerComponent);
     });

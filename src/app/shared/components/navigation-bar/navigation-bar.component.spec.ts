@@ -6,6 +6,10 @@ import { BehaviorSubject } from 'rxjs';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
 import { NavigationBarComponent } from './navigation-bar.component';
+import { BrandLogoComponent } from '../brand-logo/brand-logo.component';
+import { PeopleSearchComponent } from '../../../people/components/people-search/people-search.component';
+import { UserMenuComponent } from '../../../users/components/user-menu/user-menu.component';
+import { UnknownUserMenuComponent } from '../../../users/components/unknown-user-menu/unknown-user-menu.component';
 
 // Navigatiebalk (sc-2001). Het zoekveld staat vast in de balk en niet in het inklapmenu (sc-41).
 describe('NavigationBarComponent', () => {
@@ -23,12 +27,12 @@ describe('NavigationBarComponent', () => {
 
     beforeEach(async () => {
         currentUser$ = new BehaviorSubject<User>(null);
+        TestBed.overrideComponent(NavigationBarComponent, { remove: { imports: [BrandLogoComponent, PeopleSearchComponent, UserMenuComponent, UnknownUserMenuComponent] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
-            imports: [NgbCollapseModule],
-            declarations: [NavigationBarComponent],
-            providers: [{ provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } }],
-            schemas: [NO_ERRORS_SCHEMA]
-        }).compileComponents();
+    imports: [NgbCollapseModule, NavigationBarComponent],
+    providers: [{ provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } }],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
         // Zonder animatie staat het menu meteen open of dicht (anders tijdelijk "collapsing").
         TestBed.inject(NgbConfig).animation = false;
     });

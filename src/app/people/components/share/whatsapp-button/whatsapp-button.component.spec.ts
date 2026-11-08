@@ -16,10 +16,10 @@ describe('WhatsappButtonComponent', () => {
   beforeEach(async () => {
     device = { isMobile: vi.fn().mockReturnValue(false) };
     await TestBed.configureTestingModule({
-      declarations: [ WhatsappButtonComponent ],
-      providers: [{ provide: DeviceDetectorService, useValue: device }],
-      schemas: [NO_ERRORS_SCHEMA]
-    })
+    imports: [WhatsappButtonComponent],
+    providers: [{ provide: DeviceDetectorService, useValue: device }],
+    schemas: [NO_ERRORS_SCHEMA]
+})
     .compileComponents();
   });
 

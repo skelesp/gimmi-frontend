@@ -9,9 +9,9 @@ describe('SocialButtonsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SocialButtonsComponent ],
-      schemas: [NO_ERRORS_SCHEMA]
-    })
+    imports: [SocialButtonsComponent],
+    schemas: [NO_ERRORS_SCHEMA]
+})
     .compileComponents();
   });
 

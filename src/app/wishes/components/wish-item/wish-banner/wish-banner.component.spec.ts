@@ -8,8 +8,8 @@ describe('WishBannerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ WishBannerComponent ]
-    })
+    imports: [WishBannerComponent]
+})
     .compileComponents();
   });
 

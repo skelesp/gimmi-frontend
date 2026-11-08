@@ -1,10 +1,15 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { faAt } from '@fortawesome/free-solid-svg-icons'
 import { PeopleService } from 'src/app/people/service/people.service';
 import { Person } from 'src/app/people/models/person.model';
+import { NgIf } from '@angular/common';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { BindQueryparamToInputDirective } from '../../../directives/bind-queryparam-to-input.directive';
+import { RouterLink } from '@angular/router';
+import { CursorPointerDirective } from '../../../directives/cursor-pointer.directive';
 
 type EmailExistsRedirectType = "wishlist" | "login";
 @Component({
@@ -12,7 +17,7 @@ type EmailExistsRedirectType = "wishlist" | "login";
     templateUrl: './email-input.component.html',
     styleUrls: ['./email-input.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FormsModule, ReactiveFormsModule, NgIf, FaIconComponent, BindQueryparamToInputDirective, RouterLink, CursorPointerDirective]
 })
 export class EmailInputComponent implements OnInit {
   @Input() parentFormGroup: UntypedFormGroup;
