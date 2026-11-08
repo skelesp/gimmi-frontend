@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { deleteAccount, smokePassword } from './helpers/api';
-import { Account, createWish, input, login, newUserPage, register, wishAction, wishCard } from './helpers/flows';
+import { Account, createWish, input, login, newUserPage, register, submitLogin, wishAction, wishCard } from './helpers/flows';
 
 // Flows rond het beheren van wensen en navigeren, naast de zes kernflows (sc-2979):
 // personen zoeken (sc-1988, sc-2033), reservatie verwijderen (sc-2515), wens kopiëren
@@ -50,6 +50,17 @@ test.describe('wensbeheer en navigatie', () => {
     await register(page, owner);
     await createWish(page, wensA);
     await createWish(page, wensB);
+    await context.close();
+  });
+
+  test('gedeelde lijstlink zonder login: eerst inloggen, daarna de lijst (sc-3167)', async ({ browser }) => {
+    const { context, page } = await newUserPage(browser);
+    await page.goto(`/people/${owner.id}`);
+    await expect(page).toHaveURL(/\/users\/login/);
+    await expect(page.getByText('klik hier om te registreren')).toBeVisible();
+    await submitLogin(page, owner);
+    await expect(page).toHaveURL(`/people/${owner.id}`);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Smoke Eigenaar');
     await context.close();
   });
 

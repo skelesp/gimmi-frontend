@@ -16,7 +16,7 @@ const routes: Routes = [
     ] 
   },
   {
-    path: "people/:personId", component: PersonDashboardComponent, resolve: { person: PersonResolver }, canActivate: [ModalsClosedGuard]
+    path: "people/:personId", component: PersonDashboardComponent, resolve: { person: PersonResolver }, canActivate: [AuthGuard, ModalsClosedGuard]
   }
 ];
 
