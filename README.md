@@ -16,7 +16,7 @@ Run `ng build` to build the project. The build artifacts will be stored in the `
 
 ## Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Run `ng test` to execute the unit tests with [Vitest](https://vitest.dev) in headless Chromium (Playwright; first `npx playwright install chromium`). `npm run test:ci` runs once with coverage and thresholds.
 
 ## Running end-to-end tests
 

@@ -1,3 +1,4 @@
+
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -8,42 +9,44 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 
 // sc-1998: mail versturen via de API, met melding aan de gebruiker.
 describe('CommunicationService', () => {
-  let service: CommunicationService;
-  let http: HttpTestingController;
-  let notifications: jasmine.SpyObj<NotificationService>;
-  const mail: MailInfo = { to: 'a@gimmi.be', subject: 'Onderwerp', html: '<p>Hallo</p>' };
+    let service: CommunicationService;
+    let http: HttpTestingController;
+    let notifications: Record<string, any>;
+    const mail: MailInfo = { to: 'a@gimmi.be', subject: 'Onderwerp', html: '<p>Hallo</p>' };
 
-  beforeEach(() => {
-    notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['showNotification']);
-    TestBed.configureTestingModule({
-    imports: [],
-    providers: [{ provide: NotificationService, useValue: notifications }, provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
-});
-    service = TestBed.inject(CommunicationService);
-    http = TestBed.inject(HttpTestingController);
-    spyOn(console, 'info');
-  });
+    beforeEach(() => {
+        notifications = {
+            showNotification: vi.fn().mockName("NotificationService.showNotification")
+        };
+        TestBed.configureTestingModule({
+            imports: [],
+            providers: [{ provide: NotificationService, useValue: notifications }, provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
+        });
+        service = TestBed.inject(CommunicationService);
+        http = TestBed.inject(HttpTestingController);
+        vi.spyOn(console, 'info').mockReturnValue(undefined);
+    });
 
-  afterEach(() => http.verify());
+    afterEach(() => http.verify());
 
-  it('post de mail naar /email en meldt succes', () => {
-    service.sendMail(mail);
-    const req = http.expectOne(environment.apiUrl + 'email');
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual(mail);
-    req.flush('ok');
-    expect(notifications.showNotification).toHaveBeenCalledWith('De mail werd verzonden.', 'success');
-  });
+    it('post de mail naar /email en meldt succes', () => {
+        service.sendMail(mail);
+        const req = http.expectOne(environment.apiUrl + 'email');
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual(mail);
+        req.flush('ok');
+        expect(notifications.showNotification).toHaveBeenCalledWith('De mail werd verzonden.', 'success');
+    });
 
-  it('serverfout: foutmelding aan de gebruiker', () => {
-    service.sendMail(mail);
-    http.expectOne(environment.apiUrl + 'email').flush('fout', { status: 500, statusText: 'Server Error' });
-    expect(notifications.showNotification).toHaveBeenCalledWith(jasmine.stringMatching('Er ging iets mis'), 'error');
-  });
+    it('serverfout: foutmelding aan de gebruiker', () => {
+        service.sendMail(mail);
+        http.expectOne(environment.apiUrl + 'email').flush('fout', { status: 500, statusText: 'Server Error' });
+        expect(notifications.showNotification).toHaveBeenCalledWith(expect.stringMatching('Er ging iets mis'), 'error');
+    });
 
-  it('401: geen eigen foutmelding (de auth-interceptor handelt dat af)', () => {
-    service.sendMail(mail);
-    http.expectOne(environment.apiUrl + 'email').flush('fout', { status: 401, statusText: 'Unauthorized' });
-    expect(notifications.showNotification).not.toHaveBeenCalled();
-  });
+    it('401: geen eigen foutmelding (de auth-interceptor handelt dat af)', () => {
+        service.sendMail(mail);
+        http.expectOne(environment.apiUrl + 'email').flush('fout', { status: 401, statusText: 'Unauthorized' });
+        expect(notifications.showNotification).not.toHaveBeenCalled();
+    });
 });

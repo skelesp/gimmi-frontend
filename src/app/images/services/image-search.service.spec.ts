@@ -10,8 +10,8 @@ describe('ImageSearchService', () => {
   let service: ImageSearchService;
   let http: HttpTestingController;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()] });
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()] });
     service = TestBed.inject(ImageSearchService);
     http = TestBed.inject(HttpTestingController);
   });

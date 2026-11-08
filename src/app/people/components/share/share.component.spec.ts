@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ShareComponent } from './share.component';
 
@@ -6,12 +7,13 @@ describe('ShareComponent', () => {
   let component: ShareComponent;
   let fixture: ComponentFixture<ShareComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ ShareComponent ]
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [ ShareComponent ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ShareComponent);
