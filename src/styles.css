@@ -13,3 +13,11 @@
   .card-columns .card { display: inline-block; width: 100%; }
 }
 .card-columns .card { margin-bottom: .75rem; }
+
+/* Uiterlijk van Bootstrap 4 behouden (sc-3279): lettertype en links. */
+:root {
+  --bs-font-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+a.btn:hover, .btn:hover, .nav-link:hover, .navbar-brand:hover, .dropdown-item:hover, .page-link:hover { text-decoration: none; }
