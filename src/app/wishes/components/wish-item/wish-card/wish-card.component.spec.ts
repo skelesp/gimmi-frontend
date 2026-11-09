@@ -1,8 +1,8 @@
+import { provideRouter } from '@angular/router';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NgbDropdownModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { of } from 'rxjs';
@@ -69,11 +69,11 @@ describe('WishCardComponent', () => {
         return w;
     }
 
-    function toon(wens: Wish) {
+    async function toon(wens: Wish) {
         fixture = TestBed.createComponent(WishCardComponent);
         component = fixture.componentInstance;
         component.wish = wens;
-        fixture.detectChanges();
+        await fixture.whenStable();
     }
 
     function banner(): string {
@@ -120,8 +120,9 @@ describe('WishCardComponent', () => {
 
         TestBed.overrideComponent(WishCardComponent, { remove: { imports: [ImageViewComponent] }, add: { schemas: [CUSTOM_ELEMENTS_SCHEMA] } });
         await TestBed.configureTestingModule({
-    imports: [RouterTestingModule, FontAwesomeModule, NgbDropdownModule, WishCardComponent, WishBannerComponent, WishCallToActionButtonComponent, ActionListComponent, ActionListItemComponent],
+    imports: [FontAwesomeModule, NgbDropdownModule, WishCardComponent, WishBannerComponent, WishCallToActionButtonComponent, ActionListComponent, ActionListItemComponent],
     providers: [
+        provideRouter([]),
         { provide: NgbModal, useValue: modal },
         { provide: WishService, useValue: wishService },
         { provide: NotificationService, useValue: notifications },
@@ -155,8 +156,8 @@ describe('WishCardComponent', () => {
         ];
 
         gevallen.forEach(g => {
-            it(g.naam, () => {
-                toon(g.wens());
+            it(g.naam, async () => {
+                await toon(g.wens());
                 expect(banner()).toBe(g.banner);
                 if (g.knop)
                     expect(cta().textContent.trim()).toBe(g.knop);
@@ -168,51 +169,51 @@ describe('WishCardComponent', () => {
     });
 
     describe('acties in het menu', () => {
-        it('eigen wens: aanpassen en verwijderen, niet kopiëren', () => {
-            toon(maakWens({ status: 'Open', viewer: 'ria' }));
+        it('eigen wens: aanpassen en verwijderen, niet kopiëren', async () => {
+            await toon(maakWens({ status: 'Open', viewer: 'ria' }));
             expect(acties()).toEqual(['Aanpassen', 'Verwijderen']);
         });
 
-        it('wens van een ander: enkel op eigen lijst zetten', () => {
-            toon(maakWens({ status: 'Open', viewer: 'rob' }));
+        it('wens van een ander: enkel op eigen lijst zetten', async () => {
+            await toon(maakWens({ status: 'Open', viewer: 'rob' }));
             expect(acties()).toEqual(['Zet op eigen lijst']);
         });
 
-        it('idee dat je voor een ander aanmaakte: aanpassen, kopiëren en verwijderen', () => {
-            toon(maakWens({ status: 'Open', createdBy: carl, viewer: 'carl' }));
+        it('idee dat je voor een ander aanmaakte: aanpassen, kopiëren en verwijderen', async () => {
+            await toon(maakWens({ status: 'Open', createdBy: carl, viewer: 'carl' }));
             expect(acties()).toEqual(['Aanpassen', 'Zet op eigen lijst', 'Verwijderen']);
         });
 
-        it('met een url: "Externe website" bovenaan, met die url', () => {
-            toon(maakWens({ status: 'Open', viewer: 'rob', url: 'www.winkel.be' }));
+        it('met een url: "Externe website" bovenaan, met die url', async () => {
+            await toon(maakWens({ status: 'Open', viewer: 'rob', url: 'www.winkel.be' }));
             expect(acties()[0]).toBe('Externe website');
             expect(component.wishActionItems[0].url).toBe('http://www.winkel.be');
         });
 
-        it('"Toegevoegd door" enkel als iemand anders de wens aanmaakte', () => {
-            toon(maakWens({ status: 'Open', createdBy: carl, viewer: 'rob' }));
+        it('"Toegevoegd door" enkel als iemand anders de wens aanmaakte', async () => {
+            await toon(maakWens({ status: 'Open', createdBy: carl, viewer: 'rob' }));
             expect(fixture.nativeElement.textContent).toContain('Toegevoegd door Carl C.');
-            toon(maakWens({ status: 'Open', viewer: 'rob' }));
+            await toon(maakWens({ status: 'Open', viewer: 'rob' }));
             expect(fixture.nativeElement.textContent).not.toContain('Toegevoegd door');
         });
     });
 
     describe('popups', () => {
-        it('Reserveer opent de reservatiepopup met deze wens', () => {
-            toon(maakWens({ status: 'Open', viewer: 'rob' }));
+        it('Reserveer opent de reservatiepopup met deze wens', async () => {
+            await toon(maakWens({ status: 'Open', viewer: 'rob' }));
             cta().click();
             expect(modal.open).toHaveBeenCalledWith(WishReservationComponent);
             expect(popup.componentInstance.wish).toBe(component.wish);
         });
 
-        it('Verwijder reservatie opent de popup om de reservatie te wijzigen', () => {
-            toon(maakWens({ status: 'Reserved', reservedBy: rob, viewer: 'rob' }));
+        it('Verwijder reservatie opent de popup om de reservatie te wijzigen', async () => {
+            await toon(maakWens({ status: 'Reserved', reservedBy: rob, viewer: 'rob' }));
             cta().click();
             expect(modal.open).toHaveBeenCalledWith(ChangeWishReservationComponent);
         });
 
-        it('verwijderen opent de bevestiging', () => {
-            toon(maakWens({ status: 'Open', viewer: 'ria' }));
+        it('verwijderen opent de bevestiging', async () => {
+            await toon(maakWens({ status: 'Open', viewer: 'ria' }));
             component.delete();
             expect(modal.open).toHaveBeenCalledWith(WishDeleteComponent);
         });
@@ -222,7 +223,7 @@ describe('WishCardComponent', () => {
             const wens = maakWens({ status: 'Open', viewer: 'ria' });
             popup.result = Promise.resolve(wens);
             wishService.update.mockReturnValue(of(wens));
-            toon(wens);
+            await toon(wens);
             component.edit();
             await vi.advanceTimersByTimeAsync(0);
             expect(modal.open).toHaveBeenCalledWith(WishPopupComponent);
@@ -235,7 +236,7 @@ describe('WishCardComponent', () => {
             const kopie = maakWens({ status: 'Open', viewer: 'rob' });
             popup.result = Promise.resolve(kopie);
             wishService.create.mockReturnValue(of(kopie));
-            toon(maakWens({ status: 'Open', viewer: 'rob' }));
+            await toon(maakWens({ status: 'Open', viewer: 'rob' }));
             component.copy();
             await vi.advanceTimersByTimeAsync(0);
             expect(popup.componentInstance.mode).toBe('copy');
@@ -252,7 +253,7 @@ describe('WishCardComponent', () => {
         async function kopieer(image: any) {
             const origineel = maakWens({ status: 'Open', viewer: 'rob' });
             origineel.image = image;
-            toon(origineel);
+            await toon(origineel);
             component.copy();
             await vi.advanceTimersByTimeAsync(0);
         }
@@ -273,7 +274,7 @@ describe('WishCardComponent', () => {
             wishService.addGiftFeedback.mockReturnValue(of(wens));
             wishService.close.mockReturnValue(of(gesloten));
             people.getEmailById.mockReturnValue(of('rob@gimmi.be'));
-            toon(wens);
+            await toon(wens);
             cta().click();
             await vi.advanceTimersByTimeAsync(0);
             expect(modal.open).toHaveBeenCalledWith(GiftFeedbackComponent);
@@ -293,7 +294,7 @@ describe('WishCardComponent', () => {
             gesloten.giftFeedback = feedback;
             wishService.addGiftFeedback.mockReturnValue(of(wens));
             wishService.close.mockReturnValue(of(gesloten));
-            toon(wens);
+            await toon(wens);
             cta().click();
             await vi.advanceTimersByTimeAsync(0);
             expect(communication.sendMail).not.toHaveBeenCalled();

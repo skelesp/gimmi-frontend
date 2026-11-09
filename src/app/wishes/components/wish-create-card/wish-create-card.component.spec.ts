@@ -48,7 +48,7 @@ describe('WishCreateCardComponent', () => {
         }).compileComponents();
         fixture = TestBed.createComponent(WishCreateCardComponent);
         fixture.componentInstance.receiver = ria;
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('toont de uitnodiging om een wens toe te voegen', () => {

@@ -16,7 +16,7 @@ describe('CopyToClipboardButtonComponent', () => {
         }).compileComponents();
         fixture = TestBed.createComponent(CopyToClipboardButtonComponent);
         fixture.componentInstance.url = 'https://www.gimmi.be/people/ria';
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('toont de knop', () => {

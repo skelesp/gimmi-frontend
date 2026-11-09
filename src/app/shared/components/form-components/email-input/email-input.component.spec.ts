@@ -1,8 +1,9 @@
 
+import { provideRouter } from '@angular/router';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DynamicFormGroup } from '../dynamic-form-group';
-import { RouterTestingModule } from '@angular/router/testing';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { of, throwError } from 'rxjs';
 
@@ -10,6 +11,7 @@ import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { BindQueryparamToInputDirective } from 'src/app/shared/directives/bind-queryparam-to-input.directive';
 import { EmailInputComponent } from './email-input.component';
+import { EmailInputHarness } from './email-input.component.harness';
 
 // sc-2233 (e-mailinput met validaties), sc-2250 en sc-2178 (e-mail uit de query params).
 describe('EmailInputComponent', () => {
@@ -21,31 +23,22 @@ describe('EmailInputComponent', () => {
     });
     let fixture: ComponentFixture<EmailInputComponent>;
     let component: EmailInputComponent;
+    let harness: EmailInputHarness;
     let form: DynamicFormGroup;
     let people: Record<string, any>;
 
-    function create(inputs: Record<string, unknown> = {}) {
+    async function create(inputs: Record<string, unknown> = {}) {
         form = new FormGroup({});
         fixture = TestBed.createComponent(EmailInputComponent);
         component = fixture.componentInstance;
         component.parentFormGroup = form;
         for (const [naam, waarde] of Object.entries(inputs)) fixture.componentRef.setInput(naam, waarde);
-        fixture.detectChanges();
+        harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, EmailInputHarness);
     }
 
-    function input(): HTMLInputElement {
-        return fixture.nativeElement.querySelector('input');
-    }
-
-    function typeAndBlur(value: string) {
-        input().value = value;
-        input().dispatchEvent(new Event('input'));
-        input().dispatchEvent(new Event('blur'));
-        fixture.detectChanges();
-    }
-
-    function errorText(): string {
-        return (fixture.nativeElement.querySelector('#emailError')?.textContent || '').trim();
+    async function typeAndBlur(value: string) {
+        await harness.setValue(value);
+        await harness.blur();
     }
 
     beforeEach(async () => {
@@ -53,72 +46,71 @@ describe('EmailInputComponent', () => {
             findPersonByEmail: vi.fn().mockName("PeopleService.findPersonByEmail")
         };
         await TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, RouterTestingModule, FontAwesomeModule, EmailInputComponent, BindQueryparamToInputDirective],
-    providers: [{ provide: PeopleService, useValue: people }]
+    imports: [ReactiveFormsModule, FontAwesomeModule, EmailInputComponent, BindQueryparamToInputDirective],
+    providers: [provideRouter([]), { provide: PeopleService, useValue: people }]
 }).compileComponents();
     });
 
-    it('voegt een control "email" toe aan het parent-formulier', () => {
-        create();
+    it('voegt een control "email" toe aan het parent-formulier', async () => {
+        await create();
         expect(form.get('email')).toBeTruthy();
-        expect(input().placeholder).toBe('Email (login)');
+        expect(await harness.getPlaceholder()).toBe('Email (login)');
     });
 
-    it('gebruikt een andere controlnaam als die meegegeven wordt', () => {
-        create({ controlName: 'adres' });
+    it('gebruikt een andere controlnaam als die meegegeven wordt', async () => {
+        await create({ controlName: 'adres' });
         expect(form.get('adres')).toBeTruthy();
     });
 
-    it('leeg en aangeraakt: foutmelding "verplicht"', () => {
-        create();
-        typeAndBlur('');
+    it('leeg en aangeraakt: foutmelding "verplicht"', async () => {
+        await create();
+        await typeAndBlur('');
         expect(form.valid).toBe(false);
-        expect(errorText()).toContain('Email is een verplicht veld');
+        expect(await harness.getErrorText()).toContain('Email is een verplicht veld');
     });
 
-    it('ongeldig formaat: foutmelding over het formaat', () => {
-        create();
-        typeAndBlur('geen-email');
-        expect(errorText()).toContain('Geef een geldig emailadres in');
+    it('ongeldig formaat: foutmelding over het formaat', async () => {
+        await create();
+        await typeAndBlur('geen-email');
+        expect(await harness.getErrorText()).toContain('Geef een geldig emailadres in');
     });
 
-    it('geldig adres zonder bestaanscontrole: geen foutmelding', () => {
-        create();
-        typeAndBlur('iemand@gimmi.be');
+    it('geldig adres zonder bestaanscontrole: geen foutmelding', async () => {
+        await create();
+        await typeAndBlur('iemand@gimmi.be');
         expect(form.valid).toBe(true);
-        expect(errorText()).toBe('');
+        expect(await harness.getErrorText()).toBe('');
         expect(people.findPersonByEmail).not.toHaveBeenCalled();
     });
 
     describe('met bestaanscontrole', () => {
-        it('bekend adres: melding met een link naar de wensenlijst', () => {
+        it('bekend adres: melding met een link naar de wensenlijst', async () => {
             people.findPersonByEmail.mockReturnValue(of(new Person('p1', 'Ria', 'Receiver')));
-            create({ emailExistsValidation: true });
-            typeAndBlur('ria@gimmi.be');
+            await create({ emailExistsValidation: true });
+            await typeAndBlur('ria@gimmi.be');
             expect(people.findPersonByEmail).toHaveBeenCalledWith('ria@gimmi.be');
             expect(form.get('email').errors).toEqual({ emailExists: true });
-            expect(errorText()).toContain('Bekijk de wensen van Ria Receiver');
+            expect(await harness.getErrorText()).toContain('Bekijk de wensen van Ria Receiver');
         });
 
-        it('bekend adres met redirect naar login: link om in te loggen', () => {
+        it('bekend adres met redirect naar login: link om in te loggen', async () => {
             people.findPersonByEmail.mockReturnValue(of(new Person('p1', 'Ria', 'Receiver')));
-            create({ emailExistsValidation: true, emailExistsRedirectTo: 'login' });
-            typeAndBlur('ria@gimmi.be');
-            expect(errorText()).toContain('Login met dit emailadres');
+            await create({ emailExistsValidation: true, emailExistsRedirectTo: 'login' });
+            await typeAndBlur('ria@gimmi.be');
+            expect(await harness.getErrorText()).toContain('Login met dit emailadres');
         });
 
-        it('onbekend adres: geldig', () => {
+        it('onbekend adres: geldig', async () => {
             people.findPersonByEmail.mockReturnValue(throwError('404'));
-            create({ emailExistsValidation: true });
-            typeAndBlur('nieuw@gimmi.be');
+            await create({ emailExistsValidation: true });
+            await typeAndBlur('nieuw@gimmi.be');
             expect(form.get('email').valid).toBe(true);
         });
 
-        it('valideert pas bij blur, niet bij elke toetsaanslag', () => {
+        it('valideert pas bij blur, niet bij elke toetsaanslag', async () => {
             people.findPersonByEmail.mockReturnValue(throwError('404'));
-            create({ emailExistsValidation: true });
-            input().value = 'nieuw@gimmi.be';
-            input().dispatchEvent(new Event('input'));
+            await create({ emailExistsValidation: true });
+            await harness.setValue('nieuw@gimmi.be');
             expect(people.findPersonByEmail).not.toHaveBeenCalled();
         });
     });
@@ -136,14 +128,14 @@ describe('EmailInputComponent', () => {
 
         it('vult het veld in met de waarde van ?e=', async () => {
             history.replaceState(null, '', location.pathname + '?e=uit%40url.be');
-            create({ bindedQueryParam: 'e' });
+            await create({ bindedQueryParam: 'e' });
             await vi.advanceTimersByTimeAsync(0);
             expect(form.get('email').value).toBe('uit@url.be');
         });
 
         it('zonder die parameter blijft het veld leeg', async () => {
             history.replaceState(null, '', location.pathname);
-            create({ bindedQueryParam: 'e' });
+            await create({ bindedQueryParam: 'e' });
             await vi.advanceTimersByTimeAsync(0);
             expect(form.get('email').value).toBeNull();
         });

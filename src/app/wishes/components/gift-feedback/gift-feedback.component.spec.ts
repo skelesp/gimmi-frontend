@@ -24,7 +24,7 @@ describe('GiftFeedbackComponent', () => {
         const wish = new Wish('w1', 'Fiets', 250, null, ria, ria, null, null, null, 1);
         wish.reservation = { reservedBy: rob, reservationDate: new Date('2026-03-05T12:00:00Z') } as any;
         fixture.componentInstance.wish = wish;
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('vermeldt wie het cadeau gaf en vult de datum in met de reservatiedatum', () => {
@@ -32,11 +32,11 @@ describe('GiftFeedbackComponent', () => {
         expect(fixture.componentInstance.giftFeedbackForm.value.receivedOn).toBe('2026-03-05');
     });
 
-    it('opslaan kan pas met een tevredenheid', () => {
+    it('opslaan kan pas met een tevredenheid', async () => {
         const knop = el().querySelector('.modal-footer .btn-danger') as HTMLButtonElement;
         expect(knop.disabled).toBe(true);
         fixture.componentInstance.giftFeedbackForm.patchValue({ satisfaction: 4 });
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(knop.disabled).toBe(false);
     });
 

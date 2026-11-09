@@ -24,7 +24,7 @@ describe('UserMenuComponent', () => {
             ]
         }).compileComponents();
         fixture = TestBed.createComponent(UserMenuComponent);
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('toont de voornaam van de gebruiker', () => {

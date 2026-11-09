@@ -35,7 +35,7 @@ describe('PeopleSearchComponent', () => {
             ]
         }).compileComponents();
         fixture = TestBed.createComponent(PeopleSearchComponent);
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('haalt de lijst met personen op en volgt wijzigingen', () => {

@@ -24,7 +24,7 @@ describe('CustomToastComponent', () => {
         });
         fixture = TestBed.createComponent(CustomToastComponent);
         fixture.componentInstance.toast = toast as any;
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('toont titel en tekst, met de kleur van het type', () => {

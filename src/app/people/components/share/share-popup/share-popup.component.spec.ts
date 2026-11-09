@@ -27,7 +27,7 @@ describe('SharePopupComponent', () => {
         }).compileComponents();
         fixture = TestBed.createComponent(SharePopupComponent);
         fixture.componentInstance.linkToShare = 'https://www.gimmi.be/people/ilse';
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('toont de link en volgt de ingelogde gebruiker', () => {

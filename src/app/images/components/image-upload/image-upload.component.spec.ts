@@ -25,7 +25,7 @@ describe('ImageUploadComponent', () => {
     let annuleer: (reden: any) => void;
     let opgeladen: Mock;
 
-    function maak(opties: {
+    async function maak(opties: {
         zoekterm?: string;
     } = {}) {
         fixture = TestBed.createComponent(ImageUploadComponent);
@@ -34,7 +34,7 @@ describe('ImageUploadComponent', () => {
             component.searchTerm = opties.zoekterm;
         opgeladen = vi.fn().mockName('imageUploaded');
         component.imageUploaded.subscribe(opgeladen);
-        fixture.detectChanges();
+        await fixture.whenStable();
     }
     function klikKnop() {
         const knop: HTMLButtonElement = fixture.nativeElement.querySelector('button');
@@ -62,22 +62,22 @@ describe('ImageUploadComponent', () => {
 }).compileComponents();
     });
 
-    it('opent de kiezer als grote popup met de titel als zoekterm', () => {
-        maak({ zoekterm: 'Rode fiets' });
+    it('opent de kiezer als grote popup met de titel als zoekterm', async () => {
+        await maak({ zoekterm: 'Rode fiets' });
         klikKnop();
         expect(modalService.open).toHaveBeenCalledWith(ImagePickerComponent, { size: 'lg', scrollable: true, ariaLabelledBy: 'kiezer-titel' });
         expect(kiezer.componentInstance.searchTerm).toBe('Rode fiets');
     });
 
-    it('de titel op het moment van openen telt, niet die bij het aanmaken', () => {
-        maak({ zoekterm: 'fiets' });
+    it('de titel op het moment van openen telt, niet die bij het aanmaken', async () => {
+        await maak({ zoekterm: 'fiets' });
         component.searchTerm = 'step';
         klikKnop();
         expect(kiezer.componentInstance.searchTerm).toBe('step');
     });
 
     it('kiezer sluit met een afbeelding: eerst de voorvertoning, dan de afbeelding', async () => {
-        maak();
+        await maak();
         const volgorde: string[] = [];
         component.previewChanged.subscribe(v => volgorde.push('voorvertoning ' + v));
         component.imageUploaded.subscribe(a => volgorde.push('afbeelding ' + a.key));
@@ -89,7 +89,7 @@ describe('ImageUploadComponent', () => {
     });
 
     it('kiezer geannuleerd: niets doorgegeven, en bij het sluiten van de wens-popup niets meer te sluiten', async () => {
-        maak();
+        await maak();
         klikKnop();
         annuleer('Cancel');
         await vi.advanceTimersByTimeAsync(0);
@@ -98,15 +98,15 @@ describe('ImageUploadComponent', () => {
         expect(kiezer.dismiss).not.toHaveBeenCalled();
     });
 
-    it('de wens-popup sluit terwijl de kiezer open is: de kiezer sluit mee (sc-1391)', () => {
-        maak();
+    it('de wens-popup sluit terwijl de kiezer open is: de kiezer sluit mee (sc-1391)', async () => {
+        await maak();
         klikKnop();
         fixture.destroy();
         expect(kiezer.dismiss).toHaveBeenCalledWith('Wens-popup gesloten');
     });
 
-    it('zonder geopende kiezer: sluiten van de wens-popup gaat gewoon', () => {
-        maak();
+    it('zonder geopende kiezer: sluiten van de wens-popup gaat gewoon', async () => {
+        await maak();
         expect(() => fixture.destroy()).not.toThrow();
     });
 });

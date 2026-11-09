@@ -25,11 +25,11 @@ describe('ImageViewComponent', () => {
             .compileComponents();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         fixture = TestBed.createComponent(ImageViewComponent);
         component = fixture.componentInstance;
         component.ngOnChanges();
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('zonder afbeelding: de standaardafbeelding, zonder srcset', () => {

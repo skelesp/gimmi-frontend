@@ -1,14 +1,17 @@
 
+import { provideRouter } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 
 import { environment } from 'src/environments/environment';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { EmailInputComponent } from 'src/app/shared/components/form-components/email-input/email-input.component';
+import { EmailInputHarness } from 'src/app/shared/components/form-components/email-input/email-input.component.harness';
+import { PasswordInputHarness } from 'src/app/shared/components/form-components/password-input/password-input.component.harness';
 import { PasswordInputComponent } from 'src/app/shared/components/form-components/password-input/password-input.component';
 import { BindQueryparamToInputDirective } from 'src/app/shared/directives/bind-queryparam-to-input.directive';
 import { User } from '../../models/user.model';
@@ -31,11 +34,10 @@ describe('LoginComponent', () => {
         attemptedUrl: string;
     };
 
-    function vulIn(email: string, password: string) {
-        component.loginForm.get('email').setValue(email);
-        component.loginForm.get('password').setValue(password);
-        component.loginForm.markAsTouched();
-        fixture.detectChanges();
+    async function vulIn(email: string, password: string) {
+        const loader = TestbedHarnessEnvironment.loader(fixture);
+        await (await loader.getHarness(EmailInputHarness)).setValue(email);
+        await (await loader.getHarness(PasswordInputHarness)).setValue(password);
     }
 
     function tekst(): string {
@@ -49,8 +51,9 @@ describe('LoginComponent', () => {
             redirectAfterAuthentication: vi.fn().mockName("UserService.redirectAfterAuthentication")
         }, { currentUser$: new BehaviorSubject<User>(null), attemptedUrl: null as string });
         TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, RouterTestingModule, FontAwesomeModule, LoginComponent, EmailInputComponent, PasswordInputComponent, ForgotPasswordLinkComponent, BindQueryparamToInputDirective],
+    imports: [ReactiveFormsModule, FontAwesomeModule, LoginComponent, EmailInputComponent, PasswordInputComponent, ForgotPasswordLinkComponent, BindQueryparamToInputDirective],
     providers: [
+        provideRouter([]),
         { provide: UserService, useValue: users },
         { provide: PeopleService, useValue: {
                 findPersonByEmail: vi.fn().mockName("PeopleService.findPersonByEmail")
@@ -64,23 +67,23 @@ describe('LoginComponent', () => {
     async function maak() {
         fixture = TestBed.createComponent(LoginComponent);
         component = fixture.componentInstance;
-        fixture.detectChanges();
+        await fixture.whenStable();
         await vi.advanceTimersByTimeAsync(0);
-        fixture.detectChanges();
+        await fixture.whenStable();
     }
 
     it('loginknop uitgeschakeld tot het formulier geldig is', async () => {
         await maak();
         const knop: HTMLButtonElement = fixture.nativeElement.querySelector('button[type=submit]');
         expect(knop.disabled).toBe(true);
-        vulIn('ria@gimmi.be', 'geheim');
+        await vulIn('ria@gimmi.be', 'geheim');
         expect(knop.disabled).toBe(false);
     });
 
     it('geslaagde login: bevestiging, redirect en een leeg formulier', async () => {
         await maak();
         users.authenticate.mockReturnValue(of(new User('u1', 'R', 'Ria', 'ria@gimmi.be', 'local', 't', [])));
-        vulIn('ria@gimmi.be', 'geheim');
+        await vulIn('ria@gimmi.be', 'geheim');
         component.login();
         expect(users.authenticate).toHaveBeenCalledWith({ email: 'ria@gimmi.be', password: 'geheim' });
         expect(users.showAuthenticationConfirmation).toHaveBeenCalled();
@@ -93,10 +96,9 @@ describe('LoginComponent', () => {
         await maak();
         vi.spyOn(console, 'error').mockReturnValue(undefined);
         users.authenticate.mockReturnValue(throwError('401'));
-        vulIn('ria@gimmi.be', 'mis');
+        await vulIn('ria@gimmi.be', 'mis');
         component.login();
         await fixture.whenStable();
-        fixture.detectChanges();
         expect(component.authenticationError()).toBe(true);
         expect(tekst()).toContain('De combinatie emailadres / wachtwoord is niet correct');
         const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.alert-danger gimmi-forgot-password-link a');

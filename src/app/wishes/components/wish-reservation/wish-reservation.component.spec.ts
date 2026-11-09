@@ -24,11 +24,11 @@ describe('WishReservationComponent', () => {
     function knop(): HTMLButtonElement { return el().querySelector('button[type="submit"]'); }
     function reden(): HTMLSelectElement { return el().querySelector('#reservationReason'); }
 
-    function kies(optie: string) {
+    async function kies(optie: string) {
         const select = reden();
         select.value = Array.from(select.options).find(o => o.textContent.trim() === optie).value;
         select.dispatchEvent(new Event('change'));
-        fixture.detectChanges();
+        await fixture.whenStable();
     }
 
     beforeEach(async () => {
@@ -53,7 +53,7 @@ describe('WishReservationComponent', () => {
 }).compileComponents();
         fixture = TestBed.createComponent(WishReservationComponent);
         fixture.componentInstance.wish = new Wish('w1', 'Fiets', 250, null, ria, ria, null, null, null, 1);
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('titel en uitleg met de wens en de voornaam van de ontvanger', () => {
@@ -74,23 +74,23 @@ describe('WishReservationComponent', () => {
             'Afscheid collega', 'Afscheid', 'Communie / Lentefeest', 'Vader/moederdag', 'Andere reden']);
     });
 
-    it('gelegenheid is verplicht: knop uit en melding na aanraken', () => {
+    it('gelegenheid is verplicht: knop uit en melding na aanraken', async () => {
         expect(knop().disabled).toBe(true);
         reden().dispatchEvent(new Event('blur'));
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(el().textContent).toContain('De gelegenheid is een verplicht veld.');
-        kies('Kerstmis');
+        await kies('Kerstmis');
         expect(knop().disabled).toBe(false);
         expect(el().textContent).not.toContain('De gelegenheid is een verplicht veld.');
     });
 
-    it('reserveren: reservatie op naam van de ingelogde gebruiker, melding en popup dicht', () => {
+    it('reserveren: reservatie op naam van de ingelogde gebruiker, melding en popup dicht', async () => {
         wishService.addReservation.mockImplementation((w: Wish) => of(w));
-        kies('Verjaardag');
+        await kies('Verjaardag');
         const datum: HTMLInputElement = el().querySelector('#handoverDate');
         datum.value = '2026-12-24';
         datum.dispatchEvent(new Event('input'));
-        fixture.detectChanges();
+        await fixture.whenStable();
         knop().click();
 
         const reservatie: IReservation = vi.mocked(wishService.addReservation).mock.lastCall[1];

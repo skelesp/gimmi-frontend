@@ -33,7 +33,7 @@ describe('ChangeWishReservationComponent', () => {
         }).compileComponents();
         fixture = TestBed.createComponent(ChangeWishReservationComponent);
         fixture.componentInstance.wish = wish;
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('toont de wens en de voornaam van de ontvanger', () => {

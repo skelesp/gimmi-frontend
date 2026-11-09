@@ -30,24 +30,24 @@ describe('WishListComponent', () => {
         return w;
     }
 
-    function laad(lijst: Wish[]) {
+    async function laad(lijst: Wish[]) {
         component.receiver = ria;
         component.ngOnChanges({ receiver: new SimpleChange(null, ria, true) });
-        fixture.detectChanges();
+        await fixture.whenStable();
         wishes$.next(lijst);
         antwoord$.next(lijst);
-        fixture.detectChanges();
+        await fixture.whenStable();
     }
 
     function kaarten(): string[] {
         return fixture.debugElement.queryAll(el => el.name === 'gimmi-wish-card').map(el => el.nativeElement.wish.title);
     }
 
-    function klikTab(tekst: string) {
+    async function klikTab(tekst: string) {
         const tab: HTMLElement = Array.from(fixture.nativeElement.querySelectorAll('a[ngbNavLink]') as NodeListOf<HTMLElement>)
             .find(a => a.textContent.trim() === tekst);
         tab.click();
-        fixture.detectChanges();
+        await fixture.whenStable();
     }
 
     beforeEach(async () => {
@@ -64,16 +64,16 @@ describe('WishListComponent', () => {
         component = fixture.componentInstance;
     });
 
-    it('haalt de lijst op bij een nieuwe ontvanger en toont intussen een spinner', () => {
+    it('haalt de lijst op bij een nieuwe ontvanger en toont intussen een spinner', async () => {
         component.receiver = ria;
         component.ngOnChanges({ receiver: new SimpleChange(null, ria, true) });
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(wishService.getWishlist).toHaveBeenCalledWith(ria);
         expect(component.loading()).toBe(true);
         expect(fixture.nativeElement.querySelector('.spinner-border')).toBeTruthy();
 
         antwoord$.next([]);
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(component.loading()).toBe(false);
         expect(fixture.nativeElement.querySelector('.spinner-border')).toBeNull();
     });
@@ -83,35 +83,35 @@ describe('WishListComponent', () => {
         expect(wishService.getWishlist).not.toHaveBeenCalled();
     });
 
-    it('tab "Wensenlijst": open, gereserveerde en ontvangen (nog niet afgesloten) wensen', () => {
-        laad([wens('open', 'Open'), wens('gereserveerd', 'Reserved'), wens('ontvangen', 'Received'), wens('vervuld', 'Fulfilled')]);
+    it('tab "Wensenlijst": open, gereserveerde en ontvangen (nog niet afgesloten) wensen', async () => {
+        await laad([wens('open', 'Open'), wens('gereserveerd', 'Reserved'), wens('ontvangen', 'Received'), wens('vervuld', 'Fulfilled')]);
         expect(component.wishlistFilter()).toEqual(['Open', 'Received', 'Reserved']);
         expect(kaarten()).toEqual(['open', 'gereserveerd', 'ontvangen']);
     });
 
-    it('tab "Ontvangen cadeaus": enkel de vervulde wensen (sc-1984)', () => {
-        laad([wens('open', 'Open'), wens('vervuld', 'Fulfilled'), wens('ook vervuld', 'Fulfilled')]);
-        klikTab('Ontvangen cadeaus');
+    it('tab "Ontvangen cadeaus": enkel de vervulde wensen (sc-1984)', async () => {
+        await laad([wens('open', 'Open'), wens('vervuld', 'Fulfilled'), wens('ook vervuld', 'Fulfilled')]);
+        await klikTab('Ontvangen cadeaus');
         expect(component.wishlistFilter()).toEqual(['Fulfilled']);
         expect(kaarten()).toEqual(['vervuld', 'ook vervuld']);
 
-        klikTab('Wensenlijst');
+        await klikTab('Wensenlijst');
         expect(kaarten()).toEqual(['open']);
     });
 
-    it('de kaart om een wens toe te voegen staat altijd vooraan, met de ontvanger', () => {
-        laad([wens('open', 'Open')]);
+    it('de kaart om een wens toe te voegen staat altijd vooraan, met de ontvanger', async () => {
+        await laad([wens('open', 'Open')]);
         const create = fixture.debugElement.query(el => el.name === 'gimmi-wish-create-card');
         expect(create.nativeElement.receiver).toBe(ria);
     });
 
-    it('lege lijst: melding met de voornaam van de ontvanger', () => {
-        laad([]);
+    it('lege lijst: melding met de voornaam van de ontvanger', async () => {
+        await laad([]);
         expect(fixture.nativeElement.querySelector('ngb-alert').textContent).toContain('Vraag Ria om wensen op de lijst toe te voegen');
     });
 
-    it('lijst met wensen: geen melding', () => {
-        laad([wens('open', 'Open')]);
+    it('lijst met wensen: geen melding', async () => {
+        await laad([wens('open', 'Open')]);
         expect(fixture.nativeElement.querySelector('ngb-alert')).toBeNull();
     });
 

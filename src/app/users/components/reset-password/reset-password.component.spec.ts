@@ -1,5 +1,6 @@
 
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
@@ -8,6 +9,7 @@ import { NgbAlertModule } from '@ng-bootstrap/ng-bootstrap';
 import { of, throwError } from 'rxjs';
 
 import { PasswordCheckComponent } from 'src/app/shared/components/form-components/password-check/password-check.component';
+import { PasswordCheckHarness } from 'src/app/shared/components/form-components/password-check/password-check.component.harness';
 import { PasswordInputComponent } from 'src/app/shared/components/form-components/password-input/password-input.component';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from '../../service/user.service';
@@ -32,24 +34,16 @@ describe('ResetPasswordComponent', () => {
             useValue: { data: of({ validToken }), snapshot: { paramMap: convertToParamMap({ token: 'abc123' }) } }
         });
         fixture = TestBed.createComponent(ResetPasswordComponent);
-        fixture.detectChanges();
+        await fixture.whenStable();
         await vi.advanceTimersByTimeAsync(0);
-        fixture.detectChanges();
+        await fixture.whenStable();
     }
 
     function el(): HTMLElement { return fixture.nativeElement; }
 
-    function vulIn(wachtwoord: string, herhaling: string) {
-        const [pw, check] = Array.from(el().querySelectorAll('input')) as HTMLInputElement[];
-        for (const [input, waarde] of [[pw, wachtwoord], [check, herhaling]] as [
-            HTMLInputElement,
-            string
-        ][]) {
-            input.value = waarde;
-            input.dispatchEvent(new Event('input'));
-            input.dispatchEvent(new Event('blur'));
-        }
-        fixture.detectChanges();
+    async function vulIn(wachtwoord: string, herhaling: string) {
+        const check = await TestbedHarnessEnvironment.loader(fixture).getHarness(PasswordCheckHarness);
+        await check.fill(wachtwoord, herhaling);
     }
 
     function knop(): HTMLButtonElement { return el().querySelector('button[type="submit"]'); }
@@ -89,17 +83,17 @@ describe('ResetPasswordComponent', () => {
         expect(el().querySelectorAll('input').length).toBe(2);
         expect(knop().disabled).toBe(true);
 
-        vulIn('Nieuw-geheim-1', 'Iets-anders-1');
+        await vulIn('Nieuw-geheim-1', 'Iets-anders-1');
         expect(knop().disabled).toBe(true);
 
-        vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        await vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
         expect(knop().disabled).toBe(false);
     });
 
     it('opslaan: nieuw wachtwoord met het token uit de link, melding en naar login met het e-mailadres', async () => {
         users.resetPassword.mockReturnValue(of({ email: 'ria@gimmi.be', usedToken: 'abc123' }));
         await open(true);
-        vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        await vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
         knop().click();
 
         expect(users.resetPassword).toHaveBeenCalledWith('Nieuw-geheim-1', 'abc123');
@@ -110,9 +104,9 @@ describe('ResetPasswordComponent', () => {
     it('token intussen vervallen: foutmelding en de uitleg in plaats van het formulier', async () => {
         users.resetPassword.mockReturnValue(throwError({ status: 404 }));
         await open(true);
-        vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        await vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
         knop().click();
-        fixture.detectChanges();
+        await fixture.whenStable();
 
         expect(notifications.showNotification).toHaveBeenCalledWith('Wachtwoord reset is gefaald. Vermoedelijk is de link vervallen. Vraag een nieuwe link aan.', 'error', 'Link vervallen');
         expect(router.navigate).not.toHaveBeenCalled();

@@ -1,7 +1,7 @@
+import { provideRouter } from '@angular/router';
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterLink } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
 import { NgbDropdown } from '@ng-bootstrap/ng-bootstrap';
 
 import { CursorPointerDirective } from './cursor-pointer.directive';
@@ -29,10 +29,11 @@ describe('CursorPointerDirective', () => {
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-    imports: [RouterTestingModule, TestHostComponent]
+    imports: [TestHostComponent],
+    providers: [provideRouter([])]
 }).compileComponents();
         fixture = TestBed.createComponent(TestHostComponent);
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('element met (click): pointer', () => {
