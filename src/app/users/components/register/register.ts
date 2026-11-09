@@ -4,6 +4,7 @@ import { DynamicFormGroup } from '../../../shared/components/form-components/dyn
 import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { INewUserRequestInfo } from '../../service/user.service';
+import { AuthStore } from '../../../core/auth/auth-store';
 import { UserService } from '../../service/user.service';
 
 import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
@@ -22,6 +23,7 @@ import { PasswordCheck } from '../../../shared/components/form-components/passwo
 })
 export class Register implements OnInit {
   private userService = inject(UserService);
+  private auth = inject(AuthStore);
   private peopleService = inject(PeopleService);
 
   invitedFor: string;
@@ -61,8 +63,8 @@ export class Register implements OnInit {
         // Form handling
         this.registrationForm.reset();
 
-        this.userService.showAuthenticationConfirmation();
-        this.userService.redirectAfterAuthentication();
+        this.auth.showAuthenticationConfirmation();
+        this.auth.redirectAfterAuthentication();
         this.peopleService.addPerson(new Person(user.id, user.firstName, user.lastName))
       },
       error => {

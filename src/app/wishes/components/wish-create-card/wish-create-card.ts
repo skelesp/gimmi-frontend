@@ -4,8 +4,8 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ModalDismissReasons, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Person } from 'src/app/people/models/person.model';
 import { NotificationService } from 'src/app/shared/services/notification.service';
-import { User } from 'src/app/users/models/user.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { CurrentUser } from 'src/app/core/auth/auth-store';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 import { Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 import { WishPopup } from '../wish-item/wish-popup/wish-popup';
@@ -23,15 +23,15 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 export class WishCreateCard implements OnInit {
   private modalService = inject(NgbModal);
   private wishService = inject(WishService);
-  private userService = inject(UserService);
+  private auth = inject(AuthStore);
   private notificationService = inject(NotificationService);
 
   @Input() receiver : Person;
   plusIcon : IconDefinition = faPlus;
-  currentUser: User;
+  currentUser: CurrentUser;
 
   ngOnInit(): void {
-    this.currentUser = this.userService.currentUser;
+    this.currentUser = this.auth.user();
   }
 
   openCreateWish () {

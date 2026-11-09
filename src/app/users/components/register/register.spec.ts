@@ -13,7 +13,8 @@ import { EmailInput } from 'src/app/shared/components/form-components/email-inpu
 import { PasswordCheck } from 'src/app/shared/components/form-components/password-check/password-check';
 import { PasswordInput } from 'src/app/shared/components/form-components/password-input/password-input';
 import { BindQueryparamToInput } from 'src/app/shared/directives/bind-queryparam-to-input';
-import { User } from '../../models/user.model';
+import { AuthStore } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { UserService } from '../../service/user.service';
 import { ForgotPasswordLink } from '../forgot-password-link/forgot-password-link';
 import { Register } from './register';
@@ -29,6 +30,7 @@ describe('Register', () => {
     let fixture: ComponentFixture<Register>;
     let component: Register;
     let users: Record<string, any>;
+    let auth: ReturnType<typeof fakeAuthStore>;
     let people: Record<string, any>;
 
     async function vulAllesIn() {
@@ -42,10 +44,9 @@ describe('Register', () => {
 
     beforeEach(async () => {
         users = {
-            register: vi.fn().mockName("UserService.register"),
-            showAuthenticationConfirmation: vi.fn().mockName("UserService.showAuthenticationConfirmation"),
-            redirectAfterAuthentication: vi.fn().mockName("UserService.redirectAfterAuthentication")
+            register: vi.fn().mockName("UserService.register")
         };
+        auth = fakeAuthStore();
         people = {
             addPerson: vi.fn().mockName("PeopleService.addPerson"),
             findPersonByEmail: vi.fn().mockName("PeopleService.findPersonByEmail")
@@ -54,7 +55,7 @@ describe('Register', () => {
         TestBed.configureTestingModule({
     imports: [ReactiveFormsModule, FontAwesomeModule, NgbAlertModule, Register, EmailInput, PasswordInput, PasswordCheck,
         ForgotPasswordLink, BindQueryparamToInput],
-    providers: [provideRouter([]), { provide: UserService, useValue: users }, { provide: PeopleService, useValue: people }],
+    providers: [provideRouter([]), { provide: UserService, useValue: users }, { provide: AuthStore, useValue: auth }, { provide: PeopleService, useValue: people }],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
 }).compileComponents();
 
@@ -86,14 +87,14 @@ describe('Register', () => {
     });
 
     it('geslaagde registratie: stuurt de juiste gegevens, logt in en voegt de persoon toe', async () => {
-        users.register.mockReturnValue(of(new User('u1', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', [])));
+        users.register.mockReturnValue(of(testUser({ id: 'u1', firstName: 'Ria', lastName: 'Receiver', fullName: 'Ria Receiver', email: 'ria@gimmi.be' })));
         await vulAllesIn();
         component.register();
         expect(users.register).toHaveBeenCalledWith({
             firstname: 'Ria', lastname: 'Receiver', birthday: '1990-05-17', email: 'ria@gimmi.be', password: 'geheim'
         });
-        expect(users.showAuthenticationConfirmation).toHaveBeenCalled();
-        expect(users.redirectAfterAuthentication).toHaveBeenCalled();
+        expect(auth.showAuthenticationConfirmation).toHaveBeenCalled();
+        expect(auth.redirectAfterAuthentication).toHaveBeenCalled();
         expect(people.addPerson).toHaveBeenCalledWith(expect.any(Person));
         expect(vi.mocked(people.addPerson).mock.lastCall[0].id).toBe('u1');
     });

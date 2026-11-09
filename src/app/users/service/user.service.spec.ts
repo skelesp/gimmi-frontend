@@ -1,159 +1,60 @@
-
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { Router } from '@angular/router';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { of } from 'rxjs';
 
 import { environment } from 'src/environments/environment';
-import { NotificationService } from 'src/app/shared/services/notification.service';
-import { User } from '../models/user.model';
+import { AuthStore } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { UserService } from './user.service';
-import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
-// sc-1995 (auth local), sc-2004 (wachtwoord vergeten/reset), sc-2041 (attemptedUrl).
-// logout() herlaadt de pagina en wordt daarom hier niet aangeroepen.
+// Registreren (sc-3285) en wachtwoord vergeten/resetten (sc-3286) lopen nog over API v1; het inloggen
+// zelf staat in AuthStore.
 describe('UserService', () => {
     let service: UserService;
     let http: HttpTestingController;
-    let router: Record<string, any>;
-    let notifications: Record<string, any>;
-
-    function base64url(obj: object): string {
-        return btoa(JSON.stringify(obj)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
-    }
-
-    function token(overrides: object = {}): string {
-        const payload = {
-            id: 'u1', firstName: 'Ria', lastName: 'Receiver', email: 'ria@gimmi.be',
-            loginStrategy: 'local', accounts: [] as unknown[], exp: Math.floor(Date.now() / 1000) + 3600, ...overrides
-        };
-        return `${base64url({ alg: 'HS256', typ: 'JWT' })}.${base64url(payload)}.handtekening`;
-    }
-
-    function maakService() {
-        service = TestBed.inject(UserService);
-        http = TestBed.inject(HttpTestingController);
-    }
+    let auth: ReturnType<typeof fakeAuthStore>;
 
     beforeEach(() => {
-        localStorage.removeItem('currentUser');
-        router = {
-            navigateByUrl: vi.fn().mockName("Router.navigateByUrl")
-        };
-        notifications = {
-            showNotification: vi.fn().mockName("NotificationService.showNotification")
-        };
+        auth = fakeAuthStore();
         TestBed.configureTestingModule({
-            imports: [],
             providers: [
-                { provide: Router, useValue: router },
-                { provide: NotificationService, useValue: notifications },
+                { provide: AuthStore, useValue: auth },
                 provideHttpClient(withXhr(), withInterceptorsFromDi()),
                 provideHttpClientTesting()
             ]
         });
-        vi.spyOn(console, 'info').mockReturnValue(undefined);
+        service = TestBed.inject(UserService);
+        http = TestBed.inject(HttpTestingController);
     });
 
-    afterEach(() => {
-        http.verify();
-        localStorage.removeItem('currentUser');
-    });
-
-    it('zonder token in localStorage: niemand ingelogd', () => {
-        maakService();
-        expect(service.currentUser).toBeNull();
-    });
-
-    it('geldig token in localStorage: gebruiker uit het token', () => {
-        localStorage.setItem('currentUser', token());
-        maakService();
-        expect(service.currentUser).toEqual(expect.any(User));
-        expect(service.currentUser.id).toBe('u1');
-        expect(service.currentUser.fullName).toBe('Ria Receiver');
-        expect(service.currentUser.loginStrategy).toBe('local');
-    });
-
-    describe('authenticate', () => {
-        it('post de gegevens met account "local", bewaart het token en zet de gebruiker', () => {
-            maakService();
-            let ingelogd: User;
-            const users: User[] = [];
-            service.currentUser$.subscribe(u => users.push(u));
-
-            service.authenticate({ email: 'ria@gimmi.be', password: 'geheim' }).subscribe(u => ingelogd = u);
-            const req = http.expectOne(environment.apiUrl + 'authenticate');
-            expect(req.request.body).toEqual({ email: 'ria@gimmi.be', password: 'geheim', account: 'local' });
-            const t = token();
-            req.flush({ success: true, message: 'ok', token: t });
-
-            expect(localStorage.getItem('currentUser')).toBe(t);
-            expect(ingelogd.id).toBe('u1');
-            expect(users.map(u => u?.id)).toEqual([undefined, 'u1']);
-        });
-
-        it('fout wachtwoord: foutmelding met code en boodschap, geen gebruiker', () => {
-            maakService();
-            let fout: string;
-            service.authenticate({ email: 'ria@gimmi.be', password: 'mis' }).subscribe({ error: e => fout = e });
-            http.expectOne(environment.apiUrl + 'authenticate')
-                .flush({ message: 'Authentication failed' }, { status: 401, statusText: 'Unauthorized' });
-            expect(fout).toBe('Gimmi API returned code 401 with message "Authentication failed"');
-            expect(service.currentUser).toBeNull();
-            expect(localStorage.getItem('currentUser')).toBeNull();
-        });
-    });
+    afterEach(() => http.verify());
 
     describe('register', () => {
-        it('post naar /people en logt de nieuwe gebruiker meteen in', () => {
-            maakService();
-            let nieuw: User;
-            const aanvraag = { firstname: 'Ria', lastname: 'Receiver', email: 'ria@gimmi.be', birthday: '1990-05-17', password: 'geheim' };
+        const aanvraag = { firstname: 'Ria', lastname: 'Receiver', email: 'ria@gimmi.be', birthday: '1990-05-17', password: 'geheim' };
+
+        it('post naar /people en logt daarna in op v2 met dezelfde gegevens', () => {
+            const ria = testUser({ firstName: 'Ria' });
+            auth.login.mockReturnValue(of(ria));
+            let nieuw: unknown;
             service.register(aanvraag).subscribe(u => nieuw = u);
             const req = http.expectOne(environment.apiUrl + 'people');
             expect(req.request.body).toEqual(aanvraag);
-            req.flush({ success: true, message: 'ok', token: token() });
-            expect(nieuw.firstName).toBe('Ria');
+            req.flush({ success: true, message: 'ok', token: 'v1-token' });
+            expect(auth.login).toHaveBeenCalledWith('ria@gimmi.be', 'geheim');
+            expect(nieuw).toBe(ria);
         });
 
         it('bestaand adres: de foutmelding bevat "User already exists" (daarop reageert het registratiescherm)', () => {
-            maakService();
             let fout: string;
-            service.register({ firstname: 'R', lastname: 'R', email: 'ria@gimmi.be', birthday: null, password: 'x' })
-                .subscribe({ error: e => fout = e });
+            service.register({ ...aanvraag, birthday: null }).subscribe({ error: e => fout = e });
             http.expectOne(environment.apiUrl + 'people').flush({ error: 'User already exists' }, { status: 500, statusText: 'Error' });
             expect(fout).toContain('User already exists');
+            expect(auth.login).not.toHaveBeenCalled();
         });
-    });
-
-    describe('redirectAfterAuthentication', () => {
-        beforeEach(() => {
-            localStorage.setItem('currentUser', token());
-            maakService();
-        });
-
-        it('zonder attemptedUrl: naar de eigen wensenlijst', () => {
-            service.redirectAfterAuthentication();
-            expect(router.navigateByUrl).toHaveBeenCalledWith('/people/u1');
-        });
-
-        it('met attemptedUrl: daarheen, en de attemptedUrl wordt gewist', () => {
-            service.attemptedUrl = '/people/p9';
-            service.redirectAfterAuthentication();
-            expect(router.navigateByUrl).toHaveBeenCalledWith('/people/p9');
-            expect(service.attemptedUrl).toBeNull();
-        });
-    });
-
-    it('showAuthenticationConfirmation: welkomstmelding met de voornaam', () => {
-        localStorage.setItem('currentUser', token());
-        maakService();
-        service.showAuthenticationConfirmation();
-        expect(notifications.showNotification).toHaveBeenCalledWith(expect.any(String), 'success', 'Welkom Ria');
     });
 
     describe('wachtwoord vergeten en resetten', () => {
-        beforeEach(() => maakService());
-
         it('requestPasswordReset: DELETE met e-mail en de resetroute van deze site', () => {
             service.requestPasswordReset('ria@gimmi.be').subscribe();
             const req = http.expectOne(environment.apiUrl + 'people/account/local');

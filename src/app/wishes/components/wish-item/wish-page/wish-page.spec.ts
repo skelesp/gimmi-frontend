@@ -10,8 +10,8 @@ import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { CommunicationService } from 'src/app/shared/services/communication.service';
 import { NotificationService } from 'src/app/shared/services/notification.service';
-import { User } from 'src/app/users/models/user.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 import { Wish, wishStatus } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
 import { WishPage } from './wish-page';
@@ -45,7 +45,7 @@ describe('WishPage', () => {
         if (opties.reservedBy)
             w.reservation = { reservedBy: opties.reservedBy, amount: 1, reservationDate: new Date(), reason: 'Verjaardag' };
         Object.assign(w, opties.extra ?? {});
-        w.setUserIsFlags(new User(opties.viewer, 'X', 'Y', 'x@gimmi.be', 'local', 't', []));
+        w.setUserIsFlags(testUser({ id: opties.viewer }));
         return w;
     }
 
@@ -75,7 +75,7 @@ describe('WishPage', () => {
                 open: vi.fn().mockName("NgbModal.open")
             } },
         { provide: NotificationService, useValue: {} },
-        { provide: UserService, useValue: {} },
+        { provide: AuthStore, useValue: fakeAuthStore() },
         { provide: ImageService, useValue: {} },
         { provide: PeopleService, useValue: {} },
         { provide: CommunicationService, useValue: {} },

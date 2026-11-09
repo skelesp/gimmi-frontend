@@ -1,8 +1,7 @@
 import { NgOptimizedImage } from '@angular/common';
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
-import { UserService } from '../../users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { RouterLink } from '@angular/router';
 import { CursorPointer } from '../../shared/directives/cursor-pointer';
@@ -16,8 +15,8 @@ import { CursorPointer } from '../../shared/directives/cursor-pointer';
     imports: [FaIconComponent, RouterLink, CursorPointer, NgOptimizedImage]
 })
 export class LandingPageBanner {
-  private userService = inject(UserService);
+  private auth = inject(AuthStore);
 
   checkIcon = faCheckCircle;
-  readonly currentUser = toSignal(this.userService.currentUser$);
+  readonly currentUser = this.auth.user;
 }

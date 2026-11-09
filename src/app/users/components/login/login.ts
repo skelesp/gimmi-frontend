@@ -1,59 +1,71 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { FormsModule, ReactiveFormsModule, FormGroup } from '@angular/forms';
-import { DynamicFormGroup } from '../../../shared/components/form-components/dynamic-form-group';
-import { UserService } from '../../service/user.service';
-import { ILocalLoginInfo } from "../../models/user.model";
-import { environment } from 'src/environments/environment';
-import { CursorPointer } from '../../../shared/directives/cursor-pointer';
+import { ChangeDetectionStrategy, Component, OnDestroy, inject, signal } from '@angular/core';
+import { email, form, required, submit } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
-
+import { firstValueFrom } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { ApiProblem } from '../../../core/api/api-problem';
+import { ProblemNotifier } from '../../../core/api/problem-notifier';
+import { AuthStore } from '../../../core/auth/auth-store';
+import { EmailField } from '../../../shared/components/form-components/email-field/email-field';
+import { PasswordField } from '../../../shared/components/form-components/password-field/password-field';
+import { NotificationService } from '../../../shared/services/notification.service';
 import { ForgotPasswordLink } from '../forgot-password-link/forgot-password-link';
-import { EmailInput } from '../../../shared/components/form-components/email-input/email-input';
-import { PasswordInput } from '../../../shared/components/form-components/password-input/password-input';
 
 @Component({
     selector: 'gimmi-login',
     templateUrl: './login.html',
     styleUrls: ['./login.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CursorPointer, RouterLink, ForgotPasswordLink, FormsModule, ReactiveFormsModule, EmailInput, PasswordInput]
+    imports: [RouterLink, ForgotPasswordLink, EmailField, PasswordField]
 })
-export class Login implements OnInit, OnDestroy {
-  private userService = inject(UserService);
+export class Login implements OnDestroy {
+  private auth = inject(AuthStore);
+  private problems = inject(ProblemNotifier);
+  private notifications = inject(NotificationService);
 
-  loginForm: DynamicFormGroup;
+  // `?e=` pre-fills the address (links from mails and from the register page).
+  protected readonly credentials = signal({ email: new URLSearchParams(location.search).get('e') ?? '', password: '' });
+  protected readonly loginForm = form(this.credentials, path => {
+    required(path.email, { message: 'Email is een verplicht veld' });
+    email(path.email, { message: 'Geef een geldig emailadres in (formaat: *** @ *** . **)' });
+    required(path.password, { message: 'Wachtwoord is een verplicht veld.' });
+  });
+
   readonly authenticationError = signal(false);
-  readonly loggedInUser = toSignal(this.userService.currentUser$);
-  redirectUrl: string;
+  protected readonly loggedInUser = this.auth.user;
+  // Only used to show where the person goes after logging in.
+  readonly redirectUrl = this.auth.attemptedUrl ? environment.rootSiteUrl + this.auth.attemptedUrl : null;
 
-  ngOnInit(): void {
-    this.loginForm = new FormGroup({});
-
-    // RedirectUrl only used to show in component 
-    this.redirectUrl = this.userService.attemptedUrl ? environment.rootSiteUrl + this.userService.attemptedUrl : null;
-  }
-
-  login() {
-    const credentials : ILocalLoginInfo = {
-      email: this.loginForm.value.email,
-      password: this.loginForm.value.password
-    }
-    this.userService.authenticate( credentials ).subscribe( user => {
-      // Form handling
+  protected login(event: Event): Promise<boolean> {
+    event.preventDefault();
+    return submit(this.loginForm, async () => {
+      const { email, password } = this.credentials();
+      try {
+        await firstValueFrom(this.auth.login(email, password));
+      } catch (error) {
+        this.showError(error);
+        return;
+      }
       this.authenticationError.set(false);
-      this.loginForm.reset();
-      
-      this.userService.showAuthenticationConfirmation();
-      this.userService.redirectAfterAuthentication();
-
-    }, error => {
-      console.error(error);
-      this.authenticationError.set(true);
+      this.loginForm().reset({ email: '', password: '' });
+      this.auth.showAuthenticationConfirmation();
+      this.auth.redirectAfterAuthentication();
     });
   }
 
+  private showError(error: unknown): void {
+    if (error instanceof ApiProblem && error.code === 'invalid-credentials') {
+      this.authenticationError.set(true);
+    } else if (error instanceof ApiProblem) {
+      this.authenticationError.set(false);
+      this.problems.show(error);
+    } else {
+      console.error(error);
+      this.notifications.showNotification('Inloggen lukt nu niet. Probeer het straks opnieuw.', 'error');
+    }
+  }
+
   ngOnDestroy () {
-    this.userService.attemptedUrl = null;
+    this.auth.attemptedUrl = null;
   }
 }

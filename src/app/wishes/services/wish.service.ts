@@ -6,7 +6,7 @@ import { catchError, defaultIfEmpty, map, switchMap, tap } from 'rxjs/operators'
 import { environment } from 'src/environments/environment';
 import { Person } from 'src/app/people/models/person.model';
 import { IPersonNameResponse, IPersonSearchResponse, PeopleService } from 'src/app/people/service/people.service';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 import { IClosure, IGiftFeedback, IReservation, IWishImage, Wish } from '../models/wish.model';
 
 /**
@@ -153,7 +153,7 @@ type wishStatusInResponse = 'Open' | 'Reserved' | 'Received' | 'Closed';
 })
 export class WishService {
   private http$ = inject(HttpClient);
-  private userService = inject(UserService);
+  private auth = inject(AuthStore);
   private peopleService = inject(PeopleService);
 
   private _wishes$: BehaviorSubject<Wish[]> = new BehaviorSubject<Wish[]>([]);
@@ -269,7 +269,7 @@ export class WishService {
 
   public close (wish: Wish) : Observable<Wish>{
     const closure: IClosureResponse = {
-      closedBy: this.userService.currentUser.id,
+      closedBy: this.auth.user().id,
       closedOn: new Date(),
       reason: "Cadeau ontvangen"
     }
@@ -385,7 +385,7 @@ export class WishService {
       switchMap( wish => this.addStateToWish(wish)),
       // Call method to set user flags in each instance (must be done after reservedBy is added and status is retrieved)
       map ( wish => {
-        wish.setUserIsFlags(this.userService.currentUser)
+        wish.setUserIsFlags(this.auth.user())
         return wish;
       })
     );

@@ -6,8 +6,8 @@ import { NgbActiveModal, NgbAlertModule } from '@ng-bootstrap/ng-bootstrap';
 import { of } from 'rxjs';
 
 import { Person } from 'src/app/people/models/person.model';
-import { User } from 'src/app/users/models/user.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { Wish } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
 import { WishPopup } from './wish-popup';
@@ -61,7 +61,7 @@ describe('WishPopup', () => {
     imports: [ReactiveFormsModule, NgbAlertModule, WishPopup],
     providers: [
         { provide: NgbActiveModal, useValue: activeModal },
-        { provide: UserService, useValue: { currentUser: new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', []) } },
+        { provide: AuthStore, useValue: fakeAuthStore(testUser({ id: 'ria', firstName: 'Ria', lastName: 'Receiver', fullName: 'Ria Receiver', email: 'ria@gimmi.be' })) },
         { provide: WishService, useValue: wishService }
     ],
     schemas: [NO_ERRORS_SCHEMA]

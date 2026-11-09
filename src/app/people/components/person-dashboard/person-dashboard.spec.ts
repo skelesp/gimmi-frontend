@@ -2,10 +2,10 @@ import { provideRouter } from '@angular/router';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, of } from 'rxjs';
+import { of } from 'rxjs';
 
-import { User } from 'src/app/users/models/user.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore, CurrentUser } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { Person } from '../../models/person.model';
 import { PeopleService } from '../../service/people.service';
 import { PersonDashboard } from './person-dashboard';
@@ -17,8 +17,8 @@ import { WishList } from '../../../wishes/components/wish-list/wish-list';
 // de wenslijst.
 describe('PersonDashboard', () => {
     let fixture: ComponentFixture<PersonDashboard>;
-    let currentUser$: BehaviorSubject<User>;
-    const ilse = new User('ilse', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
+    let auth: ReturnType<typeof fakeAuthStore>;
+    const ilse = testUser({ id: 'ilse', firstName: 'Ilse', lastName: 'Ingelogd', fullName: 'Ilse Ingelogd', email: 'ilse@gimmi.be' });
 
     function ria(): Person {
         const p = new Person('ria', 'Ria', 'Receiver');
@@ -26,8 +26,8 @@ describe('PersonDashboard', () => {
         return p;
     }
 
-    async function toon(person: Person, user: User) {
-        currentUser$.next(user);
+    async function toon(person: Person, user: CurrentUser) {
+        auth.user.set(user);
         TestBed.overrideProvider(ActivatedRoute, { useValue: { data: of({ person }) } });
         fixture = TestBed.createComponent(PersonDashboard);
         await fixture.whenStable();
@@ -40,14 +40,14 @@ describe('PersonDashboard', () => {
     }
 
     beforeEach(async () => {
-        currentUser$ = new BehaviorSubject<User>(null);
+        auth = fakeAuthStore(null);
         TestBed.overrideComponent(PersonDashboard, { remove: { imports: [Share, ExtraInfo, WishList] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
     imports: [PersonDashboard],
     providers: [
         provideRouter([]),
-        { provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } },
-        { provide: PeopleService, useValue: { isEqualToCurrentUser: (p: Person) => p?.id === currentUser$.value?.id } },
+        { provide: AuthStore, useValue: auth },
+        { provide: PeopleService, useValue: { isEqualToCurrentUser: (p: Person) => p?.id === auth.user()?.id } },
         { provide: ActivatedRoute, useValue: {} }
     ],
     schemas: [NO_ERRORS_SCHEMA]
@@ -79,7 +79,7 @@ describe('PersonDashboard', () => {
     });
 
     it('eigen lijst: link verborgen en extra info bewerkbaar', async () => {
-        await toon(ria(), new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', []));
+        await toon(ria(), testUser({ id: 'ria', firstName: 'Ria', lastName: 'Receiver', fullName: 'Ria Receiver', email: 'ria@gimmi.be' }));
         expect((el().querySelector('a.badge') as HTMLElement).hidden).toBe(true);
         expect(fixture.componentInstance.personIsUser()).toBe(true);
         expect(kind('gimmi-extra-info').nativeElement.personIsUser).toBe(true);

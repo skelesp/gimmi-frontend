@@ -6,8 +6,8 @@ import { of, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
-import { User } from 'src/app/users/models/user.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { Wish } from '../models/wish.model';
 import { imageUitApi, imageVoorApi, WishService } from './wish.service';
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
@@ -48,7 +48,7 @@ describe('WishService', () => {
         TestBed.configureTestingModule({
             imports: [],
             providers: [
-                { provide: UserService, useValue: { currentUser: new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', []) } },
+                { provide: AuthStore, useValue: fakeAuthStore(testUser({ id: 'rob', firstName: 'Rob', lastName: 'Reservator', fullName: 'Rob Reservator', email: 'rob@gimmi.be' })) },
                 { provide: PeopleService, useValue: people },
                 provideHttpClient(withXhr(), withInterceptorsFromDi()),
                 provideHttpClientTesting()

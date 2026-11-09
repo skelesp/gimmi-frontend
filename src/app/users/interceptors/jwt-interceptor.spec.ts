@@ -1,9 +1,10 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { environment } from 'src/environments/environment';
-import { UserService } from '../service/user.service';
+import { AuthStore } from '../../core/auth/auth-store';
 import { jwtInterceptor } from './jwt-interceptor';
 
 // Het token gaat alleen mee naar de eigen API, en alleen als iemand ingelogd is:
@@ -11,7 +12,7 @@ import { jwtInterceptor } from './jwt-interceptor';
 describe('jwtInterceptor', () => {
   let http: HttpClient;
   let backend: HttpTestingController;
-  let users: { currentUser: any };
+  let token: ReturnType<typeof signal<string | null>>;
 
   function header(url: string): string {
     http.get(url).subscribe();
@@ -21,11 +22,11 @@ describe('jwtInterceptor', () => {
   }
 
   beforeEach(() => {
-    users = { currentUser: null };
+    token = signal<string | null>(null);
     TestBed.configureTestingModule({
     imports: [],
     providers: [
-        { provide: UserService, useValue: users },
+        { provide: AuthStore, useValue: { token } },
         provideHttpClient(withXhr(), withInterceptors([jwtInterceptor])),
         provideHttpClientTesting()
     ]
@@ -37,23 +38,23 @@ describe('jwtInterceptor', () => {
   afterEach(() => backend.verify());
 
   it('ingelogd, naar de API: het token als Authorization-header', () => {
-    users.currentUser = { token: 'jwt-123' };
+    token.set('jwt-123');
     expect(header(environment.apiUrl + 'wish/w1')).toBe('jwt-123');
   });
 
   it('ingelogd, naar API v2: het token als Bearer', () => {
-    users.currentUser = { token: 'jwt-123' };
+    token.set('jwt-123');
     expect(header(environment.apiV2Url + 'me')).toBe('Bearer jwt-123');
   });
 
   it('ingelogd, naar een ander adres: geen header', () => {
-    users.currentUser = { token: 'jwt-123' };
+    token.set('jwt-123');
     expect(header('https://img.gimmi.be/wishes/a.jpg')).toBeNull();
   });
 
   it('niet ingelogd of zonder token: geen header', () => {
     expect(header(environment.apiUrl + 'people')).toBeNull();
-    users.currentUser = { token: '' };
+    token.set('');
     expect(header(environment.apiUrl + 'people')).toBeNull();
   });
 });

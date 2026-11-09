@@ -1,4 +1,3 @@
-import type { Mock } from "vitest";
 import { TestBed } from '@angular/core/testing';
 import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -6,7 +5,8 @@ import { Router } from '@angular/router';
 
 import { environment } from 'src/environments/environment';
 import { NotificationService } from 'src/app/shared/services/notification.service';
-import { UserService } from '../service/user.service';
+import { AuthStore } from '../../core/auth/auth-store';
+import { fakeAuthStore, testUser } from '../../core/auth/auth-store.testing';
 import { authErrorInterceptor } from './auth-error-interceptor';
 
 // Reactie op 401 en 403 van de API. Het geval "401 terwijl iemand ingelogd is" roept logout()
@@ -18,11 +18,7 @@ describe('authErrorInterceptor', () => {
         url: string;
     };
     let notifications: Record<string, any>;
-    let users: {
-        currentUser: any;
-        attemptedUrl: string;
-        logout: Mock;
-    };
+    let users: ReturnType<typeof fakeAuthStore>;
 
     function vraag(url: string, status: number): any {
         let fout: any;
@@ -38,13 +34,13 @@ describe('authErrorInterceptor', () => {
         notifications = {
             showNotification: vi.fn().mockName("NotificationService.showNotification")
         };
-        users = { currentUser: null, attemptedUrl: null, logout: vi.fn().mockName('logout') };
+        users = fakeAuthStore();
         TestBed.configureTestingModule({
             imports: [],
             providers: [
                 { provide: Router, useValue: router },
                 { provide: NotificationService, useValue: notifications },
-                { provide: UserService, useValue: users },
+                { provide: AuthStore, useValue: users },
                 provideHttpClient(withXhr(), withInterceptors([authErrorInterceptor])),
                 provideHttpClientTesting()
             ]
@@ -64,25 +60,17 @@ describe('authErrorInterceptor', () => {
         expect(users.logout).not.toHaveBeenCalled();
     });
 
-    it('401 op de loginaanroep zelf: geen melding, geen navigatie, loginpagina niet onthouden', () => {
+    it('401 op de loginaanroep zelf (auth/token): geen melding, geen navigatie, loginpagina niet onthouden', () => {
         // Anders stuurt de volgende geslaagde login je terug naar het loginscherm.
         router.url = '/users/login';
-        const fout = vraag('/api/authenticate', 401);
+        const fout = vraag(environment.apiV2Url + 'auth/token', 401);
         expect(fout.status).toBe(401);
         expect(notifications.showNotification).not.toHaveBeenCalled();
         expect(router.navigate).not.toHaveBeenCalled();
         expect(users.attemptedUrl).toBeNull();
     });
 
-    it('401 op de v2-loginaanroep (auth/token): geen melding, geen navigatie', () => {
-        router.url = '/users/login';
-        const fout = vraag(environment.apiV2Url + 'auth/token', 401);
-        expect(fout.status).toBe(401);
-        expect(notifications.showNotification).not.toHaveBeenCalled();
-        expect(router.navigate).not.toHaveBeenCalled();
-    });
-
-    it('401 op een andere v2-aanroep: zoals v1, naar login', () => {
+    it('401 op een andere v2-aanroep: naar login', () => {
         vraag(environment.apiV2Url + 'me', 401);
         expect(router.navigate).toHaveBeenCalledWith(['users/login'], { queryParams: {} });
     });
@@ -101,10 +89,10 @@ describe('authErrorInterceptor', () => {
     });
 
     it('401 voor een ingelogde gebruiker: uitloggen en het e-mailadres meegeven aan de login', () => {
-        users.currentUser = { email: 'ria@gimmi.be' };
+        users.user.set(testUser());
         vraag('/api/wish/w1', 401);
         expect(users.logout).toHaveBeenCalledWith('401_RESPONSE');
-        expect(router.navigate).toHaveBeenCalledWith(['users/login'], { queryParams: { e: 'ria@gimmi.be' } });
+        expect(router.navigate).toHaveBeenCalledWith(['users/login'], { queryParams: { e: 'ilse@gimmi.be' } });
     });
 
     it('403: melding over ontbrekende rechten, geen navigatie', () => {

@@ -1,8 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { PersonToShare } from 'src/app/people/models/person.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 import { CursorPointer } from '../../../../shared/directives/cursor-pointer';
 import { CopyToClipboardButton } from '../copy-to-clipboard-button/copy-to-clipboard-button';
 import { MailToButton } from '../mail-to-button/mail-to-button';
@@ -17,11 +16,11 @@ import { WhatsappButton } from '../whatsapp-button/whatsapp-button';
 })
 export class SharePopup {
   activeModal = inject(NgbActiveModal);
-  private userService = inject(UserService);
+  private auth = inject(AuthStore);
 
   @Input() linkToShare : string;
   @Input() personToShare : PersonToShare;
-  readonly currentUser = toSignal(this.userService.currentUser$);
+  readonly currentUser = this.auth.user;
   message = 'Hey, op volgende link vind je mijn wensenlijst voor een cadeautje.';
 
   generateMessage () : string {
