@@ -1,11 +1,13 @@
 <div class="row my-2">
   <div class="col">
-    <ul ngbNav [(activeId)]="activeTab" class="nav-tabs">
-      <li [ngbNavItem]="'Open'">
-        <a ngbNavLink class="text-secondary" (click)="setWishlistFilter('Open');$event.preventDefault()">Wensenlijst</a>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <button type="button" class="nav-link text-secondary" [class.active]="activeTab() === 'Open'"
+          [attr.aria-current]="activeTab() === 'Open' ? 'true' : null" (click)="setWishlistFilter('Open')">Wensenlijst</button>
       </li>
-      <li [ngbNavItem]="'Received'">
-        <a ngbNavLink class="text-secondary" (click)="setWishlistFilter('Received');$event.preventDefault()">Ontvangen cadeaus</a>
+      <li class="nav-item">
+        <button type="button" class="nav-link text-secondary" [class.active]="activeTab() === 'Received'"
+          [attr.aria-current]="activeTab() === 'Received' ? 'true' : null" (click)="setWishlistFilter('Received')">Ontvangen cadeaus</button>
       </li>
     </ul>
   </div>
@@ -21,7 +23,7 @@
 
 @if (loading()) {
   <div class="spinner-border text-danger" role="status">
-    <span class="visually-hidden">Loading...</span>
+    <span class="visually-hidden">Laden...</span>
   </div>
 }
 @if (wishes() && !loading()) {

@@ -9,9 +9,10 @@
             <form [formGroup]='invitationForm' (ngSubmit)="invitePerson()">
                 <div formGroupName="invitationData">
                     <div class="mb-3">
-                        <fa-icon [icon]="mailIcon" class="me-2"></fa-icon><label>Verstuur een uitnodiging naar de
+                        <fa-icon [icon]="mailIcon" class="me-2"></fa-icon><label for="invite-email">Verstuur een uitnodiging naar de
                             persoon die je zocht</label>
                         <gimmi-email-input
+                            inputId="invite-email"
                             [parentFormGroup]='invitationForm.controls.invitationData'
                             placeholder='Emailadres (verplicht in te vullen)'
                             controlName='emailaddress'

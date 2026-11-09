@@ -9,27 +9,26 @@
 <div class="container">
   <div class="row">
     <div class="col-lg-3 col-md-6 text-center">
-      <fa-icon
-        [icon]="registerIcon" size="4x" class="text-danger"
-        ngbTooltip="Ga naar de registratiepagina" tooltipClass="customTooltip" placement="bottom-left"
-        [routerLink]="['/users/register']"
-      ></fa-icon>
+      <a [routerLink]="['/users/register']" aria-label="Registreer"
+        ngbTooltip="Ga naar de registratiepagina" tooltipClass="customTooltip" placement="bottom-left">
+        <fa-icon [icon]="registerIcon" size="4x" class="text-danger"></fa-icon>
+      </a>
       <h3>Registreer</h3>
       <p class="text-muted">Registreer je meteen en zet je eerste stappen om eindelijk jouw favoriete
       cadeau's te krijgen, maak hier je ultieme wensenlijst aan!</p>
     </div>
     <div class="col-lg-3 col-md-6 text-center" >
       @if (!currentUser()) {
-        <fa-icon
-          [icon]="listIcon" size="4x" class="text-danger" ngbTooltip="Registreer en ga naar je lijst"
-          tooltipClass="customTooltip" placement="bottom-left" [routerLink]="['/users/register']"
-        ></fa-icon>
+        <a [routerLink]="['/users/register']" aria-label="Registreer en ga naar je lijst"
+          ngbTooltip="Registreer en ga naar je lijst" tooltipClass="customTooltip" placement="bottom-left">
+          <fa-icon [icon]="listIcon" size="4x" class="text-danger"></fa-icon>
+        </a>
       }
       @if (currentUser()) {
-        <fa-icon
-          [icon]="listIcon" size="4x" class="text-danger" ngbTooltip="Ga naar je eigen lijst"
-          tooltipClass="customTooltip" placement="bottom-left" [routerLink]='["/people", $safeNavigationMigration(currentUser()?.id)]'
-        ></fa-icon>
+        <a [routerLink]='["/people", $safeNavigationMigration(currentUser()?.id)]' aria-label="Ga naar je eigen lijst"
+          ngbTooltip="Ga naar je eigen lijst" tooltipClass="customTooltip" placement="bottom-left">
+          <fa-icon [icon]="listIcon" size="4x" class="text-danger"></fa-icon>
+        </a>
       }
       <h3>Voeg wensen toe</h3>
       <p class="text-muted">Ontdek je iets leuks, zet het dadelijk op je lijstje. Of kopieer leuke ideeën
@@ -50,7 +49,7 @@
       weten wat jouw ultieme cadeau is.</p>
     </div>
     <div class="col-lg-3 col-md-6 text-center">
-      <img src="../../../assets/logoGIMMI.png" class="img-fluid rounded logo-in-service-box" alt="Gimmi logo"
+      <img ngSrc="assets/logoGIMMI.png" width="784" height="752" class="img-fluid rounded logo-in-service-box" alt=""
         uib-tooltip="Helaas geen link hier... Wacht geduldig tot iemand je een cadeau geeft."
         tooltip-class="customTooltip" tooltip-placement="bottom-left">
         <h3>Krijg cadeaus!</h3>

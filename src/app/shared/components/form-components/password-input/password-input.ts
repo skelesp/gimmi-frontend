@@ -7,6 +7,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { CursorPointer } from '../../../directives/cursor-pointer';
 
 const resolvedPromise = Promise.resolve(null);
+let nextId = 0;
 @Component({
     selector: 'gimmi-password-input',
     templateUrl: './password-input.html',
@@ -19,6 +20,8 @@ export class PasswordInput implements OnInit {
   @Input() controlName  = 'password';
   @Input() placeholder  = 'Wachtwoord';
   @Input() label : string = null;
+  /** Links the label to the input; generated, unless the parent needs a fixed id. */
+  @Input() inputId = `password-input-${nextId++}`;
   
   showPassword = false;
   passwordIcon = faUnlockAlt;

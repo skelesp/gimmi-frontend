@@ -21,3 +21,7 @@
 a { text-decoration: none; }
 a:hover { text-decoration: underline; }
 a.btn:hover, .btn:hover, .nav-link:hover, .navbar-brand:hover, .dropdown-item:hover, .page-link:hover { text-decoration: none; }
+
+
+/* Een knop die eruitziet als een gewoon icoon of tekst (sc-3324): voor klikbare iconen, zodat ze met het toetsenbord en een schermlezer bruikbaar zijn. */
+.icon-button { background: none; border: 0; padding: 0; color: inherit; line-height: inherit; cursor: pointer; }

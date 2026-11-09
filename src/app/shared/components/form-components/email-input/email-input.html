@@ -1,12 +1,13 @@
 <div [formGroup]='parentFormGroup' class='mb-3'>
   @if (label) {
-    <label>{{label}}</label>
+    <label [for]="inputId">{{label}}</label>
   }
   <div class="input-group">
     <span class="input-group-text">
       <fa-icon [icon]="mailIcon"></fa-icon>
     </span>
-    <input  [formControlName]="controlName"
+    <input  [id]="inputId"
+      [formControlName]="controlName"
       type="text"
       class="form-control"
       [placeholder]="placeholder()"

@@ -12,6 +12,8 @@ import { BindQueryparamToInput } from '../../../directives/bind-queryparam-to-in
 import { RouterLink } from '@angular/router';
 import { CursorPointer } from '../../../directives/cursor-pointer';
 
+let nextId = 0;
+
 type EmailExistsRedirectType = "wishlist" | "login";
 @Component({
     selector: 'gimmi-email-input',
@@ -25,6 +27,8 @@ export class EmailInput implements OnInit {
 
   @Input() parentFormGroup: DynamicFormGroup;
   @Input() label: string = null;
+  /** Links the label to the input; generated, unless the parent needs a fixed id. */
+  @Input() inputId = `email-input-${nextId++}`;
   readonly bindedQueryParam = input<string>(null);
   @Input() controlName = 'email';
   readonly placeholder = input('Email (login)');

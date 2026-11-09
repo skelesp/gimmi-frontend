@@ -3,7 +3,7 @@
     <div class="col-lg-9">
       @if (!infoAlertClosed) {
         <ngb-alert type="info" (close)="infoAlertClosed=true">
-          <h5>Welkom op Gimmi, dé hulp in je cadeauzoektocht!</h5>
+          <h1 class="h5">Welkom op Gimmi, dé hulp in je cadeauzoektocht!</h1>
           @if (invitedFor) {
             <p>
               Jij bent uitgenodigd om de wensenlijst van
@@ -30,8 +30,8 @@
           </p>
         </ngb-alert>
       }
-      <h3>Registreer je op Gimmi...</h3>
-      <h5>Met je e-mailadres</h5>
+      <h2 class="h3">Registreer je op Gimmi...</h2>
+      <h3 class="h5">Met je e-mailadres</h3>
       <div [hidden]="!knownUser()" class="alert alert-danger">
         Er bestaat al een gebruiker met dit emailadres. Gelieve <a [routerLink]="['/users','login']" [queryParams]="{e: $safeNavigationMigration(registrationForm.get('localAccountData.email')?.value)}">in te loggen met deze email</a> of
         een ander emailadres te gebruiken.
@@ -43,8 +43,8 @@
       </div>
       <form class="form" (submit)="register()" [formGroup]="registrationForm">
         <div class="mb-3" formGroupName="personData">
-          <label>Voornaam</label>
-          <input formControlName="firstName"
+          <label for="register-first-name">Voornaam</label>
+          <input id="register-first-name" formControlName="firstName"
             type="text"
             class="form-control">
             @if (!registrationForm.get('personData.firstName').valid && registrationForm.get('personData.firstName').touched) {
@@ -57,8 +57,8 @@
               </div>
             }
 
-            <label>Familienaam</label>
-            <input formControlName="lastName"
+            <label for="register-last-name">Familienaam</label>
+            <input id="register-last-name" formControlName="lastName"
               type="text"
               class="form-control" >
               @if (!registrationForm.get('personData.lastName').valid && registrationForm.get('personData.lastName').touched) {
@@ -71,8 +71,8 @@
                 </div>
               }
 
-              <label>Geboortedatum</label>
-              <input formControlName='birthday'
+              <label for="register-birthday">Geboortedatum</label>
+              <input id="register-birthday" formControlName='birthday'
                 type="date"
                 class="form-control">
                 @if (!registrationForm.get('personData.birthday').valid && registrationForm.get('personData.birthday').touched) {

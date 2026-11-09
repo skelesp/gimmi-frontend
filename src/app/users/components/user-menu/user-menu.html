@@ -1,9 +1,9 @@
 
 <div ngbDropdown class="d-inline-block">
-    <div ngbDropdownToggle>
+    <button type="button" ngbDropdownToggle class="icon-button">
         <fa-icon [icon]="userIcon" size="2x" class="me-1"></fa-icon>
         <span class="me-1 align-baseline">{{currentUser().firstName}}</span>
-    </div>
+    </button>
     <div ngbDropdownMenu class="dropdown-menu dropdown-menu-end">
         <a ngbDropdownItem [routerLink]="['/people', currentUser().id]">Mijn wensenlijst</a>
         <a ngbDropdownItem [routerLink]="['/users', currentUser().id]" >Mijn gegevens</a>

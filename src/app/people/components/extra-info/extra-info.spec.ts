@@ -38,11 +38,12 @@ describe('ExtraInfo', () => {
     function el(): HTMLElement { return fixture.nativeElement; }
 
     function potlood(): HTMLElement {
-        return el().querySelector('fa-icon[ng-reflect-icon], fa-icon').parentElement;
+        // The hidden container of the pencil button.
+        return el().querySelector<HTMLElement>('button[aria-label="Extra info aanpassen"]').parentElement;
     }
 
     async function bewerk() {
-        el().querySelector('fa-icon').dispatchEvent(new Event('click'));
+        el().querySelector<HTMLElement>('button[aria-label="Extra info aanpassen"]').click();
         await fixture.whenStable();
     }
 
@@ -125,7 +126,7 @@ describe('ExtraInfo', () => {
         it('een lege lijn is ongeldig: melding, geen nieuwe lijn en niet bewaren', async () => {
             await toon({ likes: [boeken], dislikes: [], personIsUser: true });
             await bewerk();
-            const plus = el().querySelectorAll('gimmi-extra-info-edit button')[0] as HTMLButtonElement;
+            const plus = el().querySelector('gimmi-extra-info-edit button[aria-label="Voeg een lijn toe"]') as HTMLButtonElement;
             plus.click();
             await fixture.whenStable();
             expect(rijen('likes').length).toBe(2);
@@ -141,7 +142,7 @@ describe('ExtraInfo', () => {
         it('een lijn verwijderen met het vuilbakje', async () => {
             await toon({ likes: [boeken, thee], dislikes: [], personIsUser: true });
             await bewerk();
-            el().querySelector('gimmi-extra-info-edit .col-1 fa-icon').dispatchEvent(new Event('click'));
+            el().querySelector<HTMLElement>('gimmi-extra-info-edit .col-1 button').click();
             await fixture.whenStable();
             expect(rijen('likes').map(r => r[0].value)).toEqual(['Thee']);
         });

@@ -1,5 +1,5 @@
-<a ngbDropdownItem [hidden]="currentUser().loginStrategy !== 'local'" (click)="logout()">
+<button type="button" ngbDropdownItem [hidden]="currentUser().loginStrategy !== 'local'" (click)="logout()">
     <div class="slide-container">
         <fa-icon [icon]="logoutIcon" class="me-1"></fa-icon>Uitloggen
     </div>
-</a>
+</button>

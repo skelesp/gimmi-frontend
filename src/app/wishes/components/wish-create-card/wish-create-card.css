@@ -6,7 +6,7 @@
 .blurred-card-overlay {
   background-color: rgba(250, 243, 243, 0.83)
 }
-.blurred-card-overlay a, .blurred-card-overlay p {
+.blurred-card-overlay a, .blurred-card-overlay p, button.blurred-card-overlay {
   color: rgb(87, 87, 87);
 }
 .pointer {

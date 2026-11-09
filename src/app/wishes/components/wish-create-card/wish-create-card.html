@@ -5,12 +5,12 @@
         <gimmi-image-view 
             class="card-img-top rounded img-fluid thumbnail inline"
         ></gimmi-image-view>
-        <span class="card-img-overlay blurred-card-overlay pointer" (click)="openCreateWish()">
-            <p class="text-center">
+        <button type="button" class="card-img-overlay blurred-card-overlay pointer w-100 h-100 border-0 rounded-0 d-flex flex-column justify-content-start" (click)="openCreateWish()">
+            <span class="d-block text-center">
                 <fa-icon [icon]='plusIcon' size='4x'></fa-icon>
                 <br />
                 <span class="h5 fw-bold">Voeg wens toe</span>
-            </p>
-        </span>
+            </span>
+        </button>
     </div>
 </div>

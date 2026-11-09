@@ -54,11 +54,14 @@ module.exports = defineConfig([
     rules: {
       // Hoort bij sc-3280 (control flow).
       "@angular-eslint/template/prefer-control-flow": "off",
-      // Toegankelijkheid van bestaande templates; zichtbaar als waarschuwing.
-      "@angular-eslint/template/label-has-associated-control": "warn",
-      "@angular-eslint/template/interactive-supports-focus": "warn",
-      "@angular-eslint/template/click-events-have-key-events": "warn",
-      "@angular-eslint/template/alt-text": "warn",
+    },
+  },
+  {
+    // Testfixtures met opzettelijk kale elementen (bv. een div met (click) voor cursor-pointer).
+    files: ["**/*.spec.ts/*.html"],
+    rules: {
+      "@angular-eslint/template/interactive-supports-focus": "off",
+      "@angular-eslint/template/click-events-have-key-events": "off",
     },
   }
 ]);
