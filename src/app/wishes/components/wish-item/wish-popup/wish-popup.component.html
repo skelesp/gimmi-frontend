@@ -3,8 +3,8 @@
   <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
 </div>
 
-@if (showWarningExistingCopy) {
-  <ngb-alert type="warning" (close)="showWarningExistingCopy = false">
+@if (showWarningExistingCopy()) {
+  <ngb-alert type="warning" (close)="showWarningExistingCopy.set(false)">
     <p>Opgelet, er staat al een kopie van deze wens op je lijst. (Mogelijks ben je dubbels aan het toevoegen)</p>
   </ngb-alert>
 }

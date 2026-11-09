@@ -9,7 +9,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'gimmi-whatsapp-button',
     templateUrl: './whatsapp-button.component.html',
     styleUrls: ['./whatsapp-button.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FaIconComponent]
 })
 export class WhatsappButtonComponent {

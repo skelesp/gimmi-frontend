@@ -27,7 +27,7 @@
           <small class="text-success">
             Er is al een wishlist gekoppeld aan dit emailadres:
             @if (emailExistsRedirectTo() === "wishlist") {
-              <a [routerLink]="['/people', knownPerson.id]">Bekijk de wensen van {{knownPerson.fullName}}</a>
+              <a [routerLink]="['/people', knownPerson().id]">Bekijk de wensen van {{knownPerson().fullName}}</a>
             }
             @if (emailExistsRedirectTo() === "login") {
               <a [routerLink]="['/users/login']" [queryParams]="{e: parentFormGroup.get(controlName).value}">Login met dit emailadres</a>

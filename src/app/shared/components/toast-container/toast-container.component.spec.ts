@@ -33,8 +33,8 @@ describe('ToastContainerComponent', () => {
 
     it('sluit de toast vanzelf na vier seconden', async () => {
         toaster.open({ text: 'ok', caption: 'Info', type: 'info' });
-        expect(toaster.toasts.length).toBe(1);
+        expect(toaster.toasts().length).toBe(1);
         await vi.advanceTimersByTimeAsync(Toaster.duration);
-        expect(toaster.toasts.length).toBe(0);
+        expect(toaster.toasts().length).toBe(0);
     });
 });

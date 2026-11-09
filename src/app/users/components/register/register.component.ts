@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DynamicFormGroup } from '../../../shared/components/form-components/dynamic-form-group';
 import { Person } from 'src/app/people/models/person.model';
@@ -17,7 +17,7 @@ import { PasswordCheckComponent } from '../../../shared/components/form-componen
     selector: 'gimmi-register',
     templateUrl: './register.component.html',
     styleUrls: ['./register.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgbAlert, CursorPointerDirective, RouterLink, ForgotPasswordLinkComponent, FormsModule, ReactiveFormsModule, EmailInputComponent, PasswordCheckComponent]
 })
 export class RegisterComponent implements OnInit {
@@ -25,7 +25,7 @@ export class RegisterComponent implements OnInit {
   private peopleService = inject(PeopleService);
 
   invitedFor: string;
-  knownUser: boolean;
+  readonly knownUser = signal(false);
   registrationForm: FormGroup<{
     personData: FormGroup<{
       firstName: FormControl<string | null>;
@@ -67,7 +67,7 @@ export class RegisterComponent implements OnInit {
       },
       error => {
         if (error.indexOf('User already exists') !== -1) {
-          this.knownUser = true;
+          this.knownUser.set(true);
         }
         console.error(error);
       }

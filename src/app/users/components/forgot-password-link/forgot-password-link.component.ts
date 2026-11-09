@@ -8,7 +8,7 @@ import { RouterLink } from '@angular/router';
                 [queryParams]="{e:attemptedEmail()}">
                 {{linkText()}}</a>`,
     styleUrls: ['./forgot-password-link.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective, RouterLink]
 })
 export class ForgotPasswordLinkComponent {

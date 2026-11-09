@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { Validators, FormsModule, ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { DynamicFormGroup } from '../../../shared/components/form-components/dynamic-form-group';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -14,7 +14,7 @@ import { PasswordCheckComponent } from '../../../shared/components/form-componen
     selector: 'gimmi-reset-password',
     templateUrl: './reset-password.component.html',
     styleUrls: ['./reset-password.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgbAlert, ForgotPasswordLinkComponent, FormsModule, ReactiveFormsModule, PasswordCheckComponent]
 })
 export class ResetPasswordComponent implements OnInit {
@@ -24,12 +24,12 @@ export class ResetPasswordComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
   resetPasswordForm: DynamicFormGroup;
-  invalidToken : boolean;
+  readonly invalidToken = signal(false);
 
   ngOnInit(): void {
     this.resetPasswordForm = new FormGroup({});
     this.route.data.subscribe( data => {
-      this.invalidToken = !data.validToken;
+      this.invalidToken.set(!data.validToken);
     });
   }
 
@@ -53,7 +53,7 @@ export class ResetPasswordComponent implements OnInit {
         'error',
         'Link vervallen'
         );
-        this.invalidToken = true;
+        this.invalidToken.set(true);
     });
   }
 

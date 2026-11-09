@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { User } from 'src/app/users/models/user.model';
@@ -14,7 +14,7 @@ import { ImageViewComponent } from '../../../../images/components/image-view/ima
     selector: 'gimmi-wish-popup',
     templateUrl: './wish-popup.component.html',
     styleUrls: ['./wish-popup.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective, NgbAlert, FormsModule, ReactiveFormsModule, ImageUploadComponent, ImageViewComponent]
 })
 export class WishPopupComponent implements OnInit {
@@ -36,7 +36,7 @@ export class WishPopupComponent implements OnInit {
   actionButtonText: string;
   popupTitle: string;
   saving = false;
-  showWarningExistingCopy = false;
+  readonly showWarningExistingCopy = signal(false);
   currentUser: User;
   /** Voorvertoning van een net gekozen afbeelding, tot de popup sluit (sc-3028). */
   imagePreview: string = null;
@@ -59,7 +59,7 @@ export class WishPopupComponent implements OnInit {
     if (this.mode === 'copy') {
       this.wishService.getCopiesOnListOf(this.wish.receiver).subscribe(receiversCopies => {
         if ( receiversCopies.find( w => w.copyOf === this.wish.copyOf ) ) {
-          this.showWarningExistingCopy = true;
+          this.showWarningExistingCopy.set(true);
         }
       })
     }

@@ -14,7 +14,7 @@ import { ImageService, STANDAARD_AFBEELDING } from '../../services/image.service
     selector: 'gimmi-image-view',
     templateUrl: './image-view.component.html',
     styleUrls: ['./image-view.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: []
 })
 export class ImageViewComponent implements OnChanges {

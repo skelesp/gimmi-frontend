@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faCalendarPlus, faCheck, faComment, faExpand, faExternalLinkAlt, faGift, faListAlt, faPaintBrush, faUser } from '@fortawesome/free-solid-svg-icons';
@@ -16,11 +16,12 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
     selector: 'gimmi-wish-page',
     templateUrl: './wish-page.component.html',
     styleUrls: ['./wish-page.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective, RouterLink, FaIconComponent, ActionListComponent, WishBannerComponent, ImageViewComponent, WishCallToActionButtonComponent, CurrencyPipe, DatePipe]
 })
 export class WishPageComponent extends WishItemComponent implements OnInit {
   protected route = inject(ActivatedRoute);
+  private changeDetector = inject(ChangeDetectorRef);
 
   wishID: string;
   listIcon: IconDefinition = faListAlt;
@@ -36,6 +37,8 @@ export class WishPageComponent extends WishItemComponent implements OnInit {
   ngOnInit(): void {
     this.wishService.selectedWish.subscribe(selectedWish => {
       this.wish = selectedWish;
+      // WishItemComponent erft een gewone @Input() wish: deze subscribe moet de weergave zelf verversen.
+      this.changeDetector.markForCheck();
     });
     super.ngOnInit();
   }

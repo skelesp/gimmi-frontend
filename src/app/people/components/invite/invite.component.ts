@@ -9,7 +9,7 @@ import { EmailInputComponent } from '../../../shared/components/form-components/
     selector: 'gimmi-invite',
     templateUrl: './invite.component.html',
     styleUrls: ['./invite.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FormsModule, ReactiveFormsModule, FaIconComponent, EmailInputComponent]
 })
 export class InviteComponent implements OnInit {

@@ -7,7 +7,7 @@ import { itemTypes } from '../extra-info.component';
     selector: 'gimmi-extra-info-view',
     templateUrl: './extra-info-view.component.html',
     styleUrls: ['./extra-info-view.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: []
 })
 export class ExtraInfoViewComponent implements OnInit {

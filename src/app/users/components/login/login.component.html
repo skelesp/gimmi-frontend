@@ -6,9 +6,9 @@
         Inloggen met Facebook kan niet meer. Had je alleen Facebook? Stel dan een wachtwoord in via
         <a [routerLink]="['/users', 'forgotpassword']">Wachtwoord vergeten</a>, met het e-mailadres van je Facebook-account.
       </div>
-      @if (loggedInUser) {
+      @if (loggedInUser()) {
         <div class="alert alert-info">
-          Je bent al ingelogd momenteel als <strong>{{loggedInUser.firstName}} {{loggedInUser.lastName}}</strong>.
+          Je bent al ingelogd momenteel als <strong>{{loggedInUser().firstName}} {{loggedInUser().lastName}}</strong>.
           <ul>
             <li>Als je verder wilt met de huidige account: <a [routerLink]="['/']">ga naar homepagina</a>.</li>
             <li>Als je toch met een andere account wilt inloggen, kan je dat hier doen. Je wordt dan automatisch uitgelogd voor je
@@ -22,7 +22,7 @@
           Na een succesvolle login zullen we je meteen naar deze pagina brengen.
         </div>
       }
-      @if (authenticationError) {
+      @if (authenticationError()) {
         <div class="alert alert-danger">
           De combinatie emailadres / wachtwoord is niet correct. <br />
           <gimmi-forgot-password-link

@@ -1,8 +1,7 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { UserService } from '../../users/service/user.service';
-import { Subscription } from 'rxjs';
-import { User } from 'src/app/users/models/user.model';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { RouterLink } from '@angular/router';
 import { CursorPointerDirective } from '../../shared/directives/cursor-pointer.directive';
@@ -12,23 +11,12 @@ import { CursorPointerDirective } from '../../shared/directives/cursor-pointer.d
     selector: 'gimmi-landing-page-banner',
     templateUrl: './landing-page-banner.component.html',
     styleUrls: ['./landing-page-banner.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FaIconComponent, RouterLink, CursorPointerDirective]
 })
-export class LandingPageBannerComponent implements OnInit, OnDestroy {
+export class LandingPageBannerComponent {
   private userService = inject(UserService);
 
   checkIcon = faCheckCircle;
-  currentUser: User;
-  currentUserSubscription: Subscription;
-
-  ngOnInit(): void {
-    this.currentUserSubscription = this.userService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.currentUserSubscription.unsubscribe();
-  }
+  readonly currentUser = toSignal(this.userService.currentUser$);
 }

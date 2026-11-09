@@ -16,7 +16,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'gimmi-gift-feedback',
     templateUrl: './gift-feedback.component.html',
     styleUrls: ['./gift-feedback.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective, FormsModule, ReactiveFormsModule, NgbRating, FaIconComponent]
 })
 export class GiftFeedbackComponent implements OnInit {

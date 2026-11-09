@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
     selector: 'gimmi-mail-to-button',
     templateUrl: './mail-to-button.component.html',
     styleUrls: ['./mail-to-button.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective, FaIconComponent, NgbCollapse, FormsModule]
 })
 export class MailToButtonComponent {

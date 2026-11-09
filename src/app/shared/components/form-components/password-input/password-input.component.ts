@@ -11,7 +11,7 @@ const resolvedPromise = Promise.resolve(null);
     selector: 'gimmi-password-input',
     templateUrl: './password-input.component.html',
     styleUrls: ['./password-input.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FormsModule, ReactiveFormsModule, FaIconComponent, CursorPointerDirective]
 })
 export class PasswordInputComponent implements OnInit {

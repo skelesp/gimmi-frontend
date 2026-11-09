@@ -104,7 +104,7 @@ describe('RegisterComponent', () => {
         vulAllesIn();
         component.register();
         fixture.detectChanges();
-        expect(component.knownUser).toBe(true);
+        expect(component.knownUser()).toBe(true);
         const melding: HTMLElement = fixture.nativeElement.querySelector('.alert-danger');
         expect(melding.hidden).toBe(false);
         expect(melding.querySelector('a').getAttribute('href')).toBe('/users/login?e=ria@gimmi.be');
@@ -115,6 +115,6 @@ describe('RegisterComponent', () => {
         users.register.mockReturnValue(throwError('Gimmi API returned code 500 with message "kapot"'));
         vulAllesIn();
         component.register();
-        expect(component.knownUser).toBeFalsy();
+        expect(component.knownUser()).toBeFalsy();
     });
 });

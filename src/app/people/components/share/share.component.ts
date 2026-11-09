@@ -12,7 +12,7 @@ import { CursorPointerDirective } from '../../../shared/directives/cursor-pointe
     selector: 'gimmi-share',
     templateUrl: './share.component.html',
     styleUrls: ['./share.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FaIconComponent, CursorPointerDirective]
 })
 export class ShareComponent {

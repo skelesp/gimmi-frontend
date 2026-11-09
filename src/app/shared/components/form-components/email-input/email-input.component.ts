@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy, inject, input } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject, input, signal } from '@angular/core';
 import { AbstractControl, AbstractControlOptions, FormControl, ValidationErrors, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DynamicFormGroup } from '../dynamic-form-group';
 import { Observable, of } from 'rxjs';
@@ -17,7 +17,7 @@ type EmailExistsRedirectType = "wishlist" | "login";
     selector: 'gimmi-email-input',
     templateUrl: './email-input.component.html',
     styleUrls: ['./email-input.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FormsModule, ReactiveFormsModule, FaIconComponent, BindQueryparamToInputDirective, RouterLink, CursorPointerDirective]
 })
 export class EmailInputComponent implements OnInit {
@@ -32,7 +32,7 @@ export class EmailInputComponent implements OnInit {
   readonly emailExistsRedirectTo = input<EmailExistsRedirectType>("wishlist");
 
   mailIcon = faAt;
-  knownPerson: Person;
+  readonly knownPerson = signal<Person>(undefined);
 
   ngOnInit(): void {
     const emailControlOptions : AbstractControlOptions = {
@@ -51,7 +51,7 @@ export class EmailInputComponent implements OnInit {
   emailExists(control: AbstractControl): Observable<ValidationErrors | null> {
     return this._peopleService.findPersonByEmail(control.value)
       .pipe(
-        tap(value => this.knownPerson = value),
+        tap(value => this.knownPerson.set(value)),
         map(personResult => { return { 'emailExists': true } }),
         catchError(error => { return of(null) })
       );

@@ -12,7 +12,7 @@ import { CursorPointerDirective } from '../../../../shared/directives/cursor-poi
     selector: 'gimmi-extra-info-edit',
     templateUrl: './extra-info-edit.component.html',
     styleUrls: ['./extra-info-edit.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FormsModule, ReactiveFormsModule, FaIconComponent, CursorPointerDirective]
 })
 export class ExtraInfoEditComponent implements OnInit {

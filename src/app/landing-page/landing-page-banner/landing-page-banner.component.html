@@ -33,13 +33,13 @@
           <div class="row justify-content-center">
             <div class="col-md-8 col-lg-7">
               <a  class="btn btn-lg btn-warning mt-2 fw-bold shadow"
-                [hidden]="currentUser"
+                [hidden]="currentUser()"
                 [routerLink]="['/users', 'register']">
               Start nu met Gimmi en ontdek het zelf!</a>
-              @if (currentUser) {
+              @if (currentUser()) {
                 <a  class="btn btn-lg btn-warning mt-2 fw-bold shadow"
-                  [routerLink]="['/people', currentUser.id]">
-                Ga naar je overzichtspagina, {{ currentUser.firstName }}!</a>
+                  [routerLink]="['/people', currentUser().id]">
+                Ga naar je overzichtspagina, {{ currentUser().firstName }}!</a>
               }
             </div>
           </div>
@@ -73,13 +73,13 @@
             </ul>
           </div>
           <div class="col-12">
-            <a class="btn btn-lg btn-warning mt-2 fw-bold shadow" [hidden]="currentUser"
+            <a class="btn btn-lg btn-warning mt-2 fw-bold shadow" [hidden]="currentUser()"
               [routerLink]="['/users', 'register']">
             Start nu met Gimmi en ontdek het zelf!</a>
-            @if (currentUser) {
+            @if (currentUser()) {
               <a class="btn btn-lg btn-warning mt-2 fw-bold shadow"
-                [routerLink]="['/people', currentUser.id]">
-              Ga naar je overzichtspagina, {{ currentUser.firstName }}!</a>
+                [routerLink]="['/people', currentUser().id]">
+              Ga naar je overzichtspagina, {{ currentUser().firstName }}!</a>
             }
           </div>
         </div>

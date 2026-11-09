@@ -15,7 +15,7 @@ import { IGekozenAfbeelding, ImagePickerComponent } from '../image-picker/image-
 @Component({
     selector: 'gimmi-image-upload',
     templateUrl: './image-upload.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ImageUploadComponent implements OnDestroy {
   private modalService = inject(NgbModal);

@@ -16,7 +16,7 @@ export type itemTypes = 'likes' | 'dislikes';
     selector: 'gimmi-extra-info',
     templateUrl: './extra-info.component.html',
     styleUrls: ['./extra-info.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [ExtraInfoViewComponent, FaIconComponent, CursorPointerDirective, FormsModule, ReactiveFormsModule, ExtraInfoEditComponent]
 })
 export class ExtraInfoComponent implements OnInit {

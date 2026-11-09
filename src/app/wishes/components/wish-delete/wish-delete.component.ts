@@ -10,7 +10,7 @@ import { CursorPointerDirective } from '../../../shared/directives/cursor-pointe
     selector: 'gimmi-wish-delete',
     templateUrl: './wish-delete.component.html',
     styleUrls: ['./wish-delete.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective]
 })
 export class WishDeleteComponent {

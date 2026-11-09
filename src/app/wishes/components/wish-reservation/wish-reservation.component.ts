@@ -13,7 +13,7 @@ import { CursorPointerDirective } from '../../../shared/directives/cursor-pointe
     selector: 'gimmi-wish-reservation',
     templateUrl: './wish-reservation.component.html',
     styleUrls: ['./wish-reservation.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective, FormsModule, ReactiveFormsModule]
 })
 export class WishReservationComponent implements OnInit {

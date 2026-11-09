@@ -77,7 +77,7 @@ describe('LandingPageComponent', () => {
     it('"Hoe werkt het?": niet ingelogd leidt de lijst-stap naar registreren en is er niets te delen', () => {
         toon(null);
         const iconen = fixture.debugElement.query(sel => sel.name === 'gimmi-how-to-use').componentInstance as HowToUseComponent;
-        expect(iconen.currentUser).toBeNull();
+        expect(iconen.currentUser()).toBeNull();
         expect(fixture.nativeElement.querySelector('gimmi-how-to-use gimmi-share')).toBeNull();
     });
 

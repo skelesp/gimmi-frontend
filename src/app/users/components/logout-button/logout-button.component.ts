@@ -10,7 +10,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'gimmi-logout-button',
     templateUrl: './logout-button.component.html',
     styleUrls: ['./logout-button.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgbDropdownItem, CursorPointerDirective, FaIconComponent]
 })
 export class LogoutButtonComponent {

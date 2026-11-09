@@ -17,7 +17,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'gimmi-wish-create-card',
     templateUrl: './wish-create-card.component.html',
     styleUrls: ['./wish-create-card.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [ImageViewComponent, CursorPointerDirective, FaIconComponent]
 })
 export class WishCreateCardComponent implements OnInit {

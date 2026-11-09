@@ -15,7 +15,7 @@ export interface ActionListItemConfig {
     selector: 'gimmi-action-list-item',
     templateUrl: './action-list-item.component.html',
     styleUrls: ['./action-list-item.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective, FaIconComponent]
 })
 export class ActionListItemComponent {

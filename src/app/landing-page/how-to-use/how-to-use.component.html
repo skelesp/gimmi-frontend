@@ -19,16 +19,16 @@
       cadeau's te krijgen, maak hier je ultieme wensenlijst aan!</p>
     </div>
     <div class="col-lg-3 col-md-6 text-center" >
-      @if (!currentUser) {
+      @if (!currentUser()) {
         <fa-icon
           [icon]="listIcon" size="4x" class="text-danger" ngbTooltip="Registreer en ga naar je lijst"
           tooltipClass="customTooltip" placement="bottom-left" [routerLink]="['/users/register']"
         ></fa-icon>
       }
-      @if (currentUser) {
+      @if (currentUser()) {
         <fa-icon
           [icon]="listIcon" size="4x" class="text-danger" ngbTooltip="Ga naar je eigen lijst"
-          tooltipClass="customTooltip" placement="bottom-left" [routerLink]='["/people", $safeNavigationMigration(currentUser?.id)]'
+          tooltipClass="customTooltip" placement="bottom-left" [routerLink]='["/people", $safeNavigationMigration(currentUser()?.id)]'
         ></fa-icon>
       }
       <h3>Voeg wensen toe</h3>
@@ -36,11 +36,11 @@
       van een vriend op jouw lijstje!</p>
     </div>
     <div class="col-lg-3 col-md-6 text-center">
-      @if (!currentUser?.id) {
+      @if (!currentUser()?.id) {
         <fa-icon [icon]="sendIcon" size="4x" ></fa-icon>
       }
-      @if (currentUser?.id) {
-        <gimmi-share [shareIcon]="sendIcon" [personToShare]="currentUser" [iconSize]="'4x'"
+      @if (currentUser()?.id) {
+        <gimmi-share [shareIcon]="sendIcon" [personToShare]="currentUser()" [iconSize]="'4x'"
           ngbTooltip="Communiceer je lijst" tooltipClass="customTooltip" placement="bottom-left"
           class="text-danger">
         </gimmi-share>

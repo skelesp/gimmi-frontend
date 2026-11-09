@@ -8,7 +8,7 @@ import { PasswordInputComponent } from '../password-input/password-input.compone
     selector: 'gimmi-password-check',
     templateUrl: './password-check.component.html',
     styleUrls: ['./password-check.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FormsModule, ReactiveFormsModule, PasswordInputComponent]
 })
 export class PasswordCheckComponent implements OnInit {

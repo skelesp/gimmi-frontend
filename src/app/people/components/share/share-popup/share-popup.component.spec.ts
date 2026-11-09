@@ -32,7 +32,7 @@ describe('SharePopupComponent', () => {
 
     it('toont de link en volgt de ingelogde gebruiker', () => {
         expect((fixture.nativeElement.querySelector('input') as HTMLInputElement).value).toBe('https://www.gimmi.be/people/ilse');
-        expect(fixture.componentInstance.currentUser).toBe(ilse);
+        expect(fixture.componentInstance.currentUser()).toBe(ilse);
     });
 
     it('de boodschap bevat de link, url-gecodeerd', () => {
