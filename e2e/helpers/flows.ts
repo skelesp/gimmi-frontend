@@ -54,6 +54,8 @@ export async function submitLogin(page: Page, account: Account): Promise<void> {
 export async function createWish(page: Page, title: string, price = '25'): Promise<void> {
   await page.getByText('Voeg wens toe').click();
   const dialog = page.getByRole('dialog');
+  // Zonder zone.js bestaat het veld al vóór de eerste weergave en maakt die het weer leeg: eerst de titel van de popup afwachten.
+  await expect(dialog.getByRole('heading', { name: 'Voeg een wens toe' })).toBeVisible();
   await dialog.locator('#wishTitle').fill(title);
   await dialog.locator('#WishPrice').fill(price);
   await dialog.locator('button[type="submit"]').click();
