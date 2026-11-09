@@ -334,7 +334,7 @@ export class WishService {
 
   private addWishToWishlist ( newWish : Wish) : void {
     if (this._currentReceiver$.value.id === newWish.receiver.id) {
-      const wishlist = this._wishes$.value;
+      const wishlist = [...this._wishes$.value]; // nieuwe verwijzing: een signal (toSignal) negeert dezelfde array
       wishlist.unshift(newWish);
       this._wishes$.next(wishlist);
     }

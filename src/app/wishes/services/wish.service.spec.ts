@@ -253,6 +253,15 @@ describe('WishService', () => {
         });
     });
 
+    it('create: geeft een nieuwe array door, zodat een signal op de lijst de wijziging ziet (sc-3323)', () => {
+        laadLijst('w0');
+        const eerste = huidigeLijst();
+        service.create(nieuweWens()).subscribe();
+        http.expectOne(`${api}wish`).flush(wishResponse({ _id: 'w1' }));
+        flushState('w1', 'Open');
+        expect(huidigeLijst()).not.toBe(eerste);
+    });
+
     describe('update', () => {
         it('PUT met de wens, het afbeeldingsveld in de vorm van de API, en werkt de lijst bij', () => {
             const [wens] = laadLijst('w1', 'w2');
