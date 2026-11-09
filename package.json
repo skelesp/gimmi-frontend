@@ -10,7 +10,8 @@
     "lint": "ng lint",
     "api:types": "node tools/types/generate.mjs",
     "e2e": "playwright test",
-    "e2e:cleanup": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON e2e/cleanup-smoke-users.ts"
+    "e2e:cleanup": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON e2e/cleanup-smoke-users.ts",
+    "e2e:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON e2e/seed-smoke-users.ts"
   },
   "private": true,
   "dependencies": {
@@ -52,6 +53,7 @@
     "eslint": "^10.12.0",
     "istanbul-lib-instrument": "^6.0.3",
     "jsdom": "^31.0.0",
+    "mongodb": "^7.8.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "8.71.0",
     "vitest": "^5.1.0"
