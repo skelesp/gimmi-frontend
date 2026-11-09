@@ -1,0 +1,122 @@
+
+import { provideRouter } from '@angular/router';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { BehaviorSubject, of, throwError } from 'rxjs';
+
+import { environment } from 'src/environments/environment';
+import { PeopleService } from 'src/app/people/service/people.service';
+import { EmailInput } from 'src/app/shared/components/form-components/email-input/email-input';
+import { EmailInputHarness } from 'src/app/shared/components/form-components/email-input/email-input.harness';
+import { PasswordInputHarness } from 'src/app/shared/components/form-components/password-input/password-input.harness';
+import { PasswordInput } from 'src/app/shared/components/form-components/password-input/password-input';
+import { BindQueryparamToInput } from 'src/app/shared/directives/bind-queryparam-to-input';
+import { User } from '../../models/user.model';
+import { UserService } from '../../service/user.service';
+import { ForgotPasswordLink } from '../forgot-password-link/forgot-password-link';
+import { Login } from './login';
+
+// sc-1976 (login), sc-2198 (wachtwoord vergeten-link), sc-2041 (attemptedUrl).
+describe('Login', () => {
+    beforeEach(() => {
+        vi.useFakeTimers({ advanceTimeDelta: 1, shouldAdvanceTime: true });
+    });
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+    let fixture: ComponentFixture<Login>;
+    let component: Login;
+    let users: Record<string, any> & {
+        currentUser$: BehaviorSubject<User>;
+        attemptedUrl: string;
+    };
+
+    async function vulIn(email: string, password: string) {
+        const loader = TestbedHarnessEnvironment.loader(fixture);
+        await (await loader.getHarness(EmailInputHarness)).setValue(email);
+        await (await loader.getHarness(PasswordInputHarness)).setValue(password);
+    }
+
+    function tekst(): string {
+        return fixture.nativeElement.textContent;
+    }
+
+    beforeEach(async () => {
+        users = Object.assign({
+            authenticate: vi.fn().mockName("UserService.authenticate"),
+            showAuthenticationConfirmation: vi.fn().mockName("UserService.showAuthenticationConfirmation"),
+            redirectAfterAuthentication: vi.fn().mockName("UserService.redirectAfterAuthentication")
+        }, { currentUser$: new BehaviorSubject<User>(null), attemptedUrl: null as string });
+        TestBed.configureTestingModule({
+    imports: [ReactiveFormsModule, FontAwesomeModule, Login, EmailInput, PasswordInput, ForgotPasswordLink, BindQueryparamToInput],
+    providers: [
+        provideRouter([]),
+        { provide: UserService, useValue: users },
+        { provide: PeopleService, useValue: {
+                findPersonByEmail: vi.fn().mockName("PeopleService.findPersonByEmail")
+            } }
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+}).compileComponents();
+        await vi.runOnlyPendingTimersAsync();
+    });
+
+    async function maak() {
+        fixture = TestBed.createComponent(Login);
+        component = fixture.componentInstance;
+        await fixture.whenStable();
+        await vi.advanceTimersByTimeAsync(0);
+        await fixture.whenStable();
+    }
+
+    it('loginknop uitgeschakeld tot het formulier geldig is', async () => {
+        await maak();
+        const knop: HTMLButtonElement = fixture.nativeElement.querySelector('button[type=submit]');
+        expect(knop.disabled).toBe(true);
+        await vulIn('ria@gimmi.be', 'geheim');
+        expect(knop.disabled).toBe(false);
+    });
+
+    it('geslaagde login: bevestiging, redirect en een leeg formulier', async () => {
+        await maak();
+        users.authenticate.mockReturnValue(of(new User('u1', 'R', 'Ria', 'ria@gimmi.be', 'local', 't', [])));
+        await vulIn('ria@gimmi.be', 'geheim');
+        component.login();
+        expect(users.authenticate).toHaveBeenCalledWith({ email: 'ria@gimmi.be', password: 'geheim' });
+        expect(users.showAuthenticationConfirmation).toHaveBeenCalled();
+        expect(users.redirectAfterAuthentication).toHaveBeenCalled();
+        expect(component.loginForm.get('email').value).toBeNull();
+        expect(component.authenticationError()).toBe(false);
+    });
+
+    it('mislukte login: foutmelding met link "Wachtwoord vergeten?" met het e-mailadres', async () => {
+        await maak();
+        vi.spyOn(console, 'error').mockReturnValue(undefined);
+        users.authenticate.mockReturnValue(throwError('401'));
+        await vulIn('ria@gimmi.be', 'mis');
+        component.login();
+        await fixture.whenStable();
+        expect(component.authenticationError()).toBe(true);
+        expect(tekst()).toContain('De combinatie emailadres / wachtwoord is niet correct');
+        const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.alert-danger gimmi-forgot-password-link a');
+        expect(link.getAttribute('href')).toBe('/users/forgotpassword?e=ria@gimmi.be');
+    });
+
+    it('al ingelogd: melding met de naam van de huidige gebruiker', async () => {
+        users.currentUser$.next(new User('u1', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', []));
+        await maak();
+        expect(tekst()).toContain('Je bent al ingelogd momenteel als Ria Receiver');
+    });
+
+    it('attemptedUrl: toont waar de gebruiker na login heen gaat, en wist het bij verlaten', async () => {
+        users.attemptedUrl = '/people/p9';
+        await maak();
+        expect(component.redirectUrl).toBe(environment.rootSiteUrl + '/people/p9');
+        expect(tekst()).toContain('Je probeerde ' + environment.rootSiteUrl + '/people/p9 te bereiken');
+        fixture.destroy();
+        expect(users.attemptedUrl).toBeNull();
+    });
+});
