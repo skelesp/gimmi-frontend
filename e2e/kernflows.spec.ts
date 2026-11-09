@@ -1,28 +1,36 @@
 import { test, expect } from '@playwright/test';
 import { deleteAccount, smokePassword } from './helpers/api';
+import { seedAccount } from './helpers/seed';
 import { Account, login, newUserPage, register, submitLogin, wishCard } from './helpers/flows';
 
 // Smoketests voor de zes kernflows. De tests bouwen op elkaar (de wens die in
 // test 3 wordt aangemaakt, wordt in test 4 gereserveerd), dus ze draaien serieel
-// en delen de gebruikers hieronder. Na afloop verwijdert afterAll de gebruikers en hun
-// wensen weer via de API. Blijft er toch iets staan (run afgebroken): npm run e2e:cleanup.
+// en delen de gebruikers hieronder. Eigenaar en gever staan vooraf in de testdatabase (sc-3283);
+// alleen test 1 doorloopt de registratie in de UI, met een eigen account. Na afloop verwijdert afterAll de
+// gebruikers en hun wensen weer via API v2. Blijft er toch iets staan (run afgebroken): npm run e2e:cleanup.
 
 const runId = Date.now().toString(36);
 const password = smokePassword;
 const owner: Account = { firstName: 'Smoke', lastName: 'Eigenaar', email: `smoke+owner-${runId}@gimmi.be`, password };
 const giver: Account = { firstName: 'Smoke', lastName: 'Gever', email: `smoke+giver-${runId}@gimmi.be`, password };
+const newcomer: Account = { firstName: 'Smoke', lastName: 'Nieuweling', email: `smoke+newcomer-${runId}@gimmi.be`, password };
 const wishTitle = `Smoke wens ${runId}`;
 
 test.describe.configure({ mode: 'serial' });
 
 test.describe('kernflows', () => {
+  test.beforeAll(async () => {
+    await seedAccount(owner);
+    await seedAccount(giver);
+  });
+
   test.afterAll(async () => {
     // Ook opruimen als een test halverwege faalde. Wie nooit geregistreerd werd (geen id), slaan we over.
     const fouten: string[] = [];
-    for (const account of [giver, owner]) {
+    for (const account of [newcomer, giver, owner]) {
       if (!account.id) continue;
       try {
-        await deleteAccount(account.id, account.email, account.password);
+        await deleteAccount(account.email, account.password);
       } catch (err) {
         fouten.push(`${account.email}: ${(err as Error).message}`);
       }
@@ -32,8 +40,8 @@ test.describe('kernflows', () => {
 
   test('1. registreren', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
-    await register(page, owner);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(`${owner.firstName} ${owner.lastName}`);
+    await register(page, newcomer);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(`${newcomer.firstName} ${newcomer.lastName}`);
     await context.close();
   });
 
@@ -71,7 +79,7 @@ test.describe('kernflows', () => {
 
   test('4. reserveren', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
-    await register(page, giver);
+    await login(page, giver);
     await page.goto(`/people/${owner.id}`);
     const card = wishCard(page, wishTitle);
     await card.getByRole('button', { name: 'Reserveer' }).click();

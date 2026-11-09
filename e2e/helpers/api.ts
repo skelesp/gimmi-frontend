@@ -1,18 +1,20 @@
-// Rechtstreekse API-aanroepen voor de opruiming van testdata. De tests zelf gaan via de UI.
+// Rechtstreekse aanroepen van API v2 voor de opruiming van testdata en de registratietest. De tests zelf gaan via de UI.
 
-// Gedeelde testomgeving; overschrijfbaar als E2E_BASE_URL naar een andere omgeving wijst.
-export const apiUrl = (process.env.E2E_API_URL || 'https://api-test.gimmi.be/api/').replace(/\/?$/, '/');
+// Gedeelde testomgeving; overschrijfbaar met E2E_API_URL (basis van v2, met /api/v2/).
+export const apiUrl = (process.env.E2E_API_URL || 'https://api-test.gimmi.be/api/v2/').replace(/\/?$/, '/');
 
 export const smokePassword = 'Smoke-test-1!';
 
-// Alleen accounts met dit adres en deze naam mogen door de opruiming verwijderd worden.
-export const smokeEmail = /^smoke\+[a-z]+-[a-z0-9]+@gimmi\.be$/;
-export const smokeLastNames = ['Eigenaar', 'Gever', 'Opruimer'];
+// Alleen accounts met dit adres en deze naam mogen door de opruiming verwijderd worden. De registratietest
+// gebruikt een plusadres van de testmailbox, omdat de mail daar via de Gmail-API gelezen wordt.
+export const testMailbox = 'gimmi.theperfectgift';
+export const smokeEmail = new RegExp(`^(smoke\\+[a-z]+-[a-z0-9]+@gimmi\\.be|${testMailbox}\\+smoke-[a-z0-9]+@gmail\\.com)$`);
+export const smokeLastNames = ['Eigenaar', 'Gever', 'Opruimer', 'Nieuweling'];
 
-async function call(method: string, path: string, token?: string, body?: unknown): Promise<any> {
+export async function call(method: string, path: string, token?: string, body?: unknown): Promise<any> {
   const res = await fetch(apiUrl + path, {
     method,
-    headers: { 'content-type': 'application/json', ...(token ? { authorization: token } : {}) },
+    headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
     body: body === undefined ? undefined : JSON.stringify(body)
   });
   const text = await res.text();
@@ -21,23 +23,10 @@ async function call(method: string, path: string, token?: string, body?: unknown
 }
 
 export async function login(email: string, password: string): Promise<string> {
-  return (await call('POST', 'authenticate', undefined, { account: 'local', email, password })).token;
+  return (await call('POST', 'auth/token', undefined, { email, password })).token;
 }
 
-/** Verwijdert het account (en de wensen ervan) via de API, ingelogd als die gebruiker zelf. */
-export async function deleteAccount(id: string, email: string, password: string): Promise<{ deletedWishes: number; removedReservations: number }> {
-  return call('DELETE', `people/${id}`, await login(email, password));
-}
-
-export async function register(firstName: string, lastName: string, email: string, password: string): Promise<{ id: string; token: string }> {
-  const res = await call('POST', 'people', undefined, { firstname: firstName, lastname: lastName, email, password });
-  return { id: JSON.parse(Buffer.from(res.token.split('.')[1], 'base64url').toString())._id, token: res.token };
-}
-
-export async function listPeople(): Promise<{ _id: string; firstName: string; lastName: string }[]> {
-  return call('GET', 'people');
-}
-
-export async function emailOf(id: string, token: string): Promise<string> {
-  return call('GET', `people/${id}/email`, token);
+/** Verwijdert het account (met de wensen ervan) via de API: inloggen levert een vers token, en dat vraagt `DELETE /me`. */
+export async function deleteAccount(email: string, password: string): Promise<void> {
+  await call('DELETE', 'me', await login(email, password));
 }

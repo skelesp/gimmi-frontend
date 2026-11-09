@@ -1,6 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { deleteAccount, smokePassword } from './helpers/api';
-import { Account, createWish, input, login, newUserPage, register, wishCard } from './helpers/flows';
+import { seedAccount } from './helpers/seed';
+import { Account, createWish, input, login, newUserPage, wishCard } from './helpers/flows';
 
 // Visuele baseline vóór de Angular-klim en Bootstrap 4 → 5 (sc-3277): screenshots van de kernschermen,
 // op desktop en mobiel. De beelden zijn alleen vergelijkbaar op dezelfde renderer, dus draaien ze in CI
@@ -29,12 +30,17 @@ async function shot(page: Page, naam: string, mask: ReturnType<Page['locator']>[
 test.describe.configure({ mode: 'serial' });
 
 test.describe('visuele baseline', () => {
+  test.beforeAll(async () => {
+    await seedAccount(owner);
+    await seedAccount(giver);
+  });
+
   test.afterAll(async () => {
     const fouten: string[] = [];
     for (const account of [giver, owner]) {
       if (!account.id) continue;
       try {
-        await deleteAccount(account.id, account.email, account.password);
+        await deleteAccount(account.email, account.password);
       } catch (err) {
         fouten.push(`${account.email}: ${(err as Error).message}`);
       }
@@ -45,7 +51,7 @@ test.describe('visuele baseline', () => {
   test('voorbereiding: eigenaar met twee wensen, gever', async ({ browser }) => {
     for (const [account, wensen] of [[owner, [wensA, wensB]], [giver, []]] as [Account, string[]][]) {
       const { context, page } = await newUserPage(browser);
-      await register(page, account);
+      await login(page, account);
       for (const wens of wensen) await createWish(page, wens);
       await context.close();
     }
