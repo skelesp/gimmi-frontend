@@ -1,9 +1,8 @@
 import { NgOptimizedImage } from '@angular/common';
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { faUserPlus, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { faListAlt, faPaperPlane } from "@fortawesome/free-regular-svg-icons";
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap/tooltip';
 import { RouterLink } from '@angular/router';
@@ -19,11 +18,11 @@ import { Share } from '../../people/components/share/share';
     imports: [FaIconComponent, NgbTooltip, RouterLink, CursorPointer, Share, NgOptimizedImage]
 })
 export class HowToUse {
-  private userService = inject(UserService);
+  private auth = inject(AuthStore);
 
   registerIcon : IconDefinition = faUserPlus;
   listIcon : IconDefinition = faListAlt;
   sendIcon : IconDefinition = faPaperPlane;
-  readonly currentUser = toSignal(this.userService.currentUser$);
+  readonly currentUser = this.auth.user;
 
 }

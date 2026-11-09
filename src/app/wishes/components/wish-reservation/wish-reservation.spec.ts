@@ -6,8 +6,8 @@ import { of } from 'rxjs';
 
 import { Person } from 'src/app/people/models/person.model';
 import { NotificationService } from 'src/app/shared/services/notification.service';
-import { User } from 'src/app/users/models/user.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { IReservation, Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 import { WishReservation } from './wish-reservation';
@@ -46,7 +46,7 @@ describe('WishReservation', () => {
     imports: [ReactiveFormsModule, WishReservation],
     providers: [
         { provide: NgbActiveModal, useValue: activeModal },
-        { provide: UserService, useValue: { currentUser: new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', []) } },
+        { provide: AuthStore, useValue: fakeAuthStore(testUser({ id: 'rob', firstName: 'Rob', lastName: 'Reservator', fullName: 'Rob Reservator', email: 'rob@gimmi.be' })) },
         { provide: WishService, useValue: wishService },
         { provide: NotificationService, useValue: notifications }
     ]

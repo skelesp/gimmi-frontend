@@ -1,28 +1,27 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { BehaviorSubject } from 'rxjs';
 
-import { User } from 'src/app/users/models/user.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { SharePopup } from './share-popup';
 
 // Deelpopup met link, klembord, mail en whatsapp.
 describe('SharePopup', () => {
     let fixture: ComponentFixture<SharePopup>;
-    let currentUser$: BehaviorSubject<User>;
+    let auth: ReturnType<typeof fakeAuthStore>;
     let activeModal: Record<string, any>;
-    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
+    const ilse = testUser({ id: 'u1', firstName: 'Ilse', lastName: 'Ingelogd', fullName: 'Ilse Ingelogd', email: 'ilse@gimmi.be' });
 
     beforeEach(async () => {
-        currentUser$ = new BehaviorSubject<User>(ilse);
+        auth = fakeAuthStore(ilse);
         activeModal = { dismiss: vi.fn() };
         TestBed.overrideComponent(SharePopup, { set: { imports: [], schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
             imports: [SharePopup],
             providers: [
                 { provide: NgbActiveModal, useValue: activeModal },
-                { provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } }
+                { provide: AuthStore, useValue: auth }
             ]
         }).compileComponents();
         fixture = TestBed.createComponent(SharePopup);
@@ -44,8 +43,4 @@ describe('SharePopup', () => {
         expect(activeModal.dismiss).toHaveBeenCalledWith('Cross click');
     });
 
-    it('stopt met luisteren bij het sluiten', () => {
-        fixture.destroy();
-        expect(currentUser$.observers.length).toBe(0);
-    });
 });

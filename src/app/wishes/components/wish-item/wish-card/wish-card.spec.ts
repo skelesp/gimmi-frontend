@@ -12,8 +12,8 @@ import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { CommunicationService } from 'src/app/shared/services/communication.service';
 import { NotificationService } from 'src/app/shared/services/notification.service';
-import { User } from 'src/app/users/models/user.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { Wish, wishStatus } from '../../../models/wish.model';
 import { WishService } from '../../../services/wish.service';
 import { GiftFeedback } from '../../gift-feedback/gift-feedback';
@@ -65,7 +65,7 @@ describe('WishCard', () => {
         w.status = opties.status;
         if (opties.reservedBy)
             w.reservation = { reservedBy: opties.reservedBy, amount: 1, reservationDate: null, reason: null };
-        w.setUserIsFlags(new User(opties.viewer, 'X', 'Y', 'x@gimmi.be', 'local', 't', []));
+        w.setUserIsFlags(testUser({ id: opties.viewer }));
         return w;
     }
 
@@ -126,7 +126,7 @@ describe('WishCard', () => {
         { provide: NgbModal, useValue: modal },
         { provide: WishService, useValue: wishService },
         { provide: NotificationService, useValue: notifications },
-        { provide: UserService, useValue: { currentUser: new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', []) } },
+        { provide: AuthStore, useValue: fakeAuthStore(testUser({ id: 'rob', firstName: 'Rob', lastName: 'Reservator', fullName: 'Rob Reservator', email: 'rob@gimmi.be' })) },
         { provide: ImageService, useValue: images },
         { provide: PeopleService, useValue: people },
         { provide: CommunicationService, useValue: communication }

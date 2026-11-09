@@ -1,6 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 import { BrandLogo } from '../brand-logo/brand-logo';
 import { PeopleSearch } from '../../../people/components/people-search/people-search';
 
@@ -17,11 +16,11 @@ import { UnknownUserMenu } from '../../../users/components/unknown-user-menu/unk
     imports: [BrandLogo, PeopleSearch, CursorPointer, UserMenu, NgbCollapse, UnknownUserMenu]
 })
 export class NavigationBar {
-  private userService = inject(UserService);
+  private auth = inject(AuthStore);
 
   public isNavbarCollapsed = true;
 
-  readonly currentUser = toSignal(this.userService.currentUser$);
+  readonly currentUser = this.auth.user;
 
   toggleNavbarCollapseState () {
     this.isNavbarCollapsed = !this.isNavbarCollapsed;

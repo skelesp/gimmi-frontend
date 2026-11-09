@@ -16,7 +16,7 @@ import { WishPopup } from './wish-popup/wish-popup';
 import { WishService } from '../../services/wish.service';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { Person } from 'src/app/people/models/person.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 import { ImageService } from 'src/app/images/services/image.service';
 import { CommunicationService } from 'src/app/shared/services/communication.service';
 import { PeopleService } from 'src/app/people/service/people.service';
@@ -30,7 +30,7 @@ export class WishItem implements OnInit {
   protected modalService = inject(NgbModal);
   protected wishService = inject(WishService);
   protected notificationService = inject(NotificationService);
-  protected userService = inject(UserService);
+  protected auth = inject(AuthStore);
   protected imageService = inject(ImageService);
   protected peopleService = inject(PeopleService);
   protected communicationService = inject(CommunicationService);
@@ -174,9 +174,9 @@ export class WishItem implements OnInit {
 
   copy() {
     const currentUser = new Person(
-      this.userService.currentUser.id,
-      this.userService.currentUser.firstName,
-      this.userService.currentUser.lastName
+      this.auth.user().id,
+      this.auth.user().firstName,
+      this.auth.user().lastName
     );
 
     const copyPopup = this.modalService.open(WishPopup);

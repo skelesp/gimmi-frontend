@@ -5,8 +5,8 @@ import { of } from 'rxjs';
 
 import { Person } from 'src/app/people/models/person.model';
 import { NotificationService } from 'src/app/shared/services/notification.service';
-import { User } from 'src/app/users/models/user.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { ImageView } from '../../../images/components/image-view/image-view';
 import { Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
@@ -15,7 +15,7 @@ import { WishCreateCard } from './wish-create-card';
 // Kaart "Voeg wens toe" vooraan in de wenslijst.
 describe('WishCreateCard', () => {
     const ria = new Person('ria', 'Ria', 'Receiver');
-    const rob = new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', []);
+    const rob = testUser({ id: 'rob', firstName: 'Rob', lastName: 'Reservator', fullName: 'Rob Reservator', email: 'rob@gimmi.be' });
     let fixture: ComponentFixture<WishCreateCard>;
     let modal: Record<string, any>;
     let popup: { componentInstance: Record<string, any>; result: Promise<any> };
@@ -43,7 +43,7 @@ describe('WishCreateCard', () => {
                 { provide: NgbModal, useValue: modal },
                 { provide: WishService, useValue: wishService },
                 { provide: NotificationService, useValue: notifications },
-                { provide: UserService, useValue: { currentUser: rob } }
+                { provide: AuthStore, useValue: fakeAuthStore(rob) }
             ]
         }).compileComponents();
         fixture = TestBed.createComponent(WishCreateCard);

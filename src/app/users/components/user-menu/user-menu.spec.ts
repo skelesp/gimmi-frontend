@@ -1,26 +1,25 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
 
-import { User } from '../../models/user.model';
-import { UserService } from '../../service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { UserMenu } from './user-menu';
 
 // Menu van de ingelogde gebruiker in de navigatiebalk.
 describe('UserMenu', () => {
     let fixture: ComponentFixture<UserMenu>;
-    let currentUser$: BehaviorSubject<User>;
-    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
+    let auth: ReturnType<typeof fakeAuthStore>;
+    const ilse = testUser({ id: 'u1', firstName: 'Ilse', lastName: 'Ingelogd', fullName: 'Ilse Ingelogd', email: 'ilse@gimmi.be' });
 
     beforeEach(async () => {
-        currentUser$ = new BehaviorSubject<User>(ilse);
+        auth = fakeAuthStore(ilse);
         TestBed.overrideComponent(UserMenu, { add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
             imports: [UserMenu],
             providers: [
                 provideRouter([]),
-                { provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } }
+                { provide: AuthStore, useValue: auth }
             ]
         }).compileComponents();
         fixture = TestBed.createComponent(UserMenu);
@@ -31,8 +30,4 @@ describe('UserMenu', () => {
         expect(fixture.nativeElement.textContent).toContain('Ilse');
     });
 
-    it('stopt met luisteren bij het verdwijnen van het menu', () => {
-        fixture.destroy();
-        expect(currentUser$.observers.length).toBe(0);
-    });
 });

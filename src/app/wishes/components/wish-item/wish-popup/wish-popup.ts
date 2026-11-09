@@ -1,8 +1,8 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
-import { User } from 'src/app/users/models/user.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { CurrentUser } from 'src/app/core/auth/auth-store';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 import { IWishImage, Wish } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
 import { CursorPointer } from '../../../../shared/directives/cursor-pointer';
@@ -19,7 +19,7 @@ import { ImageView } from '../../../../images/components/image-view/image-view';
 })
 export class WishPopup implements OnInit {
   activeModal = inject(NgbActiveModal);
-  userService = inject(UserService);
+  auth = inject(AuthStore);
   wishService = inject(WishService);
 
   @Input() wish: Wish = new Wish(null, null, null, null, null, null, null, null, null, 1);
@@ -37,7 +37,7 @@ export class WishPopup implements OnInit {
   popupTitle: string;
   saving = false;
   readonly showWarningExistingCopy = signal(false);
-  currentUser: User;
+  currentUser: CurrentUser;
   /** Voorvertoning van een net gekozen afbeelding, tot de popup sluit (sc-3028). */
   imagePreview: string = null;
 
@@ -54,7 +54,7 @@ export class WishPopup implements OnInit {
     
     this.setSaveButtonText();
 
-    this.currentUser = this.userService.currentUser;
+    this.currentUser = this.auth.user();
 
     if (this.mode === 'copy') {
       this.wishService.getCopiesOnListOf(this.wish.receiver).subscribe(receiversCopies => {

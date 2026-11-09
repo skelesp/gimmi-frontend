@@ -1,10 +1,11 @@
+import { WritableSignal, signal } from '@angular/core';
 
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { environment } from 'src/environments/environment';
 import { CommunicationService } from 'src/app/shared/services/communication.service';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 import { Person } from '../models/person.model';
 import { PeopleService } from './people.service';
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
@@ -12,22 +13,18 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 describe('PeopleService', () => {
     let service: PeopleService;
     let http: HttpTestingController;
-    let userService: {
-        currentUser: {
-            id: string;
-        } | undefined;
-    };
+    let userService: { user: WritableSignal<{ id: string } | null> };
     let communication: Record<string, any>;
 
     beforeEach(() => {
-        userService = { currentUser: { id: 'ik' } };
+        userService = { user: signal<{ id: string } | null>({ id: 'ik' }) };
         communication = {
             sendMail: vi.fn().mockName("CommunicationService.sendMail")
         };
         TestBed.configureTestingModule({
             imports: [],
             providers: [
-                { provide: UserService, useValue: userService },
+                { provide: AuthStore, useValue: userService },
                 { provide: CommunicationService, useValue: communication },
                 provideHttpClient(withXhr(), withInterceptorsFromDi()),
                 provideHttpClientTesting()
@@ -54,7 +51,7 @@ describe('PeopleService', () => {
         });
 
         it('niemand ingelogd: false', () => {
-            userService.currentUser = undefined;
+            userService.user.set(null);
             expect(service.isEqualToCurrentUser(new Person('ik', 'A', 'B'))).toBe(false);
         });
     });

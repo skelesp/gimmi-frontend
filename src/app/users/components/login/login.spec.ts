@@ -1,122 +1,132 @@
-
 import { provideRouter } from '@angular/router';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { environment } from 'src/environments/environment';
-import { PeopleService } from 'src/app/people/service/people.service';
-import { EmailInput } from 'src/app/shared/components/form-components/email-input/email-input';
-import { EmailInputHarness } from 'src/app/shared/components/form-components/email-input/email-input.harness';
-import { PasswordInputHarness } from 'src/app/shared/components/form-components/password-input/password-input.harness';
-import { PasswordInput } from 'src/app/shared/components/form-components/password-input/password-input';
-import { BindQueryparamToInput } from 'src/app/shared/directives/bind-queryparam-to-input';
-import { User } from '../../models/user.model';
-import { UserService } from '../../service/user.service';
-import { ForgotPasswordLink } from '../forgot-password-link/forgot-password-link';
+import { ApiProblem } from 'src/app/core/api/api-problem';
+import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
+import { AuthStore } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
+import { EmailFieldHarness } from 'src/app/shared/components/form-components/email-field/email-field.harness';
+import { PasswordFieldHarness } from 'src/app/shared/components/form-components/password-field/password-field.harness';
+import { NotificationService } from 'src/app/shared/services/notification.service';
 import { Login } from './login';
 
-// sc-1976 (login), sc-2198 (wachtwoord vergeten-link), sc-2041 (attemptedUrl).
+// sc-1976 (login), sc-2198 (wachtwoord vergeten-link), sc-2041 (attemptedUrl), sc-3284 (API v2).
 describe('Login', () => {
-    beforeEach(() => {
-        vi.useFakeTimers({ advanceTimeDelta: 1, shouldAdvanceTime: true });
-    });
-    afterEach(() => {
-        vi.useRealTimers();
-    });
     let fixture: ComponentFixture<Login>;
-    let component: Login;
-    let users: Record<string, any> & {
-        currentUser$: BehaviorSubject<User>;
-        attemptedUrl: string;
-    };
+    let auth: ReturnType<typeof fakeAuthStore>;
+    let problems: { show: ReturnType<typeof vi.fn> };
+    let notifications: { showNotification: ReturnType<typeof vi.fn> };
 
-    async function vulIn(email: string, password: string) {
+    async function fillIn(email: string, password: string) {
         const loader = TestbedHarnessEnvironment.loader(fixture);
-        await (await loader.getHarness(EmailInputHarness)).setValue(email);
-        await (await loader.getHarness(PasswordInputHarness)).setValue(password);
+        await (await loader.getHarness(EmailFieldHarness)).setValue(email);
+        await (await loader.getHarness(PasswordFieldHarness)).setValue(password);
     }
 
-    function tekst(): string {
+    async function submit() {
+        (fixture.nativeElement.querySelector('button[type=submit]') as HTMLButtonElement).click();
+        await fixture.whenStable();
+    }
+
+    function text(): string {
         return fixture.nativeElement.textContent;
     }
 
-    beforeEach(async () => {
-        users = Object.assign({
-            authenticate: vi.fn().mockName("UserService.authenticate"),
-            showAuthenticationConfirmation: vi.fn().mockName("UserService.showAuthenticationConfirmation"),
-            redirectAfterAuthentication: vi.fn().mockName("UserService.redirectAfterAuthentication")
-        }, { currentUser$: new BehaviorSubject<User>(null), attemptedUrl: null as string });
+    beforeEach(() => {
+        auth = fakeAuthStore();
+        problems = { show: vi.fn() };
+        notifications = { showNotification: vi.fn() };
         TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, FontAwesomeModule, Login, EmailInput, PasswordInput, ForgotPasswordLink, BindQueryparamToInput],
-    providers: [
-        provideRouter([]),
-        { provide: UserService, useValue: users },
-        { provide: PeopleService, useValue: {
-                findPersonByEmail: vi.fn().mockName("PeopleService.findPersonByEmail")
-            } }
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
-}).compileComponents();
-        await vi.runOnlyPendingTimersAsync();
+            imports: [Login],
+            providers: [
+                provideRouter([]),
+                { provide: AuthStore, useValue: auth },
+                { provide: ProblemNotifier, useValue: problems },
+                { provide: NotificationService, useValue: notifications }
+            ]
+        });
     });
 
-    async function maak() {
+    async function create() {
         fixture = TestBed.createComponent(Login);
-        component = fixture.componentInstance;
-        await fixture.whenStable();
-        await vi.advanceTimersByTimeAsync(0);
         await fixture.whenStable();
     }
 
-    it('loginknop uitgeschakeld tot het formulier geldig is', async () => {
-        await maak();
-        const knop: HTMLButtonElement = fixture.nativeElement.querySelector('button[type=submit]');
-        expect(knop.disabled).toBe(true);
-        await vulIn('ria@gimmi.be', 'geheim');
-        expect(knop.disabled).toBe(false);
+    it('login button disabled until the form is valid', async () => {
+        await create();
+        const button: HTMLButtonElement = fixture.nativeElement.querySelector('button[type=submit]');
+        expect(button.disabled).toBe(true);
+        await fillIn('ria@gimmi.be', 'secret');
+        expect(button.disabled).toBe(false);
     });
 
-    it('geslaagde login: bevestiging, redirect en een leeg formulier', async () => {
-        await maak();
-        users.authenticate.mockReturnValue(of(new User('u1', 'R', 'Ria', 'ria@gimmi.be', 'local', 't', [])));
-        await vulIn('ria@gimmi.be', 'geheim');
-        component.login();
-        expect(users.authenticate).toHaveBeenCalledWith({ email: 'ria@gimmi.be', password: 'geheim' });
-        expect(users.showAuthenticationConfirmation).toHaveBeenCalled();
-        expect(users.redirectAfterAuthentication).toHaveBeenCalled();
-        expect(component.loginForm.get('email').value).toBeNull();
-        expect(component.authenticationError()).toBe(false);
+    it('shows a message for an invalid e-mail address', async () => {
+        await create();
+        const email = await TestbedHarnessEnvironment.loader(fixture).getHarness(EmailFieldHarness);
+        await email.setValue('geen-adres');
+        await email.blur();
+        expect(await email.getErrorText()).toContain('Geef een geldig emailadres in');
     });
 
-    it('mislukte login: foutmelding met link "Wachtwoord vergeten?" met het e-mailadres', async () => {
-        await maak();
-        vi.spyOn(console, 'error').mockReturnValue(undefined);
-        users.authenticate.mockReturnValue(throwError('401'));
-        await vulIn('ria@gimmi.be', 'mis');
-        component.login();
-        await fixture.whenStable();
-        expect(component.authenticationError()).toBe(true);
-        expect(tekst()).toContain('De combinatie emailadres / wachtwoord is niet correct');
+    it('successful login: logs in, welcomes, redirects and empties the form', async () => {
+        auth.login.mockReturnValue(of(testUser()));
+        await create();
+        await fillIn('ria@gimmi.be', 'secret');
+        await submit();
+        expect(auth.login).toHaveBeenCalledWith('ria@gimmi.be', 'secret');
+        expect(auth.showAuthenticationConfirmation).toHaveBeenCalled();
+        expect(auth.redirectAfterAuthentication).toHaveBeenCalled();
+        const email = await TestbedHarnessEnvironment.loader(fixture).getHarness(EmailFieldHarness);
+        expect(await email.getValue()).toBe('');
+        expect(fixture.componentInstance.authenticationError()).toBe(false);
+    });
+
+    it('wrong credentials: message with a "Wachtwoord vergeten?" link carrying the address', async () => {
+        auth.login.mockReturnValue(throwError(() => new ApiProblem({ status: 401, code: 'invalid-credentials' })));
+        await create();
+        await fillIn('ria@gimmi.be', 'wrong');
+        await submit();
+        expect(fixture.componentInstance.authenticationError()).toBe(true);
+        expect(text()).toContain('De combinatie emailadres / wachtwoord is niet correct');
         const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.alert-danger gimmi-forgot-password-link a');
         expect(link.getAttribute('href')).toBe('/users/forgotpassword?e=ria@gimmi.be');
+        expect(auth.redirectAfterAuthentication).not.toHaveBeenCalled();
     });
 
-    it('al ingelogd: melding met de naam van de huidige gebruiker', async () => {
-        users.currentUser$.next(new User('u1', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', []));
-        await maak();
-        expect(tekst()).toContain('Je bent al ingelogd momenteel als Ria Receiver');
+    it('another problem (too many attempts): a toast, not the credentials message', async () => {
+        const problem = new ApiProblem({ status: 429, code: 'rate-limited' });
+        auth.login.mockReturnValue(throwError(() => problem));
+        await create();
+        await fillIn('ria@gimmi.be', 'secret');
+        await submit();
+        expect(problems.show).toHaveBeenCalledWith(problem);
+        expect(fixture.componentInstance.authenticationError()).toBe(false);
     });
 
-    it('attemptedUrl: toont waar de gebruiker na login heen gaat, en wist het bij verlaten', async () => {
-        users.attemptedUrl = '/people/p9';
-        await maak();
-        expect(component.redirectUrl).toBe(environment.rootSiteUrl + '/people/p9');
-        expect(tekst()).toContain('Je probeerde ' + environment.rootSiteUrl + '/people/p9 te bereiken');
+    it('a failure without a problem document (network): a general toast', async () => {
+        vi.spyOn(console, 'error').mockReturnValue(undefined);
+        auth.login.mockReturnValue(throwError(() => new Error('offline')));
+        await create();
+        await fillIn('ria@gimmi.be', 'secret');
+        await submit();
+        expect(notifications.showNotification).toHaveBeenCalledWith(expect.stringContaining('Inloggen lukt nu niet'), 'error');
+    });
+
+    it('already logged in: shows the name of the current user', async () => {
+        auth.user.set(testUser({ firstName: 'Ria', lastName: 'Receiver' }));
+        await create();
+        expect(text()).toContain('Je bent al ingelogd momenteel als Ria Receiver');
+    });
+
+    it('attemptedUrl: shows where the person goes after logging in and forgets it when leaving', async () => {
+        auth.attemptedUrl = '/people/p9';
+        await create();
+        expect(fixture.componentInstance.redirectUrl).toBe(environment.rootSiteUrl + '/people/p9');
+        expect(text()).toContain('Je probeerde ' + environment.rootSiteUrl + '/people/p9 te bereiken');
         fixture.destroy();
-        expect(users.attemptedUrl).toBeNull();
+        expect(auth.attemptedUrl).toBeNull();
     });
 });

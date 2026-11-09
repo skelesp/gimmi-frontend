@@ -1,10 +1,9 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbCollapseModule, NgbConfig } from '@ng-bootstrap/ng-bootstrap';
-import { BehaviorSubject } from 'rxjs';
 
-import { User } from 'src/app/users/models/user.model';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore, CurrentUser } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { NavigationBar } from './navigation-bar';
 import { BrandLogo } from '../brand-logo/brand-logo';
 import { PeopleSearch } from '../../../people/components/people-search/people-search';
@@ -14,11 +13,11 @@ import { UnknownUserMenu } from '../../../users/components/unknown-user-menu/unk
 // Navigatiebalk (sc-2001). Het zoekveld staat vast in de balk en niet in het inklapmenu (sc-41).
 describe('NavigationBar', () => {
     let fixture: ComponentFixture<NavigationBar>;
-    let currentUser$: BehaviorSubject<User>;
-    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
+    let auth: ReturnType<typeof fakeAuthStore>;
+    const ilse = testUser({ id: 'u1', firstName: 'Ilse', lastName: 'Ingelogd', fullName: 'Ilse Ingelogd', email: 'ilse@gimmi.be' });
 
-    async function toon(user: User) {
-        currentUser$.next(user);
+    async function toon(user: CurrentUser) {
+        auth.user.set(user);
         fixture = TestBed.createComponent(NavigationBar);
         await fixture.whenStable();
     }
@@ -26,11 +25,11 @@ describe('NavigationBar', () => {
     function el(): HTMLElement { return fixture.nativeElement; }
 
     beforeEach(async () => {
-        currentUser$ = new BehaviorSubject<User>(null);
+        auth = fakeAuthStore(null);
         TestBed.overrideComponent(NavigationBar, { remove: { imports: [BrandLogo, PeopleSearch, UserMenu, UnknownUserMenu] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
     imports: [NgbCollapseModule, NavigationBar],
-    providers: [{ provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } }],
+    providers: [{ provide: AuthStore, useValue: auth }],
     schemas: [NO_ERRORS_SCHEMA]
 }).compileComponents();
         // Zonder animatie staat het menu meteen open of dicht (anders tijdelijk "collapsing").
@@ -83,17 +82,12 @@ describe('NavigationBar', () => {
 
     it('volgt in- en uitloggen', async () => {
         await toon(null);
-        currentUser$.next(ilse);
+        auth.user.set(ilse);
         await fixture.whenStable();
         expect(el().querySelector('gimmi-user-menu')).toBeTruthy();
-        currentUser$.next(null);
+        auth.user.set(null);
         await fixture.whenStable();
         expect(el().querySelector('gimmi-user-menu')).toBeNull();
     });
 
-    it('stopt met luisteren bij het verdwijnen van de balk', async () => {
-        await toon(null);
-        fixture.destroy();
-        expect(currentUser$.observers.length).toBe(0);
-    });
 });

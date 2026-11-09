@@ -6,7 +6,7 @@ import { map, catchError } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { Person, ILike, IExtraPersonInfo } from '../models/person.model';
 import { CommunicationService, MailInfo } from 'src/app/shared/services/communication.service';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 
 export interface InvitePersonData {
   email: string;
@@ -46,7 +46,7 @@ export interface IPersonSearchResponseWithUserInfo extends IPersonSearchResponse
 export class PeopleService {
   private http$ = inject(HttpClient);
   private communicationService = inject(CommunicationService);
-  private userService = inject(UserService);
+  private auth = inject(AuthStore);
 
   private _people$ : BehaviorSubject<Person[]> = new BehaviorSubject<Person[]>([]);
   public readonly people: Observable<Person[]> = this._people$.asObservable();
@@ -180,7 +180,7 @@ export class PeopleService {
    * @returns boolean (true = person is equal to current user)
    */
   public isEqualToCurrentUser( person: Person) : boolean {
-    return person ? person.id === this.userService.currentUser?.id : undefined;
+    return person ? person.id === this.auth.user()?.id : undefined;
   }
 
   /**  

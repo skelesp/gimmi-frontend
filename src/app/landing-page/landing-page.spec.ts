@@ -1,10 +1,9 @@
 import { provideRouter } from '@angular/router';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { BehaviorSubject } from 'rxjs';
 
-import { User } from '../users/models/user.model';
-import { UserService } from '../users/service/user.service';
+import { AuthStore, CurrentUser } from 'src/app/core/auth/auth-store';
+import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { Share } from '../people/components/share/share';
 import { HowToUse } from './how-to-use/how-to-use';
 import { LandingPageBanner } from './landing-page-banner/landing-page-banner';
@@ -14,11 +13,11 @@ import { LandingPage } from './landing-page';
 // De call to action navigeert naar registreren of naar de eigen lijst (sc-2381).
 describe('LandingPage', () => {
     let fixture: ComponentFixture<LandingPage>;
-    let currentUser$: BehaviorSubject<User>;
-    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
+    let auth: ReturnType<typeof fakeAuthStore>;
+    const ilse = testUser({ id: 'u1', firstName: 'Ilse', lastName: 'Ingelogd', fullName: 'Ilse Ingelogd', email: 'ilse@gimmi.be' });
 
-    async function toon(user: User) {
-        currentUser$.next(user);
+    async function toon(user: CurrentUser) {
+        auth.user.set(user);
         fixture = TestBed.createComponent(LandingPage);
         await fixture.whenStable();
     }
@@ -33,11 +32,11 @@ describe('LandingPage', () => {
     }
 
     beforeEach(async () => {
-        currentUser$ = new BehaviorSubject<User>(null);
+        auth = fakeAuthStore(null);
         TestBed.overrideComponent(HowToUse, { remove: { imports: [Share] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
     imports: [LandingPage, LandingPageBanner, HowToUse],
-    providers: [provideRouter([]), { provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } }],
+    providers: [provideRouter([]), { provide: AuthStore, useValue: auth }],
     schemas: [NO_ERRORS_SCHEMA]
 }).compileComponents();
     });
@@ -88,9 +87,4 @@ describe('LandingPage', () => {
         expect(share.nativeElement.personToShare).toBe(ilse);
     });
 
-    it('stopt met luisteren naar de gebruiker bij het verlaten van de pagina', async () => {
-        await toon(ilse);
-        fixture.destroy();
-        expect(currentUser$.observers.length).toBe(0);
-    });
 });

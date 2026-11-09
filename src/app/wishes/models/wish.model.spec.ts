@@ -1,5 +1,6 @@
 import { Person } from 'src/app/people/models/person.model';
-import { User } from 'src/app/users/models/user.model';
+import { CurrentUser } from 'src/app/core/auth/auth-store';
+import { testUser } from 'src/app/core/auth/auth-store.testing';
 import { Wish, WishScenario, wishStatus } from './wish.model';
 
 // Legt het huidige gedrag vast (sc-2979): welk scenario een wens krijgt, afhankelijk van
@@ -9,8 +10,8 @@ describe('Wish', () => {
     const creator = new Person('creator', 'Carl', 'Creator');
     const reservator = new Person('reservator', 'Rob', 'Reservator');
 
-    function user(id: string): User {
-        return new User(id, 'Achternaam', 'Voornaam', `${id}@gimmi.be`, 'local', 'token', []);
+    function user(id: string): CurrentUser {
+        return testUser({ id, lastName: 'Achternaam', firstName: 'Voornaam', fullName: 'Voornaam Achternaam', email: `${id}@gimmi.be` });
     }
 
     function wish(status: wishStatus, createdBy: Person = receiver, reservedBy?: Person): Wish {

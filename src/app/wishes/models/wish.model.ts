@@ -1,5 +1,5 @@
 import { Person } from 'src/app/people/models/person.model';
-import { User } from 'src/app/users/models/user.model';
+import { CurrentUser } from 'src/app/core/auth/auth-store';
 import { validateUrl } from 'src/app/_utility/url_utility';
 import { environment } from 'src/environments/environment';
 
@@ -77,7 +77,7 @@ export class Wish {
         return this._userIs.reservator;
     }
 
-    public setUserIsFlags(user: User) {
+    public setUserIsFlags(user: CurrentUser) {
         this._userIs = {
             receiver: user.id === this.receiver.id,
             creator: user.id === this.createdBy.id,

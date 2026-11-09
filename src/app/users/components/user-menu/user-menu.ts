@@ -1,6 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { UserService } from 'src/app/users/service/user.service';
+import { AuthStore } from 'src/app/core/auth/auth-store';
 import { faUserCircle } from "@fortawesome/free-solid-svg-icons";
 import { NgbDropdown, NgbDropdownToggle, NgbDropdownMenu, NgbDropdownItem } from '@ng-bootstrap/ng-bootstrap/dropdown';
 import { CursorPointer } from '../../../shared/directives/cursor-pointer';
@@ -16,9 +15,9 @@ import { LogoutButton } from '../logout-button/logout-button';
     imports: [NgbDropdown, CursorPointer, NgbDropdownToggle, FaIconComponent, NgbDropdownMenu, NgbDropdownItem, RouterLink, LogoutButton]
 })
 export class UserMenu {
-  private userService = inject(UserService);
+  private auth = inject(AuthStore);
 
-  readonly currentUser = toSignal(this.userService.currentUser$);
+  readonly currentUser = this.auth.user;
 
   userIcon = faUserCircle;
 

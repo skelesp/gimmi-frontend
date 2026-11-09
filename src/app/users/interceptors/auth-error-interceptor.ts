@@ -1,14 +1,14 @@
 import { inject } from '@angular/core';
 import { HttpInterceptorFn } from '@angular/common/http';
 import { throwError } from 'rxjs';
-import { UserService } from '../service/user.service';
+import { AuthStore } from '../../core/auth/auth-store';
 import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { environment } from 'src/environments/environment';
 
 export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
-  const userService = inject(UserService);
+  const auth = inject(AuthStore);
   const router = inject(Router);
   const notificationService = inject(NotificationService);
 
@@ -21,8 +21,8 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
               // Failed login call: the login screen shows its own error. Don't navigate and don't
               // remember the login page as attemptedUrl, or the next successful login redirects
               // back to the login page.
-              // v1: api/authenticate, v2: auth/token.
-              if (request.url.indexOf("api/authenticate") !== -1 || request.url.startsWith(environment.apiV2Url + 'auth/token')) {
+              // Login and renewal: auth/token.
+              if (request.url.startsWith(environment.apiV2Url + 'auth/token')) {
                 return throwError(err);
               }
 
@@ -35,15 +35,15 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
               // Handle current user
               let queryParams = {};
               
-              if (userService.currentUser) {
-                queryParams = { e: userService.currentUser.email };
-                userService.logout("401_RESPONSE");
+              if (auth.user()) {
+                queryParams = { e: auth.user().email };
+                auth.logout("401_RESPONSE");
               }
               
               // Navigate to login
               // Never return to a login/register page after authentication.
               if (!router.url.startsWith('/users/')) {
-                userService.attemptedUrl = router.url;
+                auth.attemptedUrl = router.url;
               }
               router.navigate(['users/login'], {queryParams: queryParams});
               break;
