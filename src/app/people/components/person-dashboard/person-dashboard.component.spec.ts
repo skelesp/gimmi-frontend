@@ -18,7 +18,7 @@ import { WishListComponent } from '../../../wishes/components/wish-list/wish-lis
 describe('PersonDashboardComponent', () => {
     let fixture: ComponentFixture<PersonDashboardComponent>;
     let currentUser$: BehaviorSubject<User>;
-    const ilse = new User('ilse', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', {});
+    const ilse = new User('ilse', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
 
     function ria(): Person {
         const p = new Person('ria', 'Ria', 'Receiver');
@@ -73,14 +73,14 @@ describe('PersonDashboardComponent', () => {
         expect(link.textContent.trim()).toBe('Ga naar mijn lijst');
         expect(link.hidden).toBe(false);
         expect(link.getAttribute('href')).toBe('/people/ilse');
-        expect(fixture.componentInstance.personIsUser).toBe(false);
+        expect(fixture.componentInstance.personIsUser()).toBe(false);
         expect(kind('gimmi-extra-info').nativeElement.personIsUser).toBe(false);
     });
 
     it('eigen lijst: link verborgen en extra info bewerkbaar', () => {
-        toon(ria(), new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', {}));
+        toon(ria(), new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', []));
         expect((el().querySelector('a.badge') as HTMLElement).hidden).toBe(true);
-        expect(fixture.componentInstance.personIsUser).toBe(true);
+        expect(fixture.componentInstance.personIsUser()).toBe(true);
         expect(kind('gimmi-extra-info').nativeElement.personIsUser).toBe(true);
     });
 
@@ -98,7 +98,7 @@ describe('PersonDashboardComponent', () => {
         const nieuw = { likes: [{ text: 'Puzzels', url: '' }], dislikes: [{ text: 'Sokken', url: '' }] };
         extra.triggerEventHandler('extraInfoSaved', nieuw);
         fixture.detectChanges();
-        expect(fixture.componentInstance.person.extraInfo).toBe(nieuw);
+        expect(fixture.componentInstance.person().extraInfo).toBe(nieuw);
         expect(extra.nativeElement.dislikes).toEqual([{ text: 'Sokken', url: '' }]);
     });
 });

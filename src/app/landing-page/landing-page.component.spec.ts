@@ -15,7 +15,7 @@ import { LandingPageComponent } from './landing-page.component';
 describe('LandingPageComponent', () => {
     let fixture: ComponentFixture<LandingPageComponent>;
     let currentUser$: BehaviorSubject<User>;
-    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', {});
+    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
 
     function toon(user: User) {
         currentUser$.next(user);
@@ -45,7 +45,7 @@ describe('LandingPageComponent', () => {
     it('toont de banner en "Hoe werkt het?" met de vier stappen', () => {
         toon(null);
         expect(fixture.nativeElement.querySelector('gimmi-landing-page-banner')).toBeTruthy();
-        const stappen = Array.from(fixture.nativeElement.querySelectorAll('gimmi-how-to-use h3')).map((h: HTMLElement) => h.textContent.trim());
+        const stappen = Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('gimmi-how-to-use h3')).map((h: HTMLElement) => h.textContent.trim());
         expect(stappen).toEqual(['Registreer', 'Voeg wensen toe', 'Verspreid je lijst', 'Krijg cadeaus!']);
     });
 
@@ -77,7 +77,7 @@ describe('LandingPageComponent', () => {
     it('"Hoe werkt het?": niet ingelogd leidt de lijst-stap naar registreren en is er niets te delen', () => {
         toon(null);
         const iconen = fixture.debugElement.query(sel => sel.name === 'gimmi-how-to-use').componentInstance as HowToUseComponent;
-        expect(iconen.currentUser).toBeNull();
+        expect(iconen.currentUser()).toBeNull();
         expect(fixture.nativeElement.querySelector('gimmi-how-to-use gimmi-share')).toBeNull();
     });
 

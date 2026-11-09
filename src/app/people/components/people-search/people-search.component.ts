@@ -15,7 +15,7 @@ import { FormsModule } from '@angular/forms';
     selector: 'gimmi-people-search',
     templateUrl: './people-search.component.html',
     styleUrls: ['./people-search.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FaIconComponent, NgbHighlight, FormsModule, NgbTypeahead_1]
 })
 export class PeopleSearchComponent implements OnInit, OnDestroy {
@@ -66,7 +66,7 @@ export class PeopleSearchComponent implements OnInit, OnDestroy {
     return `${person.fullName}`;
   }
 
-  onPersonSelect($event) {
+  onPersonSelect($event: { preventDefault(): void; item?: Person | null }) {
     $event.preventDefault();
     if ($event.item) {
       const personId = $event.item.id;

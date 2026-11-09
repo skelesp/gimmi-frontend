@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DynamicFormGroup } from '../dynamic-form-group';
 import { faUnlockAlt, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -10,11 +11,11 @@ const resolvedPromise = Promise.resolve(null);
     selector: 'gimmi-password-input',
     templateUrl: './password-input.component.html',
     styleUrls: ['./password-input.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FormsModule, ReactiveFormsModule, FaIconComponent, CursorPointerDirective]
 })
 export class PasswordInputComponent implements OnInit {
-  @Input() parentFormGroup : UntypedFormGroup;
+  @Input() parentFormGroup : DynamicFormGroup;
   @Input() controlName  = 'password';
   @Input() placeholder  = 'Wachtwoord';
   @Input() label : string = null;
@@ -26,7 +27,7 @@ export class PasswordInputComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
-    this.parentFormGroup.addControl(this.controlName, new UntypedFormControl(null));
+    this.parentFormGroup.addControl(this.controlName, new FormControl<string | null>(null));
     /* Add validators asynchronously to controls to prevent ExpressionChangedAfterItHasBeenCheckedError 
     Source: https://stackoverflow.com/questions/45661010/dynamic-nested-reactive-form-expressionchangedafterithasbeencheckederror
     */

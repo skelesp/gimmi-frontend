@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'gimmi-social-buttons',
     templateUrl: './social-buttons.component.html',
     styleUrls: ['./social-buttons.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FaIconComponent]
 })
 export class SocialButtonsComponent implements OnInit {

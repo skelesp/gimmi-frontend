@@ -13,7 +13,7 @@ import { WishCallToActionButtonComponent } from '../wish-call-to-action-button/w
     selector: 'gimmi-wish-card',
     templateUrl: './wish-card.component.html',
     styleUrls: ['./wish-card.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [ImageViewComponent, WishBannerComponent, CursorPointerDirective, RouterLink, ActionListComponent, WishCallToActionButtonComponent, CurrencyPipe]
 })
 export class WishCardComponent extends WishItemComponent {

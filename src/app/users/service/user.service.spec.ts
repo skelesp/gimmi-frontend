@@ -24,7 +24,7 @@ describe('UserService', () => {
     function token(overrides: object = {}): string {
         const payload = {
             id: 'u1', firstName: 'Ria', lastName: 'Receiver', email: 'ria@gimmi.be',
-            loginStrategy: 'local', accounts: [], exp: Math.floor(Date.now() / 1000) + 3600, ...overrides
+            loginStrategy: 'local', accounts: [] as unknown[], exp: Math.floor(Date.now() / 1000) + 3600, ...overrides
         };
         return `${base64url({ alg: 'HS256', typ: 'JWT' })}.${base64url(payload)}.handtekening`;
     }

@@ -6,7 +6,7 @@ import { CursorPointerDirective } from '../../directives/cursor-pointer.directiv
     selector: 'gimmi-brand-logo',
     templateUrl: './brand-logo.component.html',
     styleUrls: ['./brand-logo.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [RouterLink, CursorPointerDirective]
 })
 export class BrandLogoComponent {

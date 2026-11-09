@@ -11,7 +11,7 @@ import { environment } from 'src/environments/environment';
     selector: 'gimmi-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NavigationBarComponent, ToastContainerComponent, RouterOutlet, SocialButtonsComponent, PrivacyPolicyComponent]
 })
 export class AppComponent implements OnInit {

@@ -12,7 +12,7 @@ export interface BannerConfig {
     selector: 'gimmi-wish-banner',
     templateUrl: './wish-banner.component.html',
     styleUrls: ['./wish-banner.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FaIconComponent]
 })
 export class WishBannerComponent {

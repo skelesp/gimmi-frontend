@@ -1,7 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
-import { Person } from 'src/app/people/models/person.model';
+import { PersonToShare } from 'src/app/people/models/person.model';
 import { CommunicationService, MailInfo } from 'src/app/shared/services/communication.service';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { CursorPointerDirective } from '../../../../shared/directives/cursor-pointer.directive';
@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
     selector: 'gimmi-mail-to-button',
     templateUrl: './mail-to-button.component.html',
     styleUrls: ['./mail-to-button.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective, FaIconComponent, NgbCollapse, FormsModule]
 })
 export class MailToButtonComponent {
@@ -21,7 +21,7 @@ export class MailToButtonComponent {
   private notificationService = inject(NotificationService);
 
   @Input() url: string;
-  @Input() person: Person;
+  @Input() person: PersonToShare;
   mailIcon: IconDefinition = faEnvelope;
   hideMailInfo = true;
   mailAddresses: string;

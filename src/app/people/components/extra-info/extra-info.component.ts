@@ -1,7 +1,8 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy, inject, output } from '@angular/core';
 import { IExtraPersonInfo, ILike } from '../../models/person.model';
 import { faPencilAlt, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
-import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup } from '@angular/forms';
+import { DynamicFormGroup } from '../../../shared/components/form-components/dynamic-form-group';
 import { PeopleService } from '../../service/people.service';
 import { ActivatedRoute } from '@angular/router';
 
@@ -15,7 +16,7 @@ export type itemTypes = 'likes' | 'dislikes';
     selector: 'gimmi-extra-info',
     templateUrl: './extra-info.component.html',
     styleUrls: ['./extra-info.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [ExtraInfoViewComponent, FaIconComponent, CursorPointerDirective, FormsModule, ReactiveFormsModule, ExtraInfoEditComponent]
 })
 export class ExtraInfoComponent implements OnInit {
@@ -28,14 +29,14 @@ export class ExtraInfoComponent implements OnInit {
   @Input() personIsUser = false;
   readonly extraInfoSaved = output<IExtraPersonInfo>();
 
-  editItemsForm: UntypedFormGroup;
+  editItemsForm: DynamicFormGroup;
   editMode = false;
   pencilIcon = faPencilAlt;
   checkIcon = faCheck;
   cancelIcon = faTimes;
 
   ngOnInit(): void { 
-    this.editItemsForm = new UntypedFormGroup({});
+    this.editItemsForm = new FormGroup({});
   }
 
   saveExtraInfo () {
@@ -51,7 +52,7 @@ export class ExtraInfoComponent implements OnInit {
 
   resetEditForm () {
     this.editMode = false;
-    this.editItemsForm = new UntypedFormGroup({}); // This is needed or the edit form will only work the first time extra info is opened in edit mode. There might be better solutions to fix this, but it works as intended now.
+    this.editItemsForm = new FormGroup({}); // This is needed or the edit form will only work the first time extra info is opened in edit mode. There might be better solutions to fix this, but it works as intended now.
   }
 
 }

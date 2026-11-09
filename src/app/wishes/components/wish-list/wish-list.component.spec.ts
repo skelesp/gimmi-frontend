@@ -69,12 +69,12 @@ describe('WishListComponent', () => {
         component.ngOnChanges({ receiver: new SimpleChange(null, ria, true) });
         fixture.detectChanges();
         expect(wishService.getWishlist).toHaveBeenCalledWith(ria);
-        expect(component.loading).toBe(true);
+        expect(component.loading()).toBe(true);
         expect(fixture.nativeElement.querySelector('.spinner-border')).toBeTruthy();
 
         antwoord$.next([]);
         fixture.detectChanges();
-        expect(component.loading).toBe(false);
+        expect(component.loading()).toBe(false);
         expect(fixture.nativeElement.querySelector('.spinner-border')).toBeNull();
     });
 
@@ -85,14 +85,14 @@ describe('WishListComponent', () => {
 
     it('tab "Wensenlijst": open, gereserveerde en ontvangen (nog niet afgesloten) wensen', () => {
         laad([wens('open', 'Open'), wens('gereserveerd', 'Reserved'), wens('ontvangen', 'Received'), wens('vervuld', 'Fulfilled')]);
-        expect(component.wishlistFilter).toEqual(['Open', 'Received', 'Reserved']);
+        expect(component.wishlistFilter()).toEqual(['Open', 'Received', 'Reserved']);
         expect(kaarten()).toEqual(['open', 'gereserveerd', 'ontvangen']);
     });
 
     it('tab "Ontvangen cadeaus": enkel de vervulde wensen (sc-1984)', () => {
         laad([wens('open', 'Open'), wens('vervuld', 'Fulfilled'), wens('ook vervuld', 'Fulfilled')]);
         klikTab('Ontvangen cadeaus');
-        expect(component.wishlistFilter).toEqual(['Fulfilled']);
+        expect(component.wishlistFilter()).toEqual(['Fulfilled']);
         expect(kaarten()).toEqual(['vervuld', 'ook vervuld']);
 
         klikTab('Wensenlijst');
@@ -117,6 +117,6 @@ describe('WishListComponent', () => {
 
     it('onbekende filternaam valt terug op de wensenlijst', () => {
         component.setWishlistFilter('iets anders');
-        expect(component.wishlistFilter).toEqual(['Open', 'Received', 'Reserved']);
+        expect(component.wishlistFilter()).toEqual(['Open', 'Received', 'Reserved']);
     });
 });

@@ -27,7 +27,7 @@ describe('ImagePickerComponent', () => {
     });
     const fout = (status: number, reason?: string) => new HttpErrorResponse({ status, error: reason ? { error: 'x', reason } : null });
 
-    function maak(opties: {
+    async function maak(opties: {
         zoekterm?: string;
     } = {}) {
         fixture = TestBed.createComponent(ImagePickerComponent);
@@ -35,15 +35,16 @@ describe('ImagePickerComponent', () => {
         if (opties.zoekterm !== undefined)
             component.searchTerm = opties.zoekterm;
         fixture.detectChanges();
+        await fixture.whenStable();
     }
     const el = (css: string): HTMLElement => fixture.nativeElement.querySelector(css);
     const alle = (css: string): HTMLElement[] => Array.from(fixture.nativeElement.querySelectorAll(css));
     const tekst = () => fixture.nativeElement.textContent as string;
-    function klik(knoptekst: string) {
+    async function klik(knoptekst: string) {
         const knop = alle('button, a').find(b => b.textContent.trim() === knoptekst);
         expect(knop, `knop "${knoptekst}"`).toBeTruthy();
         knop.click();
-        fixture.detectChanges();
+        await fixture.whenStable();
     }
 
     beforeEach(async () => {
@@ -76,16 +77,16 @@ describe('ImagePickerComponent', () => {
     });
 
     describe('popup', () => {
-        it('titel "Kies een afbeelding", start op de tab Zoeken', () => {
-            maak();
+        it('titel "Kies een afbeelding", start op de tab Zoeken', async () => {
+            await maak();
             expect(el('.modal-title').textContent.trim()).toBe('Kies een afbeelding');
             expect(el('#kiezer-titel')).not.toBeNull();
             expect(el('.nav-link.active').textContent.trim()).toBe('Zoeken');
         });
 
-        it('Annuleer en het kruisje sluiten de popup zonder resultaat', () => {
-            maak();
-            klik('Annuleer');
+        it('Annuleer en het kruisje sluiten de popup zonder resultaat', async () => {
+            await maak();
+            await klik('Annuleer');
             (el('.modal-header .btn-close')).click();
             expect(modal.dismiss).toHaveBeenCalledTimes(2);
             expect(modal.close).not.toHaveBeenCalled();
@@ -94,7 +95,7 @@ describe('ImagePickerComponent', () => {
 
     describe('zoeken', () => {
         it('zoekt meteen op de titel van de wens (sc-1330) en toont de resultaten', async () => {
-            maak({ zoekterm: '  Rode fiets ' });
+            await maak({ zoekterm: '  Rode fiets ' });
             expect(zoekService.search).toHaveBeenCalledTimes(1);
             expect(zoekService.search).toHaveBeenCalledWith('Rode fiets');
             await fixture.whenStable(); // ngModel schrijft het veld asynchroon
@@ -105,86 +106,86 @@ describe('ImagePickerComponent', () => {
             expect(tekst()).toContain('Zoekresultaten van Brave Search');
         });
 
-        it('een thumbnail die niet laadt, verdwijnt uit het raster', () => {
-            maak({ zoekterm: 'fiets' });
+        it('een thumbnail die niet laadt, verdwijnt uit het raster', async () => {
+            await maak({ zoekterm: 'fiets' });
             alle('.resultaat img')[0].dispatchEvent(new Event('error'));
-            fixture.detectChanges();
+            await fixture.whenStable();
             expect((alle('.resultaat img') as HTMLImageElement[]).map(i => i.alt)).toEqual(['Fiets 2']);
         });
 
-        it('zonder titel: niet zoeken, wel een hint', () => {
-            maak({ zoekterm: '' });
+        it('zonder titel: niet zoeken, wel een hint', async () => {
+            await maak({ zoekterm: '' });
             expect(zoekService.search).not.toHaveBeenCalled();
             expect(tekst()).toContain('Geef een zoekterm in');
         });
 
         it('een eigen zoekterm met Enter: zoekt en houdt de standaardactie tegen', async () => {
-            maak();
+            await maak();
             await fixture.whenStable();
             const veld = el('input[type=search]') as HTMLInputElement;
             veld.value = 'blauwe step';
             veld.dispatchEvent(new Event('input'));
             const enter = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
             veld.dispatchEvent(enter);
-            fixture.detectChanges();
+            await fixture.whenStable();
             expect(enter.defaultPrevented).toBe(true);
             expect(zoekService.search).toHaveBeenCalledWith('blauwe step');
         });
 
-        it('de knop Zoek zoekt; een lege zoekterm doet niets', () => {
-            maak();
-            klik('Zoek');
+        it('de knop Zoek zoekt; een lege zoekterm doet niets', async () => {
+            await maak();
+            await klik('Zoek');
             expect(zoekService.search).not.toHaveBeenCalled();
             component.zoekterm = 'bal';
-            klik('Zoek');
+            await klik('Zoek');
             expect(zoekService.search).toHaveBeenCalledWith('bal');
         });
 
-        it('tijdens het zoeken: draaiend wieltje en de knop staat uit', () => {
+        it('tijdens het zoeken: draaiend wieltje en de knop staat uit', async () => {
             const lopend = new Subject<IImageSearchResult[]>();
             zoekService.search.mockReturnValue(lopend);
-            maak({ zoekterm: 'fiets' });
+            await maak({ zoekterm: 'fiets' });
             expect(el('.spinner-border')).not.toBeNull();
             expect((alle('button').find(b => b.textContent.trim() === 'Zoek') as HTMLButtonElement).disabled).toBe(true);
             lopend.next([]);
-            fixture.detectChanges();
+            await fixture.whenStable();
             expect(tekst()).toContain('Geen afbeeldingen gevonden');
         });
 
-        it('zoeken faalt: begrijpelijke melding met de reden van de backend', () => {
+        it('zoeken faalt: begrijpelijke melding met de reden van de backend', async () => {
             zoekService.search.mockReturnValue(throwError(fout(503, 'zoeken-niet-beschikbaar')));
-            maak({ zoekterm: 'fiets' });
+            await maak({ zoekterm: 'fiets' });
             expect(el('ngb-alert').textContent).toContain('Zoeken lukt nu even niet. Je kunt wel een foto of bestand opladen.');
             expect(alle('.resultaat').length).toBe(0);
         });
 
-        it('een nieuwe zoekopdracht breekt de vorige af', () => {
+        it('een nieuwe zoekopdracht breekt de vorige af', async () => {
             const eerste = new Subject<IImageSearchResult[]>();
             zoekService.search.mockReturnValueOnce(eerste).mockReturnValueOnce(of([resultaat(9)]));
-            maak({ zoekterm: 'fiets' });
+            await maak({ zoekterm: 'fiets' });
             component.zoekterm = 'step';
             component.zoek();
-            fixture.detectChanges();
+            await fixture.whenStable();
             expect(eerste.observers.length).toBe(0);
             expect(alle('.resultaat').length).toBe(1);
         });
     });
 
     describe('een zoekresultaat kiezen', () => {
-        it('laadt de URL op en sluit met de afbeelding en de thumbnail als voorvertoning', () => {
+        it('laadt de URL op en sluit met de afbeelding en de thumbnail als voorvertoning', async () => {
             const nieuw: IWishImage = { key: 'wishes/a.jpg', url: 'https://img-test.gimmi.be/wishes/a.jpg' };
             beelden.uploadImage.mockReturnValue(of(nieuw));
-            maak({ zoekterm: 'fiets' });
+            await maak({ zoekterm: 'fiets' });
             alle('.resultaat')[1].click();
             expect(beelden.uploadImage).toHaveBeenCalledWith('https://winkel.be/2.jpg');
             expect(modal.close).toHaveBeenCalledWith({ afbeelding: nieuw, voorvertoning: 'https://imgs.search.brave.com/2' });
         });
 
-        it('tijdens het opladen: wieltje op het gekozen resultaat, de andere staan uit', () => {
+        it('tijdens het opladen: wieltje op het gekozen resultaat, de andere staan uit', async () => {
             beelden.uploadImage.mockReturnValue(new Subject<IWishImage>());
-            maak({ zoekterm: 'fiets' });
+            await maak({ zoekterm: 'fiets' });
             alle('.resultaat')[0].click();
-            fixture.detectChanges();
+            await fixture.whenStable();
             const [eerste, tweede] = alle('.resultaat') as HTMLButtonElement[];
             expect(eerste.classList).toContain('bezig');
             expect(eerste.querySelector('.spinner-border')).not.toBeNull();
@@ -193,11 +194,11 @@ describe('ImagePickerComponent', () => {
             expect(beelden.uploadImage).toHaveBeenCalledTimes(1);
         });
 
-        it('de bronsite weigert (sc-2960): melding, resultaat uitgegrijsd, een ander kiezen kan', () => {
+        it('de bronsite weigert (sc-2960): melding, resultaat uitgegrijsd, een ander kiezen kan', async () => {
             beelden.uploadImage.mockReturnValueOnce(throwError(fout(422, 'bron-weigert'))).mockReturnValueOnce(of({ key: 'wishes/p.jpg', url: 'u' }));
-            maak({ zoekterm: 'fiets' });
+            await maak({ zoekterm: 'fiets' });
             alle('.resultaat')[0].click();
-            fixture.detectChanges();
+            await fixture.whenStable();
             expect(el('ngb-alert').textContent).toContain('Deze website laat niet toe dat we de afbeelding overnemen. Kies een andere.');
             const [eerste, tweede] = alle('.resultaat') as HTMLButtonElement[];
             expect(eerste.classList).toContain('mislukt');
@@ -208,20 +209,20 @@ describe('ImagePickerComponent', () => {
             expect(modal.close).toHaveBeenCalledWith({ afbeelding: { key: 'wishes/p.jpg', url: 'u' }, voorvertoning: 'https://imgs.search.brave.com/2' });
         });
 
-        it('een mislukt resultaat opnieuw kiezen doet niets', () => {
+        it('een mislukt resultaat opnieuw kiezen doet niets', async () => {
             beelden.uploadImage.mockReturnValue(throwError(fout(422, 'niet-gevonden')));
-            maak({ zoekterm: 'fiets' });
+            await maak({ zoekterm: 'fiets' });
             component.kies(resultaat(1));
             component.kies(resultaat(1));
             expect(beelden.uploadImage).toHaveBeenCalledTimes(1);
         });
 
-        it('popup weg tijdens zoeken en opladen: alles wordt afgebroken (sc-1391)', () => {
+        it('popup weg tijdens zoeken en opladen: alles wordt afgebroken (sc-1391)', async () => {
             const zoeken = new Subject<IImageSearchResult[]>();
             const upload = new Subject<IWishImage>();
             zoekService.search.mockReturnValue(zoeken);
             beelden.uploadImage.mockReturnValue(upload);
-            maak({ zoekterm: 'fiets' });
+            await maak({ zoekterm: 'fiets' });
             component.kies(resultaat(1));
             fixture.destroy();
             expect(zoeken.observers.length).toBe(0);
@@ -244,13 +245,13 @@ describe('ImagePickerComponent', () => {
             input.files = lijst.files;
             return component.bestandGekozen({ target: input } as unknown as Event);
         }
-        function openBestandTab() {
-            maak();
-            klik('Foto / bestand');
+        async function openBestandTab() {
+            await maak();
+            await klik('Foto / bestand');
         }
 
-        it('op desktop alleen "Bestand kiezen" (rode hoofdknop), zonder capture', () => {
-            openBestandTab();
+        it('op desktop alleen "Bestand kiezen" (rode hoofdknop), zonder capture', async () => {
+            await openBestandTab();
             const labels = alle('label');
             expect(labels.map(l => l.textContent.trim())).toEqual(['Bestand kiezen']);
             expect(labels[0].classList).toContain('btn-danger');
@@ -258,9 +259,9 @@ describe('ImagePickerComponent', () => {
             expect(el('input[type=file]').getAttribute('accept')).toBe('image/*');
         });
 
-        it('op gsm of tablet eerst "Foto nemen" met de camera achteraan', () => {
+        it('op gsm of tablet eerst "Foto nemen" met de camera achteraan', async () => {
             toestel.isTablet.mockReturnValue(true);
-            openBestandTab();
+            await openBestandTab();
             const labels = alle('label');
             expect(labels.map(l => l.textContent.trim())).toEqual(['Foto nemen', 'Bestand kiezen']);
             expect(labels[1].classList).toContain('btn-outline-danger');
@@ -269,7 +270,7 @@ describe('ImagePickerComponent', () => {
 
         it('verkleint het bestand, laadt de JPEG op als data-URI en sluit met de afbeelding en die data-URI als voorvertoning', async () => {
             beelden.uploadImage.mockReturnValue(of({ key: 'wishes/f.jpg', url: 'u' }));
-            openBestandTab();
+            await openBestandTab();
             await kiesBestand(await pngBestand());
             const [image] = vi.mocked(beelden.uploadImage).mock.lastCall;
             expect(image.startsWith('data:image/jpeg;base64,')).toBe(true);
@@ -278,57 +279,57 @@ describe('ImagePickerComponent', () => {
 
         it('tijdens het opladen: "Bezig met opladen…"', async () => {
             beelden.uploadImage.mockReturnValue(new Subject<IWishImage>());
-            openBestandTab();
+            await openBestandTab();
             await kiesBestand(await pngBestand());
-            fixture.detectChanges();
+            await fixture.whenStable();
             expect(tekst()).toContain('Bezig met opladen…');
         });
 
         it('opladen faalt: melding, popup blijft open', async () => {
             beelden.uploadImage.mockReturnValue(throwError(fout(413)));
-            openBestandTab();
+            await openBestandTab();
             await kiesBestand(await pngBestand());
-            fixture.detectChanges();
+            await fixture.whenStable();
             expect(el('ngb-alert').textContent).toContain('Deze afbeelding is te groot.');
-            expect(component.bezigMet).toBeNull();
+            expect(component.bezigMet()).toBeNull();
             expect(modal.close).not.toHaveBeenCalled();
         });
 
         it('geen afbeelding (bv. een pdf): melding, niets opgeladen', async () => {
-            openBestandTab();
+            await openBestandTab();
             await kiesBestand(new File(['%PDF'], 'x.pdf', { type: 'application/pdf' }));
-            fixture.detectChanges();
+            await fixture.whenStable();
             expect(el('ngb-alert').textContent).toContain('Dit bestand is geen bruikbare afbeelding.');
             expect(beelden.uploadImage).not.toHaveBeenCalled();
         });
 
         it('groter dan 30 MB: melding, niets opgeladen', async () => {
-            openBestandTab();
+            await openBestandTab();
             const groot = new File([new Uint8Array(1)], 'groot.jpg', { type: 'image/jpeg' });
             Object.defineProperty(groot, 'size', { value: MAX_BESTAND_BYTES + 1 });
             await kiesBestand(groot);
-            expect(component.uploadFout).toContain('te groot');
+            expect(component.uploadFout()).toContain('te groot');
             expect(beelden.uploadImage).not.toHaveBeenCalled();
         });
 
         it('onleesbare afbeelding: melding, niets opgeladen', async () => {
-            openBestandTab();
+            await openBestandTab();
             await kiesBestand(new File(['kapot'], 'kapot.jpg', { type: 'image/jpeg' }));
-            expect(component.uploadFout).toContain('kunnen we niet lezen');
-            expect(component.bezigMet).toBeNull();
+            expect(component.uploadFout()).toContain('kunnen we niet lezen');
+            expect(component.bezigMet()).toBeNull();
             expect(beelden.uploadImage).not.toHaveBeenCalled();
         });
 
         it('geen bestand gekozen (dialoog geannuleerd): niets', async () => {
-            openBestandTab();
+            await openBestandTab();
             const input = el('input[data-testid=bestand-kiezen]') as HTMLInputElement;
             await component.bestandGekozen({ target: input } as unknown as Event);
-            expect(component.uploadFout).toBeNull();
+            expect(component.uploadFout()).toBeNull();
             expect(beelden.uploadImage).not.toHaveBeenCalled();
         });
 
         it('popup gesloten tijdens het verkleinen: er wordt niets meer opgeladen', async () => {
-            openBestandTab();
+            await openBestandTab();
             const bezig = kiesBestand(await pngBestand());
             fixture.destroy();
             await bezig;
@@ -336,22 +337,22 @@ describe('ImagePickerComponent', () => {
         });
 
         it('wisselen van tab wist een oude foutmelding', async () => {
-            openBestandTab();
+            await openBestandTab();
             await kiesBestand(new File(['%PDF'], 'x.pdf', { type: 'application/pdf' }));
-            fixture.detectChanges();
-            klik('Zoeken');
+            await fixture.whenStable();
+            await klik('Zoeken');
             expect(el('ngb-alert')).toBeNull();
         });
     });
 
     describe('boodschapVoor', () => {
-        it('kent elke reden van de backend', () => {
+        it('kent elke reden van de backend', async () => {
             for (const reason of ['bron-weigert', 'niet-gevonden', 'geen-afbeelding', 'ongeldige-url', 'ongeldige-afbeelding',
                 'te-groot', 'onbereikbaar', 'rate-limit', 'zoeken-niet-beschikbaar']) {
                 expect(boodschapVoor(fout(422, reason))).not.toBe('Er ging iets mis. Probeer het opnieuw.');
             }
         });
-        it('onbekende reden, geen reden of netwerkfout: algemene melding', () => {
+        it('onbekende reden, geen reden of netwerkfout: algemene melding', async () => {
             expect(boodschapVoor(fout(422, 'iets-nieuws'))).toBe('Er ging iets mis. Probeer het opnieuw.');
             expect(boodschapVoor(fout(500))).toBe('Er ging iets mis. Probeer het opnieuw.');
             expect(boodschapVoor(fout(0))).toBe('Er ging iets mis. Probeer het opnieuw.');

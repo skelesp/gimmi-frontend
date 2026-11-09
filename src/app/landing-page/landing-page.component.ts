@@ -6,7 +6,7 @@ import { HowToUseComponent } from './how-to-use/how-to-use.component';
     selector: 'gimmi-landing-page',
     templateUrl: './landing-page.component.html',
     styleUrls: ['./landing-page.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [LandingPageBannerComponent, HowToUseComponent]
 })
 export class LandingPageComponent implements OnInit {

@@ -10,7 +10,7 @@ describe('Wish', () => {
     const reservator = new Person('reservator', 'Rob', 'Reservator');
 
     function user(id: string): User {
-        return new User(id, 'Achternaam', 'Voornaam', `${id}@gimmi.be`, 'local', 'token', {});
+        return new User(id, 'Achternaam', 'Voornaam', `${id}@gimmi.be`, 'local', 'token', []);
     }
 
     function wish(status: wishStatus, createdBy: Person = receiver, reservedBy?: Person): Wish {

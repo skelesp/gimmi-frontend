@@ -12,7 +12,7 @@ describe('SharePopupComponent', () => {
     let fixture: ComponentFixture<SharePopupComponent>;
     let currentUser$: BehaviorSubject<User>;
     let activeModal: Record<string, any>;
-    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', {});
+    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
 
     beforeEach(async () => {
         currentUser$ = new BehaviorSubject<User>(ilse);
@@ -32,7 +32,7 @@ describe('SharePopupComponent', () => {
 
     it('toont de link en volgt de ingelogde gebruiker', () => {
         expect((fixture.nativeElement.querySelector('input') as HTMLInputElement).value).toBe('https://www.gimmi.be/people/ilse');
-        expect(fixture.componentInstance.currentUser).toBe(ilse);
+        expect(fixture.componentInstance.currentUser()).toBe(ilse);
     });
 
     it('de boodschap bevat de link, url-gecodeerd', () => {

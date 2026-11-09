@@ -24,7 +24,7 @@ import { PeopleService } from 'src/app/people/service/people.service';
 @Component({
     template: '',
     styleUrls: ['./wish-item.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WishItemComponent implements OnInit {
   protected modalService = inject(NgbModal);

@@ -19,7 +19,7 @@
             },
             "index": "src/index.html",
             "polyfills": [
-              "src/polyfills.ts"
+              "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -129,9 +129,6 @@
               "chromium"
             ],
             "headless": true,
-            "setupFiles": [
-              "src/test-setup.ts"
-            ],
             "buildTarget": "gimmi:build:unit",
             "tsConfig": "tsconfig.spec.json",
             "coverageReporters": [

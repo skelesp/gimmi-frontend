@@ -1,6 +1,5 @@
-import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { User } from 'src/app/users/models/user.model';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { UserService } from 'src/app/users/service/user.service';
 import { BrandLogoComponent } from '../brand-logo/brand-logo.component';
 import { PeopleSearchComponent } from '../../../people/components/people-search/people-search.component';
@@ -14,27 +13,17 @@ import { UnknownUserMenuComponent } from '../../../users/components/unknown-user
     selector: 'gimmi-navigation-bar',
     templateUrl: './navigation-bar.component.html',
     styleUrls: ['./navigation-bar.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [BrandLogoComponent, PeopleSearchComponent, CursorPointerDirective, UserMenuComponent, NgbCollapse, UnknownUserMenuComponent]
 })
-export class NavigationBarComponent implements OnInit, OnDestroy {
+export class NavigationBarComponent {
   private userService = inject(UserService);
 
   public isNavbarCollapsed = true;
 
-  currentUser: User;
-  currentUserSubscription: Subscription;
+  readonly currentUser = toSignal(this.userService.currentUser$);
 
   toggleNavbarCollapseState () {
     this.isNavbarCollapsed = !this.isNavbarCollapsed;
-  }
-
-  ngOnInit(): void {
-    this.currentUserSubscription = this.userService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-    })
-  }
-  ngOnDestroy(): void {
-    this.currentUserSubscription.unsubscribe();
   }
 }

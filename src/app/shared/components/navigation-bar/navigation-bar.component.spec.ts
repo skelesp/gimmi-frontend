@@ -15,7 +15,7 @@ import { UnknownUserMenuComponent } from '../../../users/components/unknown-user
 describe('NavigationBarComponent', () => {
     let fixture: ComponentFixture<NavigationBarComponent>;
     let currentUser$: BehaviorSubject<User>;
-    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', {});
+    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
 
     function toon(user: User) {
         currentUser$.next(user);

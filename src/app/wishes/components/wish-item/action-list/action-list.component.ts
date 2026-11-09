@@ -10,7 +10,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'gimmi-action-list',
     templateUrl: './action-list.component.html',
     styleUrls: ['./action-list.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgbDropdown, CursorPointerDirective, NgbDropdownToggle, FaIconComponent, NgbDropdownMenu, ActionListItemComponent]
 })
 export class ActionListComponent {

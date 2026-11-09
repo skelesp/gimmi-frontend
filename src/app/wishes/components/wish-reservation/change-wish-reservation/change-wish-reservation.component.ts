@@ -9,7 +9,7 @@ import { CursorPointerDirective } from '../../../../shared/directives/cursor-poi
     selector: 'gimmi-change-wish-reservation',
     templateUrl: './change-wish-reservation.component.html',
     styleUrls: ['./change-wish-reservation.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective]
 })
 export class ChangeWishReservationComponent implements OnInit {

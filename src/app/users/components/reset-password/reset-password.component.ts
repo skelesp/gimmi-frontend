@@ -1,5 +1,6 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
-import { FormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Validators, FormsModule, ReactiveFormsModule, FormGroup } from '@angular/forms';
+import { DynamicFormGroup } from '../../../shared/components/form-components/dynamic-form-group';
 import { ActivatedRoute, Router } from '@angular/router';
 import { faWindows } from '@fortawesome/free-brands-svg-icons';
 import { NotificationService } from 'src/app/shared/services/notification.service';
@@ -13,7 +14,7 @@ import { PasswordCheckComponent } from '../../../shared/components/form-componen
     selector: 'gimmi-reset-password',
     templateUrl: './reset-password.component.html',
     styleUrls: ['./reset-password.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgbAlert, ForgotPasswordLinkComponent, FormsModule, ReactiveFormsModule, PasswordCheckComponent]
 })
 export class ResetPasswordComponent implements OnInit {
@@ -22,13 +23,13 @@ export class ResetPasswordComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  resetPasswordForm: UntypedFormGroup;
-  invalidToken : boolean;
+  resetPasswordForm: DynamicFormGroup;
+  readonly invalidToken = signal(false);
 
   ngOnInit(): void {
-    this.resetPasswordForm = new UntypedFormGroup({ });
+    this.resetPasswordForm = new FormGroup({});
     this.route.data.subscribe( data => {
-      this.invalidToken = !data.validToken;
+      this.invalidToken.set(!data.validToken);
     });
   }
 
@@ -52,7 +53,7 @@ export class ResetPasswordComponent implements OnInit {
         'error',
         'Link vervallen'
         );
-        this.invalidToken = true;
+        this.invalidToken.set(true);
     });
   }
 

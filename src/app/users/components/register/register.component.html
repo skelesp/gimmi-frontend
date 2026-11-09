@@ -32,7 +32,7 @@
       }
       <h3>Registreer je op Gimmi...</h3>
       <h5>Met je e-mailadres</h5>
-      <div [hidden]="!knownUser" class="alert alert-danger">
+      <div [hidden]="!knownUser()" class="alert alert-danger">
         Er bestaat al een gebruiker met dit emailadres. Gelieve <a [routerLink]="['/users','login']" [queryParams]="{e: $safeNavigationMigration(registrationForm.get('localAccountData.email')?.value)}">in te loggen met deze email</a> of
         een ander emailadres te gebruiken.
         <br /> Indien u uw wachtwoord vergeten bent, klik
@@ -87,14 +87,14 @@
               </div>
 
               <gimmi-email-input
-                [parentFormGroup]='registrationForm.get("localAccountData")'
+                [parentFormGroup]='registrationForm.controls.localAccountData'
                 label="Email"
                 bindedQueryParam='e'
                 [emailExistsValidation]='true'
                 emailExistsRedirectTo='login'>
               </gimmi-email-input>
               <gimmi-password-check
-                [parentFormGroup]="registrationForm.get('localAccountData')">
+                [parentFormGroup]="registrationForm.controls.localAccountData">
               </gimmi-password-check>
               <div>
                 <button type="submit" class="btn btn-danger mt-3" [disabled]='!registrationForm.valid'>Registreer</button>

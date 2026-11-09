@@ -37,7 +37,7 @@ export interface IPersonSearchResponse {
   birthday?: Date;
 }
 export interface IPersonSearchResponseWithUserInfo extends IPersonSearchResponse {
-  accounts?: any;
+  accounts?: unknown[];
 }
 
 @Injectable({
@@ -203,7 +203,7 @@ export class PeopleService {
    * @method @private
    * @description Detect if an object implements the IPersonSearchResponse
    */
-  private isInstanceOfIPersonSearchResponse(object: any): object is IPersonSearchResponse {
+  private isInstanceOfIPersonSearchResponse(object: object): object is IPersonSearchResponse {
     return 'extraInfo' in object || 'birthday' in object;
   }
 

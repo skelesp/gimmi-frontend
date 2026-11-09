@@ -1,6 +1,7 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, linkedSignal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
 import { IExtraPersonInfo, Person } from '../../models/person.model';
 import { PeopleService } from '../../service/people.service';
@@ -15,31 +16,25 @@ import { WishListComponent } from '../../../wishes/components/wish-list/wish-lis
     selector: 'gimmi-person-dashboard',
     templateUrl: './person-dashboard.component.html',
     styleUrls: ['./person-dashboard.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgbAlert, ShareComponent, CursorPointerDirective, RouterLink, ExtraInfoComponent, WishListComponent]
 })
-export class PersonDashboardComponent implements OnInit {
+export class PersonDashboardComponent {
   private userService = inject(UserService);
   private personService = inject(PeopleService);
   private route = inject(ActivatedRoute);
 
-  person : Person;
-  currrentUser : User;
-  personIsUser : boolean;
-
-  ngOnInit(): void {
-    this.userService.currentUser$.subscribe( (currentUser) => {
-      this.currrentUser = currentUser;
-    });
-
-    this.route.data.subscribe( ( data ) => {
-      this.person = data.person;
-      this.personIsUser = this.personService.isEqualToCurrentUser(this.person);
-    });
-  }
+  readonly currentUser = toSignal(this.userService.currentUser$);
+  private readonly routePerson = toSignal(this.route.data.pipe(map(data => data.person as Person)));
+  // Altijd "gewijzigd": updateExtraInfo muteert de persoon, en dat moet de weergave verversen.
+  readonly person = linkedSignal<Person, Person>({ source: this.routePerson, computation: person => person, equal: () => false });
+  readonly personIsUser = computed(() => this.personService.isEqualToCurrentUser(this.person()));
 
   updateExtraInfo(extraInfo: IExtraPersonInfo) {
-    this.person.extraInfo = extraInfo;
+    this.person.update(person => {
+      person.extraInfo = extraInfo;
+      return person;
+    });
   }
 
 }

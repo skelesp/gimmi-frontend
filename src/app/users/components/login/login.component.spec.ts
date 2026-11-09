@@ -86,7 +86,7 @@ describe('LoginComponent', () => {
         expect(users.showAuthenticationConfirmation).toHaveBeenCalled();
         expect(users.redirectAfterAuthentication).toHaveBeenCalled();
         expect(component.loginForm.get('email').value).toBeNull();
-        expect(component.authenticationError).toBe(false);
+        expect(component.authenticationError()).toBe(false);
     });
 
     it('mislukte login: foutmelding met link "Wachtwoord vergeten?" met het e-mailadres', async () => {
@@ -97,7 +97,7 @@ describe('LoginComponent', () => {
         component.login();
         await fixture.whenStable();
         fixture.detectChanges();
-        expect(component.authenticationError).toBe(true);
+        expect(component.authenticationError()).toBe(true);
         expect(tekst()).toContain('De combinatie emailadres / wachtwoord is niet correct');
         const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.alert-danger gimmi-forgot-password-link a');
         expect(link.getAttribute('href')).toBe('/users/forgotpassword?e=ria@gimmi.be');

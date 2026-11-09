@@ -25,3 +25,6 @@ export class Person {
         return `${this.firstName} ${this.lastName}`;
     }
 };
+
+/** Wat nodig is om iemand te delen; ook een ingelogde `User` voldoet. */
+export type PersonToShare = Pick<Person, 'id' | 'firstName' | 'lastName' | 'fullName'>;

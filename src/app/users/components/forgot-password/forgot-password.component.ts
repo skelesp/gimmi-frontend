@@ -1,5 +1,6 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
-import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { FormsModule, ReactiveFormsModule, FormGroup } from '@angular/forms';
+import { DynamicFormGroup } from '../../../shared/components/form-components/dynamic-form-group';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from '../../service/user.service';
 
@@ -10,24 +11,24 @@ import { EmailInputComponent } from '../../../shared/components/form-components/
     selector: 'gimmi-forgot-password',
     templateUrl: './forgot-password.component.html',
     styleUrls: ['./forgot-password.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgbAlert, FormsModule, ReactiveFormsModule, EmailInputComponent]
 })
 export class ForgotPasswordComponent implements OnInit {
   private userService = inject(UserService);
   private notificationService = inject(NotificationService);
 
-  forgotPasswordForm : UntypedFormGroup;
+  forgotPasswordForm : DynamicFormGroup;
   successAlertClosed : boolean;
-  requestSent  = false;
+  readonly requestSent = signal(false);
 
   ngOnInit(): void {
-    this.forgotPasswordForm = new UntypedFormGroup ({});
+    this.forgotPasswordForm = new FormGroup({});
   }
 
   public requestPasswordReset () : void {
     this.userService.requestPasswordReset(this.forgotPasswordForm.value.email).subscribe(() => {
-      this.requestSent = true;
+      this.requestSent.set(true);
     }, error => {
       this.notificationService.showNotification(
         'Er ging iets fout bij het aanvragen van de wachtwoord reset. Gelieve opnieuw te proberen.',

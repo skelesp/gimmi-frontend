@@ -13,7 +13,7 @@ import { CursorPointerDirective } from './cursor-pointer.directive';
     <div id="dropdown" ngbDropdown>menu</div>
     <a id="link" routerLink="/home">link</a>
     <span id="gewoon">tekst</span>`,
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [RouterLink, NgbDropdown, CursorPointerDirective]
 })
 class TestHostComponent {

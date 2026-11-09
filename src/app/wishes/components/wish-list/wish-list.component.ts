@@ -1,6 +1,7 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Person } from 'src/app/people/models/person.model';
-import { Wish, wishStatus } from '../../models/wish.model';
+import { wishStatus } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 import { NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
@@ -13,42 +14,38 @@ import { FilterOnStatePipe } from '../../pipes/filter-on-state.pipe';
     selector: 'gimmi-wish-list',
     templateUrl: './wish-list.component.html',
     styleUrls: ['./wish-list.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, CursorPointerDirective, NgbAlert, WishCreateCardComponent, WishCardComponent, FilterOnStatePipe]
 })
-export class WishListComponent implements OnInit, OnChanges {
+export class WishListComponent implements OnChanges {
   private wishService = inject(WishService);
 
   @Input() receiver : Person;
-  @Input() wishlistFilter: wishStatus[];
-  wishes: Wish[];
-  loading = false;
+  readonly wishes = toSignal(this.wishService.wishes);
+  readonly wishlistFilter = signal<wishStatus[]>(undefined);
+  readonly loading = signal(false);
   activeTab = "Open";
   
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.receiver) {
-      this.loading = true;
+      this.loading.set(true);
       this.wishService.getWishlist(this.receiver).subscribe(
         _ => {
-          this.loading = false;
+          this.loading.set(false);
           this.setWishlistFilter('Open');
         }
       );
     }
   }
 
-  ngOnInit(): void {
-    this.wishService.wishes.subscribe(wishes => this.wishes = wishes );
-  }
-
   setWishlistFilter(filter: string) {
     switch (filter) {
       case 'Received':
-        this.wishlistFilter = ['Fulfilled'];
+        this.wishlistFilter.set(['Fulfilled']);
         break;
       case 'Open':
       default:
-        this.wishlistFilter = ['Open', 'Received', 'Reserved'];
+        this.wishlistFilter.set(['Open', 'Received', 'Reserved']);
         break;
     }
   }

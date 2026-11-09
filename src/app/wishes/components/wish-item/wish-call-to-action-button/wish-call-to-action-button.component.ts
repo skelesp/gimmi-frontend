@@ -13,7 +13,7 @@ export interface CTAButtonConfig {
     selector: 'gimmi-wish-call-to-action-button',
     templateUrl: './wish-call-to-action-button.component.html',
     styleUrls: ['./wish-call-to-action-button.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective, FaIconComponent]
 })
 export class WishCallToActionButtonComponent {

@@ -192,7 +192,7 @@ describe('WishService', () => {
 
     it('addGiftFeedback: post de feedback naar /feedback', () => {
         const [wens] = laadLijst('w1');
-        const feedback = { satisfaction: 'blij', receivedOn: null, message: 'dank je', putBackOnList: false };
+        const feedback = { satisfaction: 'blij', receivedOn: null as Date, message: 'dank je', putBackOnList: false };
         let bijgewerkt: Wish;
         service.addGiftFeedback(wens, feedback).subscribe(w => bijgewerkt = w);
         const req = http.expectOne(`${api}wish/w1/feedback`);
@@ -251,6 +251,15 @@ describe('WishService', () => {
             post.flush(wishResponse({ _id: 'w1' }));
             flushState('w1', 'Open');
         });
+    });
+
+    it('create: geeft een nieuwe array door, zodat een signal op de lijst de wijziging ziet (sc-3323)', () => {
+        laadLijst('w0');
+        const eerste = huidigeLijst();
+        service.create(nieuweWens()).subscribe();
+        http.expectOne(`${api}wish`).flush(wishResponse({ _id: 'w1' }));
+        flushState('w1', 'Open');
+        expect(huidigeLijst()).not.toBe(eerste);
     });
 
     describe('update', () => {

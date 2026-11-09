@@ -8,7 +8,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'gimmi-unknown-user-menu',
     templateUrl: './unknown-user-menu.component.html',
     styleUrls: ['./unknown-user-menu.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective, RouterLink, FaIconComponent]
 })
 export class UnknownUserMenuComponent {  

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 export type ToastType = 'success' | 'danger' | 'warning' | 'info';
 
@@ -31,16 +31,16 @@ export class Toast implements ToastConfig {
 export class Toaster {
   static readonly duration = 4000;
 
-  toasts: Toast[] = [];
+  readonly toasts = signal<Toast[]>([]);
 
   open(config: ToastConfig): Toast {
     const toast = new Toast(config, t => this.close(t));
-    this.toasts.push(toast);
+    this.toasts.update(toasts => [...toasts, toast]);
     setTimeout(() => toast.close(), Toaster.duration);
     return toast;
   }
 
   private close(toast: Toast): void {
-    this.toasts = this.toasts.filter(t => t !== toast);
+    this.toasts.update(toasts => toasts.filter(t => t !== toast));
   }
 }

@@ -17,7 +17,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'gimmi-wish-create-card',
     templateUrl: './wish-create-card.component.html',
     styleUrls: ['./wish-create-card.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [ImageViewComponent, CursorPointerDirective, FaIconComponent]
 })
 export class WishCreateCardComponent implements OnInit {
@@ -53,7 +53,7 @@ export class WishCreateCardComponent implements OnInit {
       .catch( reason => this.handlePopupDismissal(reason) );
   }
 
-  private handlePopupDismissal (reason : any) : void {
+  private handlePopupDismissal (reason: unknown) : void {
     if (reason === ModalDismissReasons.ESC) reason = 'ESC pressed';
     else if (reason === ModalDismissReasons.BACKDROP_CLICK) reason = 'Backdrop click';
 

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { NgbActiveModal, NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, NgbNavContent, NgbAlert, NgbNavOutlet } from '@ng-bootstrap/ng-bootstrap';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { Subscription } from 'rxjs';
@@ -63,7 +63,7 @@ export function boodschapVoor(err: HttpErrorResponse): string {
     selector: 'gimmi-image-picker',
     templateUrl: './image-picker.component.html',
     styleUrls: ['./image-picker.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, NgbNavContent, FormsModule, NgbAlert, NgbNavOutlet]
 })
 export class ImagePickerComponent implements OnInit, OnDestroy {
@@ -76,12 +76,12 @@ export class ImagePickerComponent implements OnInit, OnDestroy {
 
   tab: KiezerTab = 'zoeken';
   zoekterm = '';
-  resultaten: IImageSearchResult[] = null;   // null = nog niet gezocht
-  zoeken = false;
-  zoekFout: string = null;
-  bezigMet: string = null;                    // url van het gekozen resultaat, of 'bestand'
-  uploadFout: string = null;
-  mislukt = new Set<string>();
+  readonly resultaten = signal<IImageSearchResult[]>(null);   // null = nog niet gezocht
+  readonly zoeken = signal(false);
+  readonly zoekFout = signal<string>(null);
+  readonly bezigMet = signal<string>(null);                    // url van het gekozen resultaat, of 'bestand'
+  readonly uploadFout = signal<string>(null);
+  readonly mislukt = signal(new Set<string>());
   toonCamera = false;
 
   private zoekSub: Subscription;
@@ -99,26 +99,26 @@ export class ImagePickerComponent implements OnInit, OnDestroy {
   }
 
   kiesTab(): void {
-    this.uploadFout = null;
+    this.uploadFout.set(null);
   }
 
   zoek(): void {
     const q = (this.zoekterm || '').trim();
     if (!q) return;
     this.zoekSub?.unsubscribe();
-    this.zoeken = true;
-    this.zoekFout = null;
-    this.uploadFout = null;
-    this.mislukt.clear();
+    this.zoeken.set(true);
+    this.zoekFout.set(null);
+    this.uploadFout.set(null);
+    this.mislukt.set(new Set());
     this.zoekSub = this.imageSearchService.search(q).subscribe({
       next: resultaten => {
-        this.resultaten = resultaten;
-        this.zoeken = false;
+        this.resultaten.set(resultaten);
+        this.zoeken.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        this.resultaten = null;
-        this.zoeken = false;
-        this.zoekFout = boodschapVoor(err);
+        this.resultaten.set(null);
+        this.zoeken.set(false);
+        this.zoekFout.set(boodschapVoor(err));
       }
     });
   }
@@ -131,11 +131,11 @@ export class ImagePickerComponent implements OnInit, OnDestroy {
 
   /** Een thumbnail die niet laadt, zou alleen zijn alt-tekst tonen: weg uit het raster. */
   verwijderResultaat(resultaat: IImageSearchResult): void {
-    this.resultaten = this.resultaten.filter(r => r !== resultaat);
+    this.resultaten.set(this.resultaten().filter(r => r !== resultaat));
   }
 
   kies(resultaat: IImageSearchResult): void {
-    if (this.bezigMet || this.mislukt.has(resultaat.url)) return;
+    if (this.bezigMet() || this.mislukt().has(resultaat.url)) return;
     this.laadOp(resultaat.url, resultaat.url, resultaat.thumbnail);
   }
 
@@ -143,25 +143,25 @@ export class ImagePickerComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const bestand = input.files && input.files[0];
     input.value = '';   // zelfde bestand nog eens kiezen moet opnieuw een change geven
-    if (!bestand || this.bezigMet) return;
+    if (!bestand || this.bezigMet()) return;
 
-    this.uploadFout = null;
+    this.uploadFout.set(null);
     if (!bestand.type.startsWith('image/')) {
-      this.uploadFout = BOODSCHAPPEN['ongeldige-afbeelding'];
+      this.uploadFout.set(BOODSCHAPPEN['ongeldige-afbeelding']);
       return;
     }
     if (bestand.size > MAX_BESTAND_BYTES) {
-      this.uploadFout = 'Dit bestand is te groot (meer dan 30 MB).';
+      this.uploadFout.set('Dit bestand is te groot (meer dan 30 MB).');
       return;
     }
 
-    this.bezigMet = BESTAND;
+    this.bezigMet.set(BESTAND);
     let dataUri: string;
     try {
       dataUri = await verkleinAfbeelding(bestand);
     } catch (e) {
-      this.bezigMet = null;
-      this.uploadFout = 'Deze afbeelding kunnen we niet lezen. Kies een andere (jpg, png, webp of gif).';
+      this.bezigMet.set(null);
+      this.uploadFout.set('Deze afbeelding kunnen we niet lezen. Kies een andere (jpg, png, webp of gif).');
       return;
     }
     // Popup gesloten tijdens het verkleinen: niets meer doen.
@@ -170,17 +170,17 @@ export class ImagePickerComponent implements OnInit, OnDestroy {
   }
 
   private laadOp(image: string, sleutel: string, voorvertoning: string): void {
-    this.bezigMet = sleutel;
-    this.uploadFout = null;
+    this.bezigMet.set(sleutel);
+    this.uploadFout.set(null);
     this.uploadSub = this.imageService.uploadImage(image).subscribe({
       next: (nieuweAfbeelding: IWishImage) => {
-        this.bezigMet = null;
+        this.bezigMet.set(null);
         this.activeModal.close({ afbeelding: nieuweAfbeelding, voorvertoning } as IGekozenAfbeelding);
       },
       error: (err: HttpErrorResponse) => {
-        this.bezigMet = null;
-        this.uploadFout = boodschapVoor(err);
-        if (sleutel !== BESTAND) this.mislukt.add(sleutel);
+        this.bezigMet.set(null);
+        this.uploadFout.set(boodschapVoor(err));
+        if (sleutel !== BESTAND) this.mislukt.update(set => new Set(set).add(sleutel));
       }
     });
   }

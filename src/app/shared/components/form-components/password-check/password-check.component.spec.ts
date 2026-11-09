@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { DynamicFormGroup } from '../dynamic-form-group';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 import { PasswordInputComponent } from '../password-input/password-input.component';
@@ -14,10 +15,10 @@ describe('PasswordCheckComponent', () => {
         vi.useRealTimers();
     });
     let fixture: ComponentFixture<PasswordCheckComponent>;
-    let form: UntypedFormGroup;
+    let form: DynamicFormGroup;
 
-    function group(): UntypedFormGroup {
-        return form.get('passwordGroup') as UntypedFormGroup;
+    function group(): DynamicFormGroup {
+        return form.get('passwordGroup') as DynamicFormGroup;
     }
 
     function fill(password: string, check: string) {
@@ -32,7 +33,7 @@ describe('PasswordCheckComponent', () => {
     imports: [ReactiveFormsModule, FontAwesomeModule, PasswordCheckComponent, PasswordInputComponent]
 }).compileComponents();
 
-        form = new UntypedFormGroup({});
+        form = new FormGroup({});
         fixture = TestBed.createComponent(PasswordCheckComponent);
         fixture.componentInstance.parentFormGroup = form;
         fixture.detectChanges();

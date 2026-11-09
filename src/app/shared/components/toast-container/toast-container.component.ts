@@ -10,7 +10,7 @@ import { CustomToastComponent } from '../custom-toast/custom-toast.component';
     template: `
     <div class="toast-overlay">
       <div class="toast-panel">
-        @for (toast of toaster.toasts; track toast) {
+        @for (toast of toaster.toasts(); track toast) {
           <gimmi-custom-toast class="toast-card" [toast]="toast"></gimmi-custom-toast>
         }
       </div>
@@ -23,7 +23,7 @@ import { CustomToastComponent } from '../custom-toast/custom-toast.component';
     @media (max-width: 575px) { .toast-overlay { display: flex; justify-content: flex-end; flex-direction: column; } .toast-panel { padding-bottom: 2px; } }
     @media (min-width: 576px) { .toast-panel { position: absolute; max-width: 20rem; top: 0; right: 1rem; } }
   `],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CustomToastComponent]
 })
 export class ToastContainerComponent {  toaster = inject(Toaster);

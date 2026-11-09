@@ -9,7 +9,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     selector: 'gimmi-copy-to-clipboard-button',
     templateUrl: './copy-to-clipboard-button.component.html',
     styleUrls: ['./copy-to-clipboard-button.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [ClipboardModule, FaIconComponent]
 })
 export class CopyToClipboardButtonComponent{

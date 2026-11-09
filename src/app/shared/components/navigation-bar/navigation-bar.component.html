@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-md sticky-top navbar-light bg-light">
   <div class="container-fluid justify-content-between"> <!-- Extra container to be able to centralised search bar-->
     <div class="navbar-brand">
-      <gimmi-brand-logo [link]="['/test', 123]"></gimmi-brand-logo>
+      <gimmi-brand-logo [link]="['/test', '123']"></gimmi-brand-logo>
     </div>
     <div>
       <div class="nav-item">
@@ -10,7 +10,7 @@
     </div>
     <div>
       <!-- Navbar collapse toggler-->
-      @if (!currentUser) {
+      @if (!currentUser()) {
         <button class="navbar-toggler navbar-toggler-right" type="button"
           (click)="toggleNavbarCollapseState()"
           >
@@ -18,7 +18,7 @@
         </button>
       }
       <!-- Full user menu (toggler and menu)-->
-      @if (currentUser) {
+      @if (currentUser()) {
         <gimmi-user-menu></gimmi-user-menu>
       }
     </div>
@@ -30,7 +30,7 @@
   This is only a quick workaround. Ideally, the toggler and menu should be in one component (eg. userMenuComponent).
   But for now I'm tired of trying to layout the navbar :-) To be continued...
   -->
-  @if (!currentUser) {
+  @if (!currentUser()) {
     <div class="navbar-collapse collapse" [ngbCollapse]="isNavbarCollapsed" >
       <gimmi-unknown-user-menu (menuItemClicked)="toggleNavbarCollapseState()"></gimmi-unknown-user-menu>
     </div>

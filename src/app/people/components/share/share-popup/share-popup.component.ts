@@ -1,8 +1,7 @@
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject, input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject, input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { Subscription } from 'rxjs';
-import { Person } from 'src/app/people/models/person.model';
-import { User } from 'src/app/users/models/user.model';
+import { PersonToShare } from 'src/app/people/models/person.model';
 import { UserService } from 'src/app/users/service/user.service';
 import { CursorPointerDirective } from '../../../../shared/directives/cursor-pointer.directive';
 import { CopyToClipboardButtonComponent } from '../copy-to-clipboard-button/copy-to-clipboard-button.component';
@@ -13,29 +12,19 @@ import { WhatsappButtonComponent } from '../whatsapp-button/whatsapp-button.comp
     selector: 'gimmi-share-popup',
     templateUrl: './share-popup.component.html',
     styleUrls: ['./share-popup.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointerDirective, CopyToClipboardButtonComponent, MailToButtonComponent, WhatsappButtonComponent]
 })
-export class SharePopupComponent implements OnInit, OnDestroy {
+export class SharePopupComponent {
   activeModal = inject(NgbActiveModal);
   private userService = inject(UserService);
 
   @Input() linkToShare : string;
-  readonly personToShare = input<Person>(undefined);
-  currentUser: User; currentUserSubscription: Subscription;
+  readonly personToShare = input<PersonToShare>(undefined);
+  readonly currentUser = toSignal(this.userService.currentUser$);
   message = 'Hey, op volgende link vind je mijn wensenlijst voor een cadeautje.';
 
-  ngOnInit(): void {
-    this.currentUserSubscription = this.userService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-    });
-  }
-  
   generateMessage () : string {
     return encodeURIComponent(`${this.message} ${this.linkToShare}`);
-  }
-  
-  ngOnDestroy(): void {
-    this.currentUserSubscription.unsubscribe();
   }
 }

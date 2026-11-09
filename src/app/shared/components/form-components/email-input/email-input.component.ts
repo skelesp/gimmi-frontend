@@ -1,5 +1,6 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy, inject, input } from '@angular/core';
-import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject, input, signal } from '@angular/core';
+import { AbstractControl, AbstractControlOptions, FormControl, ValidationErrors, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DynamicFormGroup } from '../dynamic-form-group';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { faAt } from '@fortawesome/free-solid-svg-icons'
@@ -16,13 +17,13 @@ type EmailExistsRedirectType = "wishlist" | "login";
     selector: 'gimmi-email-input',
     templateUrl: './email-input.component.html',
     styleUrls: ['./email-input.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FormsModule, ReactiveFormsModule, FaIconComponent, BindQueryparamToInputDirective, RouterLink, CursorPointerDirective]
 })
 export class EmailInputComponent implements OnInit {
   private _peopleService = inject(PeopleService);
 
-  @Input() parentFormGroup: UntypedFormGroup;
+  @Input() parentFormGroup: DynamicFormGroup;
   @Input() label: string = null;
   readonly bindedQueryParam = input<string>(null);
   @Input() controlName = 'email';
@@ -31,7 +32,7 @@ export class EmailInputComponent implements OnInit {
   readonly emailExistsRedirectTo = input<EmailExistsRedirectType>("wishlist");
 
   mailIcon = faAt;
-  knownPerson: Person;
+  readonly knownPerson = signal<Person>(undefined);
 
   ngOnInit(): void {
     const emailControlOptions : AbstractControlOptions = {
@@ -43,14 +44,14 @@ export class EmailInputComponent implements OnInit {
     }
     this.parentFormGroup.addControl(
       this.controlName,
-      new UntypedFormControl(null, emailControlOptions)
+      new FormControl<string | null>(null, emailControlOptions)
     );
   }
 
-  emailExists(control: UntypedFormControl): Promise<any> | Observable<any> {
+  emailExists(control: AbstractControl): Observable<ValidationErrors | null> {
     return this._peopleService.findPersonByEmail(control.value)
       .pipe(
-        tap(value => this.knownPerson = value),
+        tap(value => this.knownPerson.set(value)),
         map(personResult => { return { 'emailExists': true } }),
         catchError(error => { return of(null) })
       );
