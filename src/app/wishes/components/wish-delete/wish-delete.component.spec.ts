@@ -33,7 +33,7 @@ describe('WishDeleteComponent', () => {
         }).compileComponents();
         fixture = TestBed.createComponent(WishDeleteComponent);
         fixture.componentInstance.wish = wish;
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('vraagt bevestiging met de titel van de wens', () => {

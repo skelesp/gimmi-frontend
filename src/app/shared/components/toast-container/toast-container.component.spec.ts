@@ -22,12 +22,12 @@ describe('ToastContainerComponent', () => {
         fixture = TestBed.createComponent(ToastContainerComponent);
     });
 
-    it('toont een geopende toast en sluit hem met het kruisje', () => {
+    it('toont een geopende toast en sluit hem met het kruisje', async () => {
         toaster.open({ text: 'ok', caption: 'Gelukt!!', type: 'success' });
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(fixture.nativeElement.querySelectorAll('.custom-toast').length).toBe(1);
         fixture.nativeElement.querySelector('button.btn-close').click();
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(fixture.nativeElement.querySelectorAll('.custom-toast').length).toBe(0);
     });
 

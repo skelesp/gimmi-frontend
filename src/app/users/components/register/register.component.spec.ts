@@ -1,8 +1,8 @@
 
+import { provideRouter } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NgbAlertModule } from '@ng-bootstrap/ng-bootstrap';
 import { of, throwError } from 'rxjs';
@@ -31,13 +31,13 @@ describe('RegisterComponent', () => {
     let users: Record<string, any>;
     let people: Record<string, any>;
 
-    function vulAllesIn() {
+    async function vulAllesIn() {
         const f = component.registrationForm;
         f.get('personData').setValue({ firstName: 'Ria', lastName: 'Receiver', birthday: '1990-05-17' });
         f.get('localAccountData.email').setValue('ria@gimmi.be');
         f.get('localAccountData.passwordGroup.password').setValue('geheim');
         f.get('localAccountData.passwordGroup.passwordCheck').setValue('geheim');
-        fixture.detectChanges();
+        await fixture.whenStable();
     }
 
     beforeEach(async () => {
@@ -52,42 +52,42 @@ describe('RegisterComponent', () => {
         };
         people.findPersonByEmail.mockReturnValue(throwError('404'));
         TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, RouterTestingModule, FontAwesomeModule, NgbAlertModule, RegisterComponent, EmailInputComponent, PasswordInputComponent, PasswordCheckComponent,
+    imports: [ReactiveFormsModule, FontAwesomeModule, NgbAlertModule, RegisterComponent, EmailInputComponent, PasswordInputComponent, PasswordCheckComponent,
         ForgotPasswordLinkComponent, BindQueryparamToInputDirective],
-    providers: [{ provide: UserService, useValue: users }, { provide: PeopleService, useValue: people }],
+    providers: [provideRouter([]), { provide: UserService, useValue: users }, { provide: PeopleService, useValue: people }],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
 }).compileComponents();
 
         fixture = TestBed.createComponent(RegisterComponent);
         component = fixture.componentInstance;
-        fixture.detectChanges();
+        await fixture.whenStable();
         await vi.advanceTimersByTimeAsync(0);
-        fixture.detectChanges();
+        await fixture.whenStable();
         await vi.runOnlyPendingTimersAsync();
     });
 
-    it('voornaam, familienaam en geboortedatum zijn verplicht, met melding na aanraken', () => {
+    it('voornaam, familienaam en geboortedatum zijn verplicht, met melding na aanraken', async () => {
         const personData = component.registrationForm.get('personData');
         expect(personData.valid).toBe(false);
         personData.markAllAsTouched();
-        fixture.detectChanges();
+        await fixture.whenStable();
         const tekst = fixture.nativeElement.textContent;
         expect(tekst).toContain('Voornaam is een verplicht veld');
         expect(tekst).toContain('Familienaam is een verplicht veld');
         expect(tekst).toContain('Verjaardag is een verplicht veld');
     });
 
-    it('registreerknop pas actief als alles ingevuld is', () => {
+    it('registreerknop pas actief als alles ingevuld is', async () => {
         const knop: HTMLButtonElement = fixture.nativeElement.querySelector('button[type=submit]');
         expect(knop.disabled).toBe(true);
-        vulAllesIn();
+        await vulAllesIn();
         expect(component.registrationForm.valid).toBe(true);
         expect(knop.disabled).toBe(false);
     });
 
-    it('geslaagde registratie: stuurt de juiste gegevens, logt in en voegt de persoon toe', () => {
+    it('geslaagde registratie: stuurt de juiste gegevens, logt in en voegt de persoon toe', async () => {
         users.register.mockReturnValue(of(new User('u1', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', [])));
-        vulAllesIn();
+        await vulAllesIn();
         component.register();
         expect(users.register).toHaveBeenCalledWith({
             firstname: 'Ria', lastname: 'Receiver', birthday: '1990-05-17', email: 'ria@gimmi.be', password: 'geheim'
@@ -98,22 +98,22 @@ describe('RegisterComponent', () => {
         expect(vi.mocked(people.addPerson).mock.lastCall[0].id).toBe('u1');
     });
 
-    it('bestaand e-mailadres: melding met link om in te loggen', () => {
+    it('bestaand e-mailadres: melding met link om in te loggen', async () => {
         vi.spyOn(console, 'error').mockReturnValue(undefined);
         users.register.mockReturnValue(throwError('Gimmi API returned code 500 with message "User already exists"'));
-        vulAllesIn();
+        await vulAllesIn();
         component.register();
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(component.knownUser()).toBe(true);
         const melding: HTMLElement = fixture.nativeElement.querySelector('.alert-danger');
         expect(melding.hidden).toBe(false);
         expect(melding.querySelector('a').getAttribute('href')).toBe('/users/login?e=ria@gimmi.be');
     });
 
-    it('andere fout: geen melding over een bestaande gebruiker', () => {
+    it('andere fout: geen melding over een bestaande gebruiker', async () => {
         vi.spyOn(console, 'error').mockReturnValue(undefined);
         users.register.mockReturnValue(throwError('Gimmi API returned code 500 with message "kapot"'));
-        vulAllesIn();
+        await vulAllesIn();
         component.register();
         expect(component.knownUser()).toBeFalsy();
     });

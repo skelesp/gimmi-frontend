@@ -1,29 +1,28 @@
-
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
-import { Observable, of, throwError } from 'rxjs';
+import { Router, provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { of, throwError } from 'rxjs';
 
 import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { emailQueryParamGuard } from './email-query-param.guard';
 
+@Component({ template: '' })
+class DummyComponent { }
+
 // sc-2250: bekend e-mailadres op de registratiepagina gaat naar login, onbekend adres op de
 // loginpagina gaat naar registratie. De guard leest location.search.
 describe('emailQueryParamGuard', () => {
     let people: Record<string, any>;
-    let router: Router;
     let oorspronkelijk: string;
 
-    function naar(url: string, query: string): boolean | UrlTree {
-        history.replaceState(null, '', location.pathname + query);
-        let resultaat: boolean | UrlTree;
-        const r = TestBed.runInInjectionContext(() => emailQueryParamGuard({} as ActivatedRouteSnapshot, { url } as RouterStateSnapshot));
-        if (r instanceof Observable)
-            r.subscribe(v => resultaat = v as boolean | UrlTree);
-        else
-            resultaat = r as boolean | UrlTree;
-        return resultaat;
+    // De guard leest het adres uit location.search, dus zet die eerst gelijk aan de gevraagde url.
+    async function naar(url: string): Promise<string> {
+        const vraagteken = url.indexOf('?');
+        history.replaceState(null, '', location.pathname + (vraagteken === -1 ? '' : url.substring(vraagteken)));
+        await RouterTestingHarness.create(url);
+        return decodeURIComponent(TestBed.inject(Router).url);
     }
 
     beforeEach(() => {
@@ -32,39 +31,41 @@ describe('emailQueryParamGuard', () => {
             findPersonByEmail: vi.fn().mockName("PeopleService.findPersonByEmail")
         };
         TestBed.configureTestingModule({
-            imports: [RouterTestingModule],
-            providers: [{ provide: PeopleService, useValue: people }]
+            providers: [
+                provideRouter([
+                    { path: 'users/login', component: DummyComponent, canActivate: [emailQueryParamGuard] },
+                    { path: 'users/register', component: DummyComponent, canActivate: [emailQueryParamGuard] }
+                ]),
+                { provide: PeopleService, useValue: people }
+            ]
         });
-        router = TestBed.inject(Router);
         vi.spyOn(console, 'info').mockReturnValue(undefined);
     });
 
     afterEach(() => history.replaceState(null, '', oorspronkelijk));
 
-    it('zonder ?e=: gewoon doorlaten, niets opzoeken', () => {
-        expect(naar('/users/register', '')).toBe(true);
+    it('zonder ?e=: gewoon doorlaten, niets opzoeken', async () => {
+        expect(await naar('/users/register')).toBe('/users/register');
         expect(people.findPersonByEmail).not.toHaveBeenCalled();
     });
 
-    it('registratie met een bekend adres: naar login, met het adres en redirected=true', () => {
+    it('registratie met een bekend adres: naar login, met het adres en redirected=true', async () => {
         people.findPersonByEmail.mockReturnValue(of(new Person('p1', 'Ria', 'Receiver')));
-        const r = naar('/users/register?e=ria@gimmi.be', '?e=ria%40gimmi.be');
-        expect(router.serializeUrl(r as UrlTree)).toBe('/users/login?e=ria@gimmi.be&redirected=true');
+        expect(await naar('/users/register?e=ria%40gimmi.be')).toBe('/users/login?e=ria@gimmi.be&redirected=true');
     });
 
-    it('login met een onbekend adres: naar registratie', () => {
+    it('login met een onbekend adres: naar registratie', async () => {
         people.findPersonByEmail.mockReturnValue(throwError('404'));
-        const r = naar('/users/login?e=nieuw@gimmi.be', '?e=nieuw%40gimmi.be');
-        expect(router.serializeUrl(r as UrlTree)).toBe('/users/register?e=nieuw@gimmi.be&redirected=true');
+        expect(await naar('/users/login?e=nieuw%40gimmi.be')).toBe('/users/register?e=nieuw@gimmi.be&redirected=true');
     });
 
-    it('login met een bekend adres: doorlaten', () => {
+    it('login met een bekend adres: doorlaten', async () => {
         people.findPersonByEmail.mockReturnValue(of(new Person('p1', 'Ria', 'Receiver')));
-        expect(naar('/users/login?e=ria@gimmi.be', '?e=ria%40gimmi.be')).toBe(true);
+        expect(await naar('/users/login?e=ria%40gimmi.be')).toBe('/users/login?e=ria@gimmi.be');
     });
 
-    it('al eens omgeleid (redirected): niet opnieuw omleiden, geen lus', () => {
+    it('al eens omgeleid (redirected): niet opnieuw omleiden, geen lus', async () => {
         people.findPersonByEmail.mockReturnValue(of(new Person('p1', 'Ria', 'Receiver')));
-        expect(naar('/users/register?e=ria@gimmi.be&redirected=true', '?e=ria%40gimmi.be&redirected=true')).toBe(true);
+        expect(await naar('/users/register?e=ria%40gimmi.be&redirected=true')).toBe('/users/register?e=ria@gimmi.be&redirected=true');
     });
 });

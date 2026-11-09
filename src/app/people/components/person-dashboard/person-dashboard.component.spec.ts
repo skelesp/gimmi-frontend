@@ -1,7 +1,7 @@
+import { provideRouter } from '@angular/router';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
 import { BehaviorSubject, of } from 'rxjs';
 
 import { User } from 'src/app/users/models/user.model';
@@ -26,11 +26,11 @@ describe('PersonDashboardComponent', () => {
         return p;
     }
 
-    function toon(person: Person, user: User) {
+    async function toon(person: Person, user: User) {
         currentUser$.next(user);
         TestBed.overrideProvider(ActivatedRoute, { useValue: { data: of({ person }) } });
         fixture = TestBed.createComponent(PersonDashboardComponent);
-        fixture.detectChanges();
+        await fixture.whenStable();
     }
 
     function el(): HTMLElement { return fixture.nativeElement; }
@@ -43,8 +43,9 @@ describe('PersonDashboardComponent', () => {
         currentUser$ = new BehaviorSubject<User>(null);
         TestBed.overrideComponent(PersonDashboardComponent, { remove: { imports: [ShareComponent, ExtraInfoComponent, WishListComponent] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
-    imports: [RouterTestingModule, PersonDashboardComponent],
+    imports: [PersonDashboardComponent],
     providers: [
+        provideRouter([]),
         { provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } },
         { provide: PeopleService, useValue: { isEqualToCurrentUser: (p: Person) => p?.id === currentUser$.value?.id } },
         { provide: ActivatedRoute, useValue: {} }
@@ -53,22 +54,22 @@ describe('PersonDashboardComponent', () => {
 }).compileComponents();
     });
 
-    it('onbekende persoon: "geen lijst gevonden"', () => {
-        toon(null, ilse);
+    it('onbekende persoon: "geen lijst gevonden"', async () => {
+        await toon(null, ilse);
         expect(el().querySelector('ngb-alert').textContent).toContain('Sorry, geen lijst gevonden.');
         expect(kind('gimmi-wish-list')).toBeNull();
     });
 
-    it('toont de naam, deelknop en de wenslijst van de persoon', () => {
+    it('toont de naam, deelknop en de wenslijst van de persoon', async () => {
         const p = ria();
-        toon(p, ilse);
+        await toon(p, ilse);
         expect(el().querySelector('h1').textContent.trim()).toBe('Ria Receiver');
         expect(kind('gimmi-share').nativeElement.personToShare).toBe(p);
         expect(kind('gimmi-wish-list').nativeElement.receiver).toBe(p);
     });
 
-    it('lijst van een ander: link "Ga naar mijn lijst"; extra info alleen-lezen', () => {
-        toon(ria(), ilse);
+    it('lijst van een ander: link "Ga naar mijn lijst"; extra info alleen-lezen', async () => {
+        await toon(ria(), ilse);
         const link: HTMLAnchorElement = el().querySelector('a.badge');
         expect(link.textContent.trim()).toBe('Ga naar mijn lijst');
         expect(link.hidden).toBe(false);
@@ -77,27 +78,27 @@ describe('PersonDashboardComponent', () => {
         expect(kind('gimmi-extra-info').nativeElement.personIsUser).toBe(false);
     });
 
-    it('eigen lijst: link verborgen en extra info bewerkbaar', () => {
-        toon(ria(), new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', []));
+    it('eigen lijst: link verborgen en extra info bewerkbaar', async () => {
+        await toon(ria(), new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', []));
         expect((el().querySelector('a.badge') as HTMLElement).hidden).toBe(true);
         expect(fixture.componentInstance.personIsUser()).toBe(true);
         expect(kind('gimmi-extra-info').nativeElement.personIsUser).toBe(true);
     });
 
-    it('niet ingelogd: geen link naar een eigen lijst', () => {
-        toon(ria(), null);
+    it('niet ingelogd: geen link naar een eigen lijst', async () => {
+        await toon(ria(), null);
         expect(el().querySelector('a.badge')).toBeNull();
     });
 
-    it('geeft voornaam en extra info door, en neemt bewaarde extra info over', () => {
-        toon(ria(), ilse);
+    it('geeft voornaam en extra info door, en neemt bewaarde extra info over', async () => {
+        await toon(ria(), ilse);
         const extra = kind('gimmi-extra-info');
         expect(extra.nativeElement.firstName).toBe('Ria');
         expect(extra.nativeElement.likes).toEqual([{ text: 'Boeken', url: '' }]);
 
         const nieuw = { likes: [{ text: 'Puzzels', url: '' }], dislikes: [{ text: 'Sokken', url: '' }] };
         extra.triggerEventHandler('extraInfoSaved', nieuw);
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(fixture.componentInstance.person().extraInfo).toBe(nieuw);
         expect(extra.nativeElement.dislikes).toEqual([{ text: 'Sokken', url: '' }]);
     });

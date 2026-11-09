@@ -34,7 +34,6 @@ describe('ImagePickerComponent', () => {
         component = fixture.componentInstance;
         if (opties.zoekterm !== undefined)
             component.searchTerm = opties.zoekterm;
-        fixture.detectChanges();
         await fixture.whenStable();
     }
     const el = (css: string): HTMLElement => fixture.nativeElement.querySelector(css);

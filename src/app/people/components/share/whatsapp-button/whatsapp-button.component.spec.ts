@@ -23,11 +23,11 @@ describe('WhatsappButtonComponent', () => {
     .compileComponents();
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     fixture = TestBed.createComponent(WhatsappButtonComponent);
     component = fixture.componentInstance;
     component.message = 'hallo';
-    fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {

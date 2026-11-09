@@ -22,7 +22,7 @@ describe('MailToButtonComponent', () => {
         fixture = TestBed.createComponent(MailToButtonComponent);
         fixture.componentInstance.url = 'https://www.gimmi.be/people/ria';
         fixture.componentInstance.person = new Person('ria', 'Ria', 'Receiver');
-        fixture.detectChanges();
+        await fixture.whenStable();
     });
 
     it('de mailvelden zijn standaard verborgen en komen tevoorschijn na een klik', () => {

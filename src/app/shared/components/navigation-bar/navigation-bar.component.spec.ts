@@ -17,10 +17,10 @@ describe('NavigationBarComponent', () => {
     let currentUser$: BehaviorSubject<User>;
     const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
 
-    function toon(user: User) {
+    async function toon(user: User) {
         currentUser$.next(user);
         fixture = TestBed.createComponent(NavigationBarComponent);
-        fixture.detectChanges();
+        await fixture.whenStable();
     }
 
     function el(): HTMLElement { return fixture.nativeElement; }
@@ -37,16 +37,16 @@ describe('NavigationBarComponent', () => {
         TestBed.inject(NgbConfig).animation = false;
     });
 
-    it('logo en zoekveld staan altijd in de balk, het zoekveld buiten het inklapmenu (sc-41)', () => {
-        toon(null);
+    it('logo en zoekveld staan altijd in de balk, het zoekveld buiten het inklapmenu (sc-41)', async () => {
+        await toon(null);
         expect(el().querySelector('.navbar-brand gimmi-brand-logo')).toBeTruthy();
         const zoek = el().querySelector('gimmi-people-search');
         expect(zoek).toBeTruthy();
         expect(zoek.closest('.navbar-collapse')).toBeNull();
     });
 
-    it('niet ingelogd: menuknop en een ingeklapt menu voor onbekende gebruikers', () => {
-        toon(null);
+    it('niet ingelogd: menuknop en een ingeklapt menu voor onbekende gebruikers', async () => {
+        await toon(null);
         expect(el().querySelector('button.navbar-toggler')).toBeTruthy();
         expect(el().querySelector('gimmi-user-menu')).toBeNull();
         const menu = el().querySelector('.navbar-collapse');
@@ -54,45 +54,45 @@ describe('NavigationBarComponent', () => {
         expect(menu.classList).not.toContain('show');
     });
 
-    it('de menuknop klapt het menu open en weer dicht', () => {
-        toon(null);
+    it('de menuknop klapt het menu open en weer dicht', async () => {
+        await toon(null);
         const knop: HTMLButtonElement = el().querySelector('button.navbar-toggler');
         knop.click();
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(fixture.componentInstance.isNavbarCollapsed).toBe(false);
         expect(el().querySelector('.navbar-collapse').classList).toContain('show');
         knop.click();
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(fixture.componentInstance.isNavbarCollapsed).toBe(true);
     });
 
-    it('een keuze in het menu klapt het weer dicht', () => {
-        toon(null);
+    it('een keuze in het menu klapt het weer dicht', async () => {
+        await toon(null);
         fixture.componentInstance.toggleNavbarCollapseState();
-        fixture.detectChanges();
+        await fixture.whenStable();
         fixture.debugElement.query(e => e.name === 'gimmi-unknown-user-menu').triggerEventHandler('menuItemClicked', null);
         expect(fixture.componentInstance.isNavbarCollapsed).toBe(true);
     });
 
-    it('ingelogd: gebruikersmenu, geen menuknop en geen menu voor onbekenden', () => {
-        toon(ilse);
+    it('ingelogd: gebruikersmenu, geen menuknop en geen menu voor onbekenden', async () => {
+        await toon(ilse);
         expect(el().querySelector('gimmi-user-menu')).toBeTruthy();
         expect(el().querySelector('button.navbar-toggler')).toBeNull();
         expect(el().querySelector('gimmi-unknown-user-menu')).toBeNull();
     });
 
-    it('volgt in- en uitloggen', () => {
-        toon(null);
+    it('volgt in- en uitloggen', async () => {
+        await toon(null);
         currentUser$.next(ilse);
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(el().querySelector('gimmi-user-menu')).toBeTruthy();
         currentUser$.next(null);
-        fixture.detectChanges();
+        await fixture.whenStable();
         expect(el().querySelector('gimmi-user-menu')).toBeNull();
     });
 
-    it('stopt met luisteren bij het verdwijnen van de balk', () => {
-        toon(null);
+    it('stopt met luisteren bij het verdwijnen van de balk', async () => {
+        await toon(null);
         fixture.destroy();
         expect(currentUser$.observers.length).toBe(0);
     });
