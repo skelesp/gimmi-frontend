@@ -1,16 +1,9 @@
 <div class="container">
   <div class="row align-items-center justify-content-center">
     <div class="col-lg-9">
-      @if (!infoAlertClosed) {
-        <ngb-alert type="info" (close)="infoAlertClosed=true">
+      @if (!infoAlertClosed()) {
+        <ngb-alert type="info" (closed)="infoAlertClosed.set(true)">
           <h1 class="h5">Welkom op Gimmi, dé hulp in je cadeauzoektocht!</h1>
-          @if (invitedFor) {
-            <p>
-              Jij bent uitgenodigd om de wensenlijst van
-              <strong>{{invitedFor}}</strong> te bekijken.
-              <br />
-            </p>
-          }
           <ol>
             <li>Op Gimmi kan je een wensenlijst aanmaken met je favoriete cadeaus, zodat je met anderen kan delen wat je
             graag zou krijgen.</li>
@@ -19,12 +12,6 @@
           </ol>
           <p>
             <strong>Om toegang te krijgen tot wenslijsten, moet je wel eerst even registreren hieronder.</strong><br>
-            @if (invitedFor) {
-              <span>
-                Na het registreren word je meteen naar de wensenlijst van {{invitedFor}}
-                gebracht.<br />
-              </span>
-            }
             <em>Na je registratie maken we automatisch een lijst voor jou aan, dus vul deze maar meteen aan met de leukste
             cadeaus!</em>
           </p>
@@ -32,74 +19,19 @@
       }
       <h2 class="h3">Registreer je op Gimmi...</h2>
       <h3 class="h5">Met je e-mailadres</h3>
-      <div [hidden]="!knownUser()" class="alert alert-danger">
-        Er bestaat al een gebruiker met dit emailadres. Gelieve <a [routerLink]="['/users','login']" [queryParams]="{e: $safeNavigationMigration(registrationForm.get('localAccountData.email')?.value)}">in te loggen met deze email</a> of
-        een ander emailadres te gebruiken.
-        <br /> Indien u uw wachtwoord vergeten bent, klik
-        <gimmi-forgot-password-link
-          [attemptedEmail]="$safeNavigationMigration(registrationForm.get('localAccountData.email')?.value)"
-          linkText="hier">
-        </gimmi-forgot-password-link>
-      </div>
-      <form class="form" (submit)="register()" [formGroup]="registrationForm">
-        <div class="mb-3" formGroupName="personData">
-          <label for="register-first-name">Voornaam</label>
-          <input id="register-first-name" formControlName="firstName"
-            type="text"
-            class="form-control">
-            @if (!registrationForm.get('personData.firstName').valid && registrationForm.get('personData.firstName').touched) {
-              <div id="firstNameError" class="form-text text-danger"
-                >
-                @if (registrationForm.get('personData.firstName').errors?.required) {
-                  <small>
-                  Voornaam is een verplicht veld</small>
-                }
-              </div>
-            }
-
-            <label for="register-last-name">Familienaam</label>
-            <input id="register-last-name" formControlName="lastName"
-              type="text"
-              class="form-control" >
-              @if (!registrationForm.get('personData.lastName').valid && registrationForm.get('personData.lastName').touched) {
-                <div id="lastNameError" class="form-text text-danger"
-                  >
-                  @if (registrationForm.get('personData.lastName').errors?.required) {
-                    <small>
-                    Familienaam is een verplicht veld</small>
-                  }
-                </div>
-              }
-
-              <label for="register-birthday">Geboortedatum</label>
-              <input id="register-birthday" formControlName='birthday'
-                type="date"
-                class="form-control">
-                @if (!registrationForm.get('personData.birthday').valid && registrationForm.get('personData.birthday').touched) {
-                  <div id="birthdayError" class="form-text text-danger"
-                    >
-                    @if (registrationForm.get('personData.birthday').errors?.required) {
-                      <small>
-                      Verjaardag is een verplicht veld</small>
-                    }
-                  </div>
-                }
-              </div>
-
-              <gimmi-email-input
-                [parentFormGroup]='registrationForm.controls.localAccountData'
-                label="Email"
-                bindedQueryParam='e'
-                [emailExistsValidation]='true'
-                emailExistsRedirectTo='login'>
-              </gimmi-email-input>
-              <gimmi-password-check
-                [parentFormGroup]="registrationForm.controls.localAccountData">
-              </gimmi-password-check>
-              <div>
-                <button type="submit" class="btn btn-danger mt-3" [disabled]='!registrationForm.valid'>Registreer</button>
-              </div>
-            </form>
-          </div>
+      @if (sentTo(); as address) {
+        <div id="registrationSent" class="alert alert-success">
+          <strong>Controleer je mail.</strong> We stuurden een e-mail naar <strong>{{address}}</strong> met een link om je
+          registratie af te ronden. De link werkt 24 uur. Vind je de mail niet, kijk dan ook in je spam.
         </div>
-      </div>
+      } @else {
+        <form class="form" (submit)="register($event)" novalidate>
+          <gimmi-email-field [field]="registerForm.email" label="Email" />
+          <div>
+            <button type="submit" class="btn btn-danger mt-3" [disabled]="registerForm().invalid()">Registreer</button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>

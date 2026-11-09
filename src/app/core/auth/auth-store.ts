@@ -45,12 +45,19 @@ export class AuthStore {
 
   /** Logs in and loads the person behind the token (`GET /me`). Errors arrive as `ApiProblem`. */
   login(email: string, password: string): Observable<CurrentUser> {
-    return this.api.post('/auth/token', { body: { email, password } }).pipe(
-      // The token must be set before /me: the interceptor reads it from here.
-      tap(({ token, expiresAt }) => this.session.set({ token, expiresAt, user: null })),
-      switchMap(() => this.api.get('/me')),
+    return this.api.post('/auth/token', { body: { email, password } }).pipe(switchMap(token => this.startSession(token)));
+  }
+
+  /**
+   * Starts the session with a token from the API (login, registration, password reset) and loads the person
+   * behind it (`GET /me`).
+   */
+  startSession({ token, expiresAt }: Schema<'TokenResponse'>): Observable<CurrentUser> {
+    // The token must be set before /me: the interceptor reads it from here.
+    this.session.set({ token, expiresAt, user: null });
+    return this.api.get('/me').pipe(
       map(({ id, email, firstName, lastName }) => ({ id, email, firstName, lastName, fullName: `${firstName} ${lastName}` })),
-      tap(user => this.setSession({ ...this.session(), user })),
+      tap(user => this.setSession({ token, expiresAt, user })),
       catchError(error => {
         this.session.set(null);
         return throwError(() => error);

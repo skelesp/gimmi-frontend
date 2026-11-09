@@ -9,6 +9,8 @@ import { emailQueryParamGuard } from './users/guards/email-query-param-guard';
 import { ForgotPassword } from './users/components/forgot-password/forgot-password';
 import { Login } from './users/components/login/login';
 import { Register } from './users/components/register/register';
+import { RegisterComplete } from './users/components/register-complete/register-complete';
+import { registrationResolver } from './users/resolvers/registration-resolver';
 import { ResetPassword } from './users/components/reset-password/reset-password';
 import { passwordResetTokenResolver } from './users/resolvers/password-reset-token-resolver';
 import { WishPage } from './wishes/components/wish-item/wish-page/wish-page';
@@ -28,6 +30,7 @@ export const routes: Routes = [
     children: [
       { path: 'login', component: Login, canActivate: [emailQueryParamGuard] },
       { path: 'register', component: Register, canActivate: [emailQueryParamGuard] },
+      { path: 'register/:token', component: RegisterComplete, resolve: { registration: registrationResolver } },
       { path: 'forgotpassword', component: ForgotPassword },
       { path: 'resetpassword/:token', component: ResetPassword, resolve: { validToken: passwordResetTokenResolver } }
     ]

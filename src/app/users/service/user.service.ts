@@ -3,7 +3,6 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from "rxjs";
 import { catchError, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import { AuthStore, CurrentUser } from '../../core/auth/auth-store';
 
 export interface IPasswordResetRequest {
   email: string,
@@ -24,28 +23,13 @@ export interface IValidatePasswordResetTokenResponse {
 }
 
 /**
- * What is left of the user service while registering (sc-3285) and resetting a password (sc-3286) still
- * run on API v1. The login session itself lives in AuthStore.
+ * What is left of the user service: resetting a password (sc-3286) still runs on API v1. The login session itself lives in AuthStore.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
   private http$ = inject(HttpClient);
-  private auth = inject(AuthStore);
-
-  /**
-   * @description Registers a new user via API v1 and logs in with the same credentials on API v2, because
-   * v1 gives a token that v2 does not accept. Goes away with sc-3285.
-   * @returns An observable with the logged in user.
-   */
-  public register(newUser : INewUserRequestInfo) : Observable<CurrentUser> {
-    return this.http$.post(environment.apiUrl + 'people', newUser)
-      .pipe(
-        catchError(this.handleAErrorResponse),
-        switchMap(() => this.auth.login(newUser.email, newUser.password))
-      );
-  }
 
   /**
    * @method @public
