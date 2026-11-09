@@ -9,8 +9,10 @@ export const jwtInterceptor: HttpInterceptorFn = (request, next) => {
   const isApiUrl = request.url.startsWith(environment.apiUrl);
 
   if (isLoggedIn && isApiUrl) {
+    // v1 takes the bare token, v2 only accepts `Authorization: Bearer <jwt>`.
+    const isV2 = request.url.startsWith(environment.apiV2Url);
     request = request.clone({
-      setHeaders: { Authorization: `${currentUser.token}` }
+      setHeaders: { Authorization: isV2 ? `Bearer ${currentUser.token}` : `${currentUser.token}` }
     });
   }
   

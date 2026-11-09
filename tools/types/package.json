@@ -1,0 +1,9 @@
+{
+  "name": "gimmi-contract-types",
+  "private": true,
+  "description": "Generates src/app/core/api/schema.ts from the API v2 contract. Separate from the root package because openapi-typescript needs the TypeScript 5 compiler API, which the TypeScript 6 of the app does not have.",
+  "devDependencies": {
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
+  }
+}

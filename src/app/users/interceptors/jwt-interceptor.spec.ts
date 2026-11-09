@@ -41,6 +41,11 @@ describe('jwtInterceptor', () => {
     expect(header(environment.apiUrl + 'wish/w1')).toBe('jwt-123');
   });
 
+  it('ingelogd, naar API v2: het token als Bearer', () => {
+    users.currentUser = { token: 'jwt-123' };
+    expect(header(environment.apiV2Url + 'me')).toBe('Bearer jwt-123');
+  });
+
   it('ingelogd, naar een ander adres: geen header', () => {
     users.currentUser = { token: 'jwt-123' };
     expect(header('https://img.gimmi.be/wishes/a.jpg')).toBeNull();

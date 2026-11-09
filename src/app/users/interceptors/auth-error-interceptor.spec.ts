@@ -4,6 +4,7 @@ import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angul
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 
+import { environment } from 'src/environments/environment';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from '../service/user.service';
 import { authErrorInterceptor } from './auth-error-interceptor';
@@ -71,6 +72,25 @@ describe('authErrorInterceptor', () => {
         expect(notifications.showNotification).not.toHaveBeenCalled();
         expect(router.navigate).not.toHaveBeenCalled();
         expect(users.attemptedUrl).toBeNull();
+    });
+
+    it('401 op de v2-loginaanroep (auth/token): geen melding, geen navigatie', () => {
+        router.url = '/users/login';
+        const fout = vraag(environment.apiV2Url + 'auth/token', 401);
+        expect(fout.status).toBe(401);
+        expect(notifications.showNotification).not.toHaveBeenCalled();
+        expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('401 op een andere v2-aanroep: zoals v1, naar login', () => {
+        vraag(environment.apiV2Url + 'me', 401);
+        expect(router.navigate).toHaveBeenCalledWith(['users/login'], { queryParams: {} });
+    });
+
+    it('403 op v2: geen melding, de aanroeper beslist', () => {
+        const fout = vraag(environment.apiV2Url + 'me/password', 403);
+        expect(fout.status).toBe(403);
+        expect(notifications.showNotification).not.toHaveBeenCalled();
     });
 
     it('401 vanop een /users/-pagina: die pagina niet als terugkeer-URL onthouden', () => {
