@@ -67,6 +67,7 @@ test.describe('wensbeheer en navigatie', () => {
   // Afbeeldingskiezer (sc-3028). Vaste titel: de backend bewaart zoekresultaten een dag per
   // zoekterm, dus Brave rekent hooguit één zoekopdracht per dag voor deze test.
   test('afbeelding zoeken en toevoegen aan een nieuwe wens', async ({ browser }) => {
+    test.setTimeout(150_000);   // tot zes pogingen van elk maximaal 20 s als bronsites weigeren
     const { context, page } = await newUserPage(browser);
     await login(page, owner);
     await page.getByText('Voeg wens toe').click();
@@ -83,12 +84,15 @@ test.describe('wensbeheer en navigatie', () => {
     // Een bronsite kan weigeren (sc-2960): dan een melding en het volgende resultaat proberen.
     let gelukt = false;
     for (let i = 0; i < Math.min(await resultaten.count(), 6) && !gelukt; i++) {
-      // Wacht tot een vorige poging klaar is: haar melding blijft zichtbaar tot de weergave ververst.
-      await expect.poll(async () => await kiezer.count() === 0 || await resultaten.nth(i).isEnabled({ timeout: 1_000 }).catch(() => false),
-        { timeout: 20_000 }).toBe(true);
-      if (await kiezer.count() === 0) { gelukt = true; break; }
       await resultaten.nth(i).click();
-      await expect.poll(async () => await kiezer.count() === 0 || await kiezer.getByRole('alert').isVisible(),
+      // Eerst de weergave van de klik afwachten (de aangeklikte knop is uitgeschakeld), want daarvoor staat de oude melding er nog.
+      await expect.poll(async () => await kiezer.count() === 0 || await resultaten.nth(i).isDisabled({ timeout: 1_000 }).catch(() => true),
+        { timeout: 10_000 }).toBe(true);
+      // Klaar = de kiezer is weg, of er staat een melding én een ander resultaat is weer aanklikbaar. Alleen op de melding
+      // wachten kan niet: die van een vorige poging blijft staan tot de weergave ververst, en tijdens het opladen en
+      // het sluiten van de kiezer zijn alle resultaten uitgeschakeld of nog aanklikbaar zonder melding.
+      await expect.poll(async () => await kiezer.count() === 0 || (await kiezer.getByRole('alert').isVisible()
+        && await resultaten.evaluateAll((knoppen, index) => knoppen.some((knop, k) => k !== index && !(knop as HTMLButtonElement).disabled), i)),
         { timeout: 20_000 }).toBe(true);
       gelukt = await kiezer.count() === 0;
     }
