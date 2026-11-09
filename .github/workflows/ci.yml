@@ -39,3 +39,17 @@ jobs:
           name: coverage
           path: coverage/gimmi
           if-no-files-found: ignore
+
+  # De gegenereerde types (src/app/core/api/schema.ts) moeten overeenkomen met het contract van de
+  # testomgeving (sc-3282). Aparte job, niet verplicht in de ruleset: een nieuwe backendrelease zonder
+  # nieuwe types is zichtbaar zonder andere PR's te blokkeren. Herstel: `npm run api:types` en committen.
+  contract-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm run api:types
+      - run: git diff --exit-code -- src/app/core/api/schema.ts

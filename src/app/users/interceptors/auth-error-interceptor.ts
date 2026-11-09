@@ -5,6 +5,7 @@ import { UserService } from '../service/user.service';
 import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { NotificationService } from 'src/app/shared/services/notification.service';
+import { environment } from 'src/environments/environment';
 
 export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
   const userService = inject(UserService);
@@ -20,7 +21,8 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
               // Failed login call: the login screen shows its own error. Don't navigate and don't
               // remember the login page as attemptedUrl, or the next successful login redirects
               // back to the login page.
-              if (request.url.indexOf("api/authenticate") !== -1) {
+              // v1: api/authenticate, v2: auth/token.
+              if (request.url.indexOf("api/authenticate") !== -1 || request.url.startsWith(environment.apiV2Url + 'auth/token')) {
                 return throwError(err);
               }
 
@@ -47,6 +49,10 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
               break;
             }
             case 403:
+              // v2: the caller decides (e.g. reauthentication-required); only 401 is handled here.
+              if (request.url.startsWith(environment.apiV2Url)) {
+                break;
+              }
               notificationService.showNotification(
                 "Uw gebruiker is niet gemachtigd om deze pagina te bezoeken of deze actie uit te voeren.",
                 "error"

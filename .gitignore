@@ -51,3 +51,6 @@ debug.log
 /test-results
 /playwright-report
 .vitest
+
+# contract-typegenerator (eigen TypeScript 5)
+/tools/types/node_modules

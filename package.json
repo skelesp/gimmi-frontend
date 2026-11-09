@@ -8,6 +8,7 @@
     "test": "ng test",
     "test:ci": "ng test --watch=false --coverage",
     "lint": "ng lint",
+    "api:types": "node tools/types/generate.mjs",
     "e2e": "playwright test",
     "e2e:cleanup": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON e2e/cleanup-smoke-users.ts"
   },
