@@ -1,4 +1,5 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ForgotPasswordLinkComponent } from './forgot-password-link.component';
@@ -9,7 +10,8 @@ describe('ForgotPasswordLinkComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ForgotPasswordLinkComponent ],
+      imports: [ForgotPasswordLinkComponent],
+      providers: [provideRouter([])],
       schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();

@@ -1,5 +1,5 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { faThumbsUp } from '@fortawesome/free-regular-svg-icons';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { switchMap} from 'rxjs/operators';
@@ -8,15 +8,20 @@ import { CommunicationService } from 'src/app/shared/services/communication.serv
 
 import { IGiftFeedback, Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
+import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
+import { NgbRating } from '@ng-bootstrap/ng-bootstrap/rating';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
     selector: 'gimmi-gift-feedback',
     templateUrl: './gift-feedback.component.html',
     styleUrls: ['./gift-feedback.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CursorPointerDirective, FormsModule, ReactiveFormsModule, NgbRating, FaIconComponent]
 })
 export class GiftFeedbackComponent implements OnInit {
+  activeModal = inject(NgbActiveModal);
+
   @Input() wish: Wish;
   giftFeedbackForm : UntypedFormGroup;
   hoveredRate: number;
@@ -24,10 +29,6 @@ export class GiftFeedbackComponent implements OnInit {
   satisfactionLevels: string[] = ['Duid je tevredenheid aan...','Helemaal niet blij', 'Niet blij', 'Neutraal', 'Blij', 'Heel blij'];
   ratingIcon = faThumbsUp;
   maxDate: string = new Date().toISOString().slice(0, 10);
-
-  constructor( 
-    public activeModal : NgbActiveModal
-  ) { }
 
   ngOnInit(): void {
     const defaultReceivedDate = new Date(this.wish.reservation.reservationDate).toISOString().slice(0, 10);

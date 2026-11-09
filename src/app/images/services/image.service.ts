@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { environment } from 'src/environments/environment';
@@ -19,7 +19,8 @@ export const BREEDTES = [160, 320, 480, 640, 960];
   providedIn: 'root'
 })
 export class ImageService {
-  constructor(private http$: HttpClient) { }
+  private http$ = inject(HttpClient);
+
 
   /**
    * Laadt een afbeelding op naar R2. `image` is een http(s)-URL (de backend haalt ze op)

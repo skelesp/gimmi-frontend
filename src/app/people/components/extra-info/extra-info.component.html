@@ -1,37 +1,39 @@
 <!-- Extra info over de persoon -->
 <!-- Read only mode -->
-<div class="row" *ngIf="!editMode">
+@if (!editMode) {
+  <div class="row">
     <div class="col-7 col-md-auto font-sm"
-        [hidden]="!personIsUser || (likes?.length || dislikes?.length)">
-        Voeg extra info over jezelf toe...
-    </div>    
+      [hidden]="!personIsUser || (likes?.length || dislikes?.length)">
+      Voeg extra info over jezelf toe...
+    </div>
     <gimmi-extra-info-view class="col-10 col-md-auto"
-        [firstName]="firstName" [items]="likes" itemType="likes"></gimmi-extra-info-view>    
+    [firstName]="firstName" [items]="likes" itemType="likes"></gimmi-extra-info-view>
     <div class="col-2 col-md-auto order-md-3" [hidden]="!personIsUser">
-        <fa-icon [icon]="pencilIcon" (click)="editMode = !editMode"></fa-icon>
+      <fa-icon [icon]="pencilIcon" (click)="editMode = !editMode"></fa-icon>
     </div>
     <gimmi-extra-info-view class="col-10 col-md-auto" [firstName]="firstName" [items]="dislikes" itemType="dislikes">
     </gimmi-extra-info-view>
-</div>
+  </div>
+}
 
-<ng-container *ngIf="editMode">
-    <form class="row" [formGroup]="editItemsForm" (ngSubmit)="saveExtraInfo()">
-        <gimmi-extra-info-edit class="col-10 col-md-auto"
-            [firstName]="firstName" [items]="likes" itemType="likes" [parentForm]="editItemsForm"></gimmi-extra-info-edit>
-        <!-- Save/cancel part -->
-        <div class="col-2 col-md-auto order-md-3">
-            <button type="submit"
-                class="btn btn-link btn-sm" 
-                [disabled]="editItemsForm.invalid">
-                <fa-icon [icon]="checkIcon" class="text-success me-2"></fa-icon>
-            </button>
-            <button type="button" 
-                class="btn btn-link btn-sm"
-                (click)="resetEditForm()">
-                <fa-icon [icon]="cancelIcon" class="text-danger"></fa-icon>
-            </button>
-        </div>
-        <gimmi-extra-info-edit class="col-10 col-md-auto" [firstName]="firstName" [items]="dislikes" itemType="dislikes"
-            [parentForm]="editItemsForm"></gimmi-extra-info-edit>
-    </form>
-</ng-container>
+@if (editMode) {
+  <form class="row" [formGroup]="editItemsForm" (ngSubmit)="saveExtraInfo()">
+    <gimmi-extra-info-edit class="col-10 col-md-auto"
+    [firstName]="firstName" [items]="likes" itemType="likes" [parentForm]="editItemsForm"></gimmi-extra-info-edit>
+    <!-- Save/cancel part -->
+    <div class="col-2 col-md-auto order-md-3">
+      <button type="submit"
+        class="btn btn-link btn-sm"
+        [disabled]="editItemsForm.invalid">
+        <fa-icon [icon]="checkIcon" class="text-success me-2"></fa-icon>
+      </button>
+      <button type="button"
+        class="btn btn-link btn-sm"
+        (click)="resetEditForm()">
+        <fa-icon [icon]="cancelIcon" class="text-danger"></fa-icon>
+      </button>
+    </div>
+    <gimmi-extra-info-edit class="col-10 col-md-auto" [firstName]="firstName" [items]="dislikes" itemType="dislikes"
+    [parentForm]="editItemsForm"></gimmi-extra-info-edit>
+  </form>
+}

@@ -5,11 +5,10 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 import { User } from '../models/user.model';
 import { UserService } from '../service/user.service';
-import { AuthGuard } from './auth.guard';
+import { authGuard } from './auth.guard';
 
 // sc-2041: niet ingelogd -> naar login, en onthouden waar de gebruiker heen wilde.
-describe('AuthGuard', () => {
-    let guard: AuthGuard;
+describe('authGuard', () => {
     let router: Router;
     let users: {
         currentUser$: BehaviorSubject<User>;
@@ -18,7 +17,7 @@ describe('AuthGuard', () => {
 
     function check(url: string): boolean | UrlTree {
         let resultaat: boolean | UrlTree;
-        (guard.canActivate({} as ActivatedRouteSnapshot, { url } as RouterStateSnapshot) as Observable<boolean | UrlTree>)
+        (TestBed.runInInjectionContext(() => authGuard({} as ActivatedRouteSnapshot, { url } as RouterStateSnapshot)) as Observable<boolean | UrlTree>)
             .subscribe(v => resultaat = v);
         return resultaat;
     }
@@ -29,7 +28,6 @@ describe('AuthGuard', () => {
             imports: [RouterTestingModule],
             providers: [{ provide: UserService, useValue: users }]
         });
-        guard = TestBed.inject(AuthGuard);
         router = TestBed.inject(Router);
     });
 

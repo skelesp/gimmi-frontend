@@ -9,6 +9,9 @@ import { UserService } from 'src/app/users/service/user.service';
 import { Person } from '../../models/person.model';
 import { PeopleService } from '../../service/people.service';
 import { PersonDashboardComponent } from './person-dashboard.component';
+import { ShareComponent } from '../share/share.component';
+import { ExtraInfoComponent } from '../extra-info/extra-info.component';
+import { WishListComponent } from '../../../wishes/components/wish-list/wish-list.component';
 
 // Overzichtspagina van een persoon op /people/:personId (sc-1959): naam, delen, extra info en
 // de wenslijst.
@@ -38,16 +41,16 @@ describe('PersonDashboardComponent', () => {
 
     beforeEach(async () => {
         currentUser$ = new BehaviorSubject<User>(null);
+        TestBed.overrideComponent(PersonDashboardComponent, { remove: { imports: [ShareComponent, ExtraInfoComponent, WishListComponent] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
-            imports: [RouterTestingModule],
-            declarations: [PersonDashboardComponent],
-            providers: [
-                { provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } },
-                { provide: PeopleService, useValue: { isEqualToCurrentUser: (p: Person) => p?.id === currentUser$.value?.id } },
-                { provide: ActivatedRoute, useValue: {} }
-            ],
-            schemas: [NO_ERRORS_SCHEMA]
-        }).compileComponents();
+    imports: [RouterTestingModule, PersonDashboardComponent],
+    providers: [
+        { provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } },
+        { provide: PeopleService, useValue: { isEqualToCurrentUser: (p: Person) => p?.id === currentUser$.value?.id } },
+        { provide: ActivatedRoute, useValue: {} }
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
     });
 
     it('onbekende persoon: "geen lijst gevonden"', () => {

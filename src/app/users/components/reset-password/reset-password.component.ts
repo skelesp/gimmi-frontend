@@ -1,27 +1,29 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { FormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { faWindows } from '@fortawesome/free-brands-svg-icons';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from '../../service/user.service';
+
+import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
+import { ForgotPasswordLinkComponent } from '../forgot-password-link/forgot-password-link.component';
+import { PasswordCheckComponent } from '../../../shared/components/form-components/password-check/password-check.component';
 
 @Component({
     selector: 'gimmi-reset-password',
     templateUrl: './reset-password.component.html',
     styleUrls: ['./reset-password.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgbAlert, ForgotPasswordLinkComponent, FormsModule, ReactiveFormsModule, PasswordCheckComponent]
 })
 export class ResetPasswordComponent implements OnInit {
+  private userService = inject(UserService);
+  private notificationService = inject(NotificationService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
   resetPasswordForm: UntypedFormGroup;
   invalidToken : boolean;
-
-  constructor(
-    private userService: UserService,
-    private notificationService : NotificationService,
-    private router : Router,
-    private route : ActivatedRoute
-  ) { }
 
   ngOnInit(): void {
     this.resetPasswordForm = new UntypedFormGroup({ });

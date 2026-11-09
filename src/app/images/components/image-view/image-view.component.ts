@@ -1,6 +1,7 @@
-import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges, ChangeDetectionStrategy, inject } from '@angular/core';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { ImageService, STANDAARD_AFBEELDING } from '../../services/image.service';
+
 
 /**
  * Toont de afbeelding van een wens (sc-2911): een gewone <img> met srcset, zodat de browser
@@ -14,9 +15,11 @@ import { ImageService, STANDAARD_AFBEELDING } from '../../services/image.service
     templateUrl: './image-view.component.html',
     styleUrls: ['./image-view.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: []
 })
 export class ImageViewComponent implements OnChanges {
+  private imageService = inject(ImageService);
+
   @Input() image : IWishImage = null;
   @Input() class  = "";
   /** Hoe breed het beeld getoond wordt, voor de keuze uit de srcset. */
@@ -31,8 +34,6 @@ export class ImageViewComponent implements OnChanges {
   srcset: string = null;
   /** Pas true als het beeld getoond is; tot dan houdt `.laden` de plaats vrij. */
   geladen = false;
-
-  constructor(private imageService: ImageService) { }
 
   ngOnChanges(): void {
     const src = this.imageService.src(this.image, 640);

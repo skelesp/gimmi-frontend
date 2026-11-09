@@ -1,28 +1,30 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { Person } from 'src/app/people/models/person.model';
 import { CommunicationService, MailInfo } from 'src/app/shared/services/communication.service';
 import { NotificationService } from 'src/app/shared/services/notification.service';
+import { CursorPointerDirective } from '../../../../shared/directives/cursor-pointer.directive';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { NgbCollapse } from '@ng-bootstrap/ng-bootstrap/collapse';
+import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'gimmi-mail-to-button',
     templateUrl: './mail-to-button.component.html',
     styleUrls: ['./mail-to-button.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CursorPointerDirective, FaIconComponent, NgbCollapse, FormsModule]
 })
 export class MailToButtonComponent {
+  private communicationService = inject(CommunicationService);
+  private notificationService = inject(NotificationService);
+
   @Input() url: string;
   @Input() person: Person;
   mailIcon: IconDefinition = faEnvelope;
   hideMailInfo = true;
   mailAddresses: string;
-  
-  constructor(
-    private communicationService: CommunicationService,
-    private notificationService: NotificationService
-  ) { }
 
   send () {
     this.hideMailInfo = true;

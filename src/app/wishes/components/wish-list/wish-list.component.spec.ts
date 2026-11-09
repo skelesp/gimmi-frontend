@@ -9,6 +9,8 @@ import { Wish, wishStatus } from '../../models/wish.model';
 import { FilterOnStatePipe } from '../../pipes/filter-on-state.pipe';
 import { WishService } from '../../services/wish.service';
 import { WishListComponent } from './wish-list.component';
+import { WishCreateCardComponent } from '../wish-create-card/wish-create-card.component';
+import { WishCardComponent } from '../wish-item/wish-card/wish-card.component';
 
 // Wenslijst (sc-2300) met de tab "Ontvangen cadeaus" in plaats van een popup (sc-1984).
 describe('WishListComponent', () => {
@@ -52,12 +54,12 @@ describe('WishListComponent', () => {
         wishes$ = new BehaviorSubject<Wish[]>([]);
         antwoord$ = new Subject<Wish[]>();
         wishService = { wishes: wishes$.asObservable(), getWishlist: vi.fn().mockName('getWishlist').mockReturnValue(antwoord$) };
+        TestBed.overrideComponent(WishListComponent, { remove: { imports: [WishCreateCardComponent, WishCardComponent] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
-            imports: [NgbNavModule, NgbAlertModule],
-            declarations: [WishListComponent, FilterOnStatePipe],
-            providers: [{ provide: WishService, useValue: wishService }],
-            schemas: [NO_ERRORS_SCHEMA]
-        }).compileComponents();
+    imports: [NgbNavModule, NgbAlertModule, WishListComponent, FilterOnStatePipe],
+    providers: [{ provide: WishService, useValue: wishService }],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
         fixture = TestBed.createComponent(WishListComponent);
         component = fixture.componentInstance;
     });

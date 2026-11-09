@@ -11,6 +11,8 @@ import { UserService } from 'src/app/users/service/user.service';
 import { Wish } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
 import { WishPopupComponent } from './wish-popup.component';
+import { ImageUploadComponent } from '../../../../images/components/image-upload/image-upload.component';
+import { ImageViewComponent } from '../../../../images/components/image-view/image-view.component';
 
 // Popup om een wens toe te voegen, aan te passen of te kopiëren (sc-2348). Sluit met de
 // ingevulde wens. Een opgeladen afbeelding heeft meteen een eigen sleutel in R2 (sc-2911):
@@ -54,16 +56,16 @@ describe('WishPopupComponent', () => {
             getCopiesOnListOf: vi.fn().mockName("WishService.getCopiesOnListOf")
         };
         wishService.getCopiesOnListOf.mockReturnValue(of([]));
+        TestBed.overrideComponent(WishPopupComponent, { remove: { imports: [ImageUploadComponent, ImageViewComponent] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
-            imports: [ReactiveFormsModule, NgbAlertModule],
-            declarations: [WishPopupComponent],
-            providers: [
-                { provide: NgbActiveModal, useValue: activeModal },
-                { provide: UserService, useValue: { currentUser: new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', {}) } },
-                { provide: WishService, useValue: wishService }
-            ],
-            schemas: [NO_ERRORS_SCHEMA]
-        }).compileComponents();
+    imports: [ReactiveFormsModule, NgbAlertModule, WishPopupComponent],
+    providers: [
+        { provide: NgbActiveModal, useValue: activeModal },
+        { provide: UserService, useValue: { currentUser: new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', {}) } },
+        { provide: WishService, useValue: wishService }
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
     });
 
     it('titel en knoptekst per modus', () => {

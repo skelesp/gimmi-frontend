@@ -65,16 +65,15 @@ describe('ResetPasswordComponent', () => {
             navigate: vi.fn().mockName("Router.navigate")
         };
         await TestBed.configureTestingModule({
-            imports: [ReactiveFormsModule, FontAwesomeModule, NgbAlertModule],
-            declarations: [ResetPasswordComponent, PasswordCheckComponent, PasswordInputComponent],
-            providers: [
-                { provide: UserService, useValue: users },
-                { provide: NotificationService, useValue: notifications },
-                { provide: Router, useValue: router },
-                { provide: ActivatedRoute, useValue: {} }
-            ],
-            schemas: [NO_ERRORS_SCHEMA]
-        }).compileComponents();
+    imports: [ReactiveFormsModule, FontAwesomeModule, NgbAlertModule, ResetPasswordComponent, PasswordCheckComponent, PasswordInputComponent],
+    providers: [
+        { provide: UserService, useValue: users },
+        { provide: NotificationService, useValue: notifications },
+        { provide: Router, useValue: router },
+        { provide: ActivatedRoute, useValue: {} }
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
     });
 
     it('ongeldige of vervallen link: uitleg en een link om opnieuw aan te vragen, geen formulier', async () => {

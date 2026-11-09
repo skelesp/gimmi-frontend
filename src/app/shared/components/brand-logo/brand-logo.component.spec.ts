@@ -1,4 +1,5 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { BrandLogoComponent } from './brand-logo.component';
@@ -9,7 +10,8 @@ describe('BrandLogoComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ BrandLogoComponent ],
+      imports: [BrandLogoComponent],
+      providers: [provideRouter([])],
       schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();

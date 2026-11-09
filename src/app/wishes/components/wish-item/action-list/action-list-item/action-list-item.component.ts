@@ -1,6 +1,9 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 
+import { CursorPointerDirective } from '../../../../../shared/directives/cursor-pointer.directive';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+
 export interface ActionListItemConfig {
   text: string;
   icon: IconDefinition;
@@ -13,7 +16,7 @@ export interface ActionListItemConfig {
     templateUrl: './action-list-item.component.html',
     styleUrls: ['./action-list-item.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CursorPointerDirective, FaIconComponent]
 })
 export class ActionListItemComponent {
   @Input() itemConfig: ActionListItemConfig;

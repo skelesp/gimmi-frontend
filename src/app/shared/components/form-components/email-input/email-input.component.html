@@ -1,25 +1,39 @@
 <div [formGroup]='parentFormGroup' class='mb-3'>
-    <label *ngIf="label">{{label}}</label>
-    <div class="input-group">
-        <span class="input-group-text">
-                <fa-icon [icon]="mailIcon"></fa-icon>
-            </span>
-        <input  [formControlName]="controlName" 
-                type="text" 
-                class="form-control" 
-                [placeholder]="placeholder" 
-                [bindQueryParamToInput]="bindedQueryParam">
+  @if (label) {
+    <label>{{label}}</label>
+  }
+  <div class="input-group">
+    <span class="input-group-text">
+      <fa-icon [icon]="mailIcon"></fa-icon>
+    </span>
+    <input  [formControlName]="controlName"
+      type="text"
+      class="form-control"
+      [placeholder]="placeholder()"
+      [bindQueryParamToInput]="bindedQueryParam()">
     </div>
-    <div id="emailError" class="form-text text-danger"
-        *ngIf="!parentFormGroup.get(controlName).valid && parentFormGroup.get(controlName).touched">
-        <small *ngIf="parentFormGroup.get(controlName).errors?.required">
-            Email is een verplicht veld</small>
-        <small *ngIf="parentFormGroup.get(controlName).errors?.email">
-            Geef een geldig emailadres in (formaat: *** &#64; *** . **)</small>
-        <small *ngIf="parentFormGroup.get(controlName).errors?.emailExists" class="text-success">
+    @if (!parentFormGroup.get(controlName).valid && parentFormGroup.get(controlName).touched) {
+      <div id="emailError" class="form-text text-danger"
+        >
+        @if (parentFormGroup.get(controlName).errors?.required) {
+          <small>
+          Email is een verplicht veld</small>
+        }
+        @if (parentFormGroup.get(controlName).errors?.email) {
+          <small>
+          Geef een geldig emailadres in (formaat: *** &#64; *** . **)</small>
+        }
+        @if (parentFormGroup.get(controlName).errors?.emailExists) {
+          <small class="text-success">
             Er is al een wishlist gekoppeld aan dit emailadres:
-            <a *ngIf='emailExistsRedirectTo === "wishlist"' [routerLink]="['/people', knownPerson.id]">Bekijk de wensen van {{knownPerson.fullName}}</a>
-            <a *ngIf='emailExistsRedirectTo === "login"' [routerLink]="['/users/login']" [queryParams]="{e: parentFormGroup.get(controlName).value}">Login met dit emailadres</a>
-        </small>
-    </div>
-</div>
+            @if (emailExistsRedirectTo() === "wishlist") {
+              <a [routerLink]="['/people', knownPerson.id]">Bekijk de wensen van {{knownPerson.fullName}}</a>
+            }
+            @if (emailExistsRedirectTo() === "login") {
+              <a [routerLink]="['/users/login']" [queryParams]="{e: parentFormGroup.get(controlName).value}">Login met dit emailadres</a>
+            }
+          </small>
+        }
+      </div>
+    }
+  </div>

@@ -14,7 +14,7 @@ describe('CustomToastComponent', () => {
     };
 
     beforeEach(async () => {
-        await TestBed.configureTestingModule({ declarations: [CustomToastComponent] }).compileComponents();
+        await TestBed.configureTestingModule({ imports: [CustomToastComponent] }).compileComponents();
         toast = Object.assign({
             close: vi.fn().mockName("Toast.close")
         }, {

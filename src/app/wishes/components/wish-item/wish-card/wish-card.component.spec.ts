@@ -1,3 +1,4 @@
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -25,6 +26,7 @@ import { WishBannerComponent } from '../wish-banner/wish-banner.component';
 import { WishCallToActionButtonComponent } from '../wish-call-to-action-button/wish-call-to-action-button.component';
 import { WishPopupComponent } from '../wish-popup/wish-popup.component';
 import { WishCardComponent } from './wish-card.component';
+import { ImageViewComponent } from '../../../../images/components/image-view/image-view.component';
 
 // Wat een wenskaart toont per scenario (sc-1955, sc-1960, sc-2446, sc-2453, sc-2558, sc-2566) en
 // welke acties ze aanbiedt (sc-1978, sc-1982). Logica komt uit WishItemComponent.
@@ -116,20 +118,20 @@ describe('WishCardComponent', () => {
             showNotification: vi.fn().mockName("NotificationService.showNotification")
         };
 
+        TestBed.overrideComponent(WishCardComponent, { remove: { imports: [ImageViewComponent] }, add: { schemas: [CUSTOM_ELEMENTS_SCHEMA] } });
         await TestBed.configureTestingModule({
-            imports: [RouterTestingModule, FontAwesomeModule, NgbDropdownModule],
-            declarations: [WishCardComponent, WishBannerComponent, WishCallToActionButtonComponent, ActionListComponent, ActionListItemComponent],
-            providers: [
-                { provide: NgbModal, useValue: modal },
-                { provide: WishService, useValue: wishService },
-                { provide: NotificationService, useValue: notifications },
-                { provide: UserService, useValue: { currentUser: new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', []) } },
-                { provide: ImageService, useValue: images },
-                { provide: PeopleService, useValue: people },
-                { provide: CommunicationService, useValue: communication }
-            ],
-            schemas: [CUSTOM_ELEMENTS_SCHEMA] // gimmi-image-view
-        }).compileComponents();
+    imports: [RouterTestingModule, FontAwesomeModule, NgbDropdownModule, WishCardComponent, WishBannerComponent, WishCallToActionButtonComponent, ActionListComponent, ActionListItemComponent],
+    providers: [
+        { provide: NgbModal, useValue: modal },
+        { provide: WishService, useValue: wishService },
+        { provide: NotificationService, useValue: notifications },
+        { provide: UserService, useValue: { currentUser: new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', []) } },
+        { provide: ImageService, useValue: images },
+        { provide: PeopleService, useValue: people },
+        { provide: CommunicationService, useValue: communication }
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA] // gimmi-image-view
+}).compileComponents();
     });
 
     describe('banner, knop en vervaging per scenario', () => {

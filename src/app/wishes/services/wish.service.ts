@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, of, BehaviorSubject } from 'rxjs';
 import { catchError, defaultIfEmpty, map, switchMap, tap } from 'rxjs/operators';
 
@@ -157,18 +157,16 @@ type wishStatusInResponse = 'Open' | 'Reserved' | 'Received' | 'Closed';
   providedIn: 'root'
 })
 export class WishService {
+  private http$ = inject(HttpClient);
+  private userService = inject(UserService);
+  private peopleService = inject(PeopleService);
+
   private _wishes$: BehaviorSubject<Wish[]> = new BehaviorSubject<Wish[]>([]);
   public readonly wishes: Observable<Wish[]> = this._wishes$.asObservable();
   private _currentReceiver$ : BehaviorSubject<Person> = new BehaviorSubject<Person>(null);
   public readonly currentReceiver: Observable<Person> = this._currentReceiver$.asObservable();
   private _selectedWish$ : BehaviorSubject<Wish> = new BehaviorSubject<Wish>(null);
   public readonly selectedWish: Observable<Wish> = this._selectedWish$.asObservable();
-
-  constructor(
-    private http$ : HttpClient,
-    private userService : UserService,
-    private peopleService : PeopleService
-  ) { }
 
   public getWishlist(receiver: Person): Observable<Wish[]> { //https://stackoverflow.com/questions/65417031/rxjs-how-to-make-foreach-loop-wait-for-inner-observable
     return this.http$.get<IWishlistResponse[]>(

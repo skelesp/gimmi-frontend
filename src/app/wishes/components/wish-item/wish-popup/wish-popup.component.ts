@@ -1,19 +1,27 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgbActiveModal, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
 import { IWishImage, Wish } from 'src/app/wishes/models/wish.model';
 import { WishService } from 'src/app/wishes/services/wish.service';
+import { CursorPointerDirective } from '../../../../shared/directives/cursor-pointer.directive';
+
+import { ImageUploadComponent } from '../../../../images/components/image-upload/image-upload.component';
+import { ImageViewComponent } from '../../../../images/components/image-view/image-view.component';
 
 @Component({
     selector: 'gimmi-wish-popup',
     templateUrl: './wish-popup.component.html',
     styleUrls: ['./wish-popup.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CursorPointerDirective, NgbAlert, FormsModule, ReactiveFormsModule, ImageUploadComponent, ImageViewComponent]
 })
 export class WishPopupComponent implements OnInit {
+  activeModal = inject(NgbActiveModal);
+  userService = inject(UserService);
+  wishService = inject(WishService);
+
   @Input() wish: Wish = new Wish(null, null, null, null, null, null, null, null, null, 1);
   @Input() mode: 'edit' | 'create' | 'copy';
   wishForm: UntypedFormGroup;
@@ -24,12 +32,6 @@ export class WishPopupComponent implements OnInit {
   currentUser: User;
   /** Voorvertoning van een net gekozen afbeelding, tot de popup sluit (sc-3028). */
   imagePreview: string = null;
-
-  constructor(
-    public activeModal : NgbActiveModal,
-    public userService : UserService,
-    public wishService : WishService
-  ){}
 
   ngOnInit(): void {
     this.wishForm = new UntypedFormGroup({

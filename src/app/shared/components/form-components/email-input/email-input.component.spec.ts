@@ -23,12 +23,12 @@ describe('EmailInputComponent', () => {
     let form: UntypedFormGroup;
     let people: Record<string, any>;
 
-    function create(inputs: Partial<EmailInputComponent> = {}) {
+    function create(inputs: Record<string, unknown> = {}) {
         form = new UntypedFormGroup({});
         fixture = TestBed.createComponent(EmailInputComponent);
         component = fixture.componentInstance;
         component.parentFormGroup = form;
-        Object.assign(component, inputs);
+        for (const [naam, waarde] of Object.entries(inputs)) fixture.componentRef.setInput(naam, waarde);
         fixture.detectChanges();
     }
 
@@ -52,10 +52,9 @@ describe('EmailInputComponent', () => {
             findPersonByEmail: vi.fn().mockName("PeopleService.findPersonByEmail")
         };
         await TestBed.configureTestingModule({
-            imports: [ReactiveFormsModule, RouterTestingModule, FontAwesomeModule],
-            declarations: [EmailInputComponent, BindQueryparamToInputDirective],
-            providers: [{ provide: PeopleService, useValue: people }]
-        }).compileComponents();
+    imports: [ReactiveFormsModule, RouterTestingModule, FontAwesomeModule, EmailInputComponent, BindQueryparamToInputDirective],
+    providers: [{ provide: PeopleService, useValue: people }]
+}).compileComponents();
     });
 
     it('voegt een control "email" toe aan het parent-formulier', () => {

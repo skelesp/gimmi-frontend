@@ -55,11 +55,11 @@ describe('ImageUploadComponent', () => {
             return kiezer as unknown as NgbModalRef;
         });
         await TestBed.configureTestingModule({
-            declarations: [ImageUploadComponent],
-            providers: [
-                { provide: NgbModal, useValue: modalService }
-            ]
-        }).compileComponents();
+    imports: [ImageUploadComponent],
+    providers: [
+        { provide: NgbModal, useValue: modalService }
+    ]
+}).compileComponents();
     });
 
     it('opent de kiezer als grote popup met de titel als zoekterm', () => {

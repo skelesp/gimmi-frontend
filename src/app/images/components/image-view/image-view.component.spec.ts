@@ -19,10 +19,9 @@ describe('ImageViewComponent', () => {
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            declarations: [ImageViewComponent],
-            imports: [],
-            providers: [provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
-        })
+    imports: [ImageViewComponent],
+    providers: [provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
+})
             .compileComponents();
     });
 

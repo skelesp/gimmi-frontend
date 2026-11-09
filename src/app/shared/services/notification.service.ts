@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Toaster, ToastType } from './toaster.service';
 
 type NotificationType = "success" | "warning" | "info" | "error";
@@ -7,8 +7,8 @@ type NotificationType = "success" | "warning" | "info" | "error";
   providedIn: 'root'
 })
 export class NotificationService {
+  private toaster = inject(Toaster);
 
-  constructor( private toaster: Toaster ) { }
 
   showNotification(message: string, type: NotificationType, title?: string): void {
     

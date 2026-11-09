@@ -22,9 +22,8 @@ describe('PasswordInputComponent', () => {
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            imports: [ReactiveFormsModule, FontAwesomeModule],
-            declarations: [PasswordInputComponent]
-        }).compileComponents();
+    imports: [ReactiveFormsModule, FontAwesomeModule, PasswordInputComponent]
+}).compileComponents();
 
         form = new UntypedFormGroup({});
         fixture = TestBed.createComponent(PasswordInputComponent);

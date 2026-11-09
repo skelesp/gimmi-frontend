@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, throwError } from "rxjs";
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -42,15 +42,15 @@ const jwtService = new JwtHelperService();
   providedIn: 'root'
 })
 export class UserService {
+  private http$ = inject(HttpClient);
+  private router = inject(Router);
+  private notificationService = inject(NotificationService);
+
   private currentUserSubject: BehaviorSubject<User>;
   public currentUser$: Observable<User>;
   public attemptedUrl: string;
 
-  constructor( 
-    private http$: HttpClient,
-    private router: Router,
-    private notificationService: NotificationService
-  ) { 
+  constructor() { 
     this.currentUserSubject = new BehaviorSubject<User>(this.getUserFromStoredToken());
     this.currentUser$ = this.currentUserSubject.asObservable();
 

@@ -1,25 +1,24 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 
 import { Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
+import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
 
 @Component({
     selector: 'gimmi-wish-delete',
     templateUrl: './wish-delete.component.html',
     styleUrls: ['./wish-delete.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CursorPointerDirective]
 })
 export class WishDeleteComponent {
-  @Input() wish: Wish;
+  activeModal = inject(NgbActiveModal);
+  private wishService = inject(WishService);
+  private notificationService = inject(NotificationService);
 
-  constructor(
-    public activeModal: NgbActiveModal,
-    private wishService: WishService,
-    private notificationService: NotificationService
-  ) { }
+  @Input() wish: Wish;
 
   executeDeletion() {
     this.activeModal.close();

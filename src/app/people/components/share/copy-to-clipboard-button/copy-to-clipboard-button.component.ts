@@ -1,22 +1,22 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faCopy } from '@fortawesome/free-solid-svg-icons';
 import { NotificationService } from 'src/app/shared/services/notification.service';
+import { ClipboardModule } from 'ngx-clipboard';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
     selector: 'gimmi-copy-to-clipboard-button',
     templateUrl: './copy-to-clipboard-button.component.html',
     styleUrls: ['./copy-to-clipboard-button.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [ClipboardModule, FaIconComponent]
 })
 export class CopyToClipboardButtonComponent{
+  private notificationService = inject(NotificationService);
+
   @Input() url: string;
   copyIcon : IconDefinition = faCopy;
-
-  constructor (
-    private notificationService: NotificationService
-  ) {}
 
   handleSuccess () : void {
     this.notificationService.showNotification(

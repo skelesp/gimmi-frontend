@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { NotificationService } from './notification.service';
 export interface MailInfo {
@@ -11,10 +11,9 @@ export interface MailInfo {
   providedIn: 'root'
 })
 export class CommunicationService {
+  private http$ = inject(HttpClient);
+  private notificationService = inject(NotificationService);
 
-  constructor( 
-    private http$: HttpClient,
-    private notificationService: NotificationService ) { }
 
   /**
    * @method @public

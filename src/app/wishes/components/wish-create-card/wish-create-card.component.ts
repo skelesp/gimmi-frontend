@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ModalDismissReasons, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -9,24 +9,26 @@ import { UserService } from 'src/app/users/service/user.service';
 import { Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 import { WishPopupComponent } from '../wish-item/wish-popup/wish-popup.component';
+import { ImageViewComponent } from '../../../images/components/image-view/image-view.component';
+import { CursorPointerDirective } from '../../../shared/directives/cursor-pointer.directive';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
     selector: 'gimmi-wish-create-card',
     templateUrl: './wish-create-card.component.html',
     styleUrls: ['./wish-create-card.component.css'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [ImageViewComponent, CursorPointerDirective, FaIconComponent]
 })
 export class WishCreateCardComponent implements OnInit {
+  private modalService = inject(NgbModal);
+  private wishService = inject(WishService);
+  private userService = inject(UserService);
+  private notificationService = inject(NotificationService);
+
   @Input() receiver : Person;
   plusIcon : IconDefinition = faPlus;
   currentUser: User;
-
-  constructor( 
-    private modalService : NgbModal,
-    private wishService : WishService,
-    private userService : UserService,
-    private notificationService: NotificationService ) { }
 
   ngOnInit(): void {
     this.currentUser = this.userService.currentUser;

@@ -3,8 +3,7 @@ import { Wish, wishStatus } from '../models/wish.model';
 
 @Pipe({
     name: 'filterOnState',
-    pure: false,
-    standalone: false
+    pure: false
 })
 export class FilterOnStatePipe implements PipeTransform {
 

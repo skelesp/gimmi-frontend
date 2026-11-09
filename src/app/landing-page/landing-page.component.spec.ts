@@ -5,6 +5,7 @@ import { BehaviorSubject } from 'rxjs';
 
 import { User } from '../users/models/user.model';
 import { UserService } from '../users/service/user.service';
+import { ShareComponent } from '../people/components/share/share.component';
 import { HowToUseComponent } from './how-to-use/how-to-use.component';
 import { LandingPageBannerComponent } from './landing-page-banner/landing-page-banner.component';
 import { LandingPageComponent } from './landing-page.component';
@@ -33,12 +34,12 @@ describe('LandingPageComponent', () => {
 
     beforeEach(async () => {
         currentUser$ = new BehaviorSubject<User>(null);
+        TestBed.overrideComponent(HowToUseComponent, { remove: { imports: [ShareComponent] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
-            imports: [RouterTestingModule],
-            declarations: [LandingPageComponent, LandingPageBannerComponent, HowToUseComponent],
-            providers: [{ provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } }],
-            schemas: [NO_ERRORS_SCHEMA]
-        }).compileComponents();
+    imports: [RouterTestingModule, LandingPageComponent, LandingPageBannerComponent, HowToUseComponent],
+    providers: [{ provide: UserService, useValue: { currentUser$: currentUser$.asObservable() } }],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
     });
 
     it('toont de banner en "Hoe werkt het?" met de vier stappen', () => {

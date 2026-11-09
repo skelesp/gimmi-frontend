@@ -1,14 +1,14 @@
 import { TestBed } from '@angular/core/testing';
-import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { environment } from 'src/environments/environment';
 import { UserService } from '../service/user.service';
-import { JwtInterceptor } from './jwt.interceptor';
+import { jwtInterceptor } from './jwt.interceptor';
 
 // Het token gaat alleen mee naar de eigen API, en alleen als iemand ingelogd is:
 // een externe bron (zoals de afbeeldingen op het beelddomein) krijgt het nooit te zien.
-describe('JwtInterceptor', () => {
+describe('jwtInterceptor', () => {
   let http: HttpClient;
   let backend: HttpTestingController;
   let users: { currentUser: any };
@@ -25,9 +25,8 @@ describe('JwtInterceptor', () => {
     TestBed.configureTestingModule({
     imports: [],
     providers: [
-        { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
         { provide: UserService, useValue: users },
-        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptors([jwtInterceptor])),
         provideHttpClientTesting()
     ]
 });

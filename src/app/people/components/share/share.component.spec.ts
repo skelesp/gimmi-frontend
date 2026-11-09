@@ -9,9 +9,9 @@ describe('ShareComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ShareComponent ],
-      schemas: [NO_ERRORS_SCHEMA]
-    })
+    imports: [ShareComponent],
+    schemas: [NO_ERRORS_SCHEMA]
+})
     .compileComponents();
   });
 

@@ -1,13 +1,13 @@
-import { Directive, ElementRef, HostBinding } from '@angular/core';
+import { Directive, ElementRef, inject } from '@angular/core';
 
 @Directive({
-    selector: '[click], [ngbDropdown], [routerLink]',
-    standalone: false
+  selector: '[click], [ngbDropdown], [routerLink]',
+  host: { '[style.cursor]': 'cursor' }
 })
 export class CursorPointerDirective {
+  private el = inject(ElementRef);
 
-  constructor(private el: ElementRef) { }
 
-  @HostBinding('style.cursor') cursor = 'pointer';
+  cursor = 'pointer';
 
 }
