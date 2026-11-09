@@ -23,17 +23,14 @@ export async function newUserPage(browser: Browser): Promise<{ context: BrowserC
   return { context, page: await context.newPage() };
 }
 
-export async function register(page: Page, account: Account): Promise<void> {
+// Registreren, stap 1 van 2 (sc-3285): het adres opgeven en de melding "controleer je mail" zien. Stap 2 vraagt het token uit
+// de mail, en dat kan CI niet lezen; het verzoek wordt beantwoord zonder het te versturen, zodat er ook geen echte mail vertrekt.
+export async function requestRegistration(page: Page, email: string): Promise<void> {
+  await page.route(/\/api\/v2\/registrations$/, route => route.fulfill({ status: 202 }));
   await page.goto('/users/register');
-  await page.locator('input[formcontrolname="firstName"]').fill(account.firstName);
-  await page.locator('input[formcontrolname="lastName"]').fill(account.lastName);
-  await page.locator('input[formcontrolname="birthday"]').fill('1990-05-17');
-  await input(page, 'Email (login)').fill(account.email);
-  await input(page, 'Wachtwoord').fill(account.password);
-  await input(page, 'Geef wachtwoord nogmaals in').fill(account.password);
+  await input(page, 'Email (login)').fill(email);
   await page.getByRole('button', { name: 'Registreer' }).click();
-  await expect(page).toHaveURL(/\/people\/[0-9a-f]{24}$/);
-  account.id = page.url().split('/').pop();
+  await expect(page.locator('#registrationSent')).toContainText(email);
 }
 
 export async function login(page: Page, account: Account): Promise<void> {

@@ -1,25 +1,23 @@
 import { test, expect } from '@playwright/test';
-import { clearWishes, newcomerEmail, removeAccount, smokeAccounts, smokePassword } from './helpers/api';
-import { Account, login, newUserPage, register, submitLogin, wishCard } from './helpers/flows';
+import { clearWishes, newcomerEmail, smokeAccounts, smokePassword } from './helpers/api';
+import { Account, login, newUserPage, requestRegistration, submitLogin, wishCard } from './helpers/flows';
 
 // Smoketests voor de zes kernflows. De tests bouwen op elkaar (de wens die in
 // test 3 wordt aangemaakt, wordt in test 4 gereserveerd), dus ze draaien serieel
 // en delen de gebruikers hieronder. Eigenaar en gever zijn vaste accounts in de testdatabase (sc-3283, `npm run e2e:seed`);
-// alleen test 1 doorloopt de registratie in de UI, met een eigen account. Na afloop wist afterAll hun wensen en verwijdert
-// het nieuwe account weer via API v2. Blijft er toch iets staan (run afgebroken): npm run e2e:cleanup.
+// test 1 doorloopt stap 1 van de registratie in de UI (het verzoek wordt niet echt verstuurd, zie `requestRegistration`).
+// Na afloop wist afterAll de wensen van beide accounts. Blijft er toch iets staan (run afgebroken): npm run e2e:cleanup.
 
 const runId = Date.now().toString(36);
 const password = smokePassword;
 const owner: Account = { ...smokeAccounts.owner };
 const giver: Account = { ...smokeAccounts.giver };
-const newcomer: Account = { firstName: 'Smoke', lastName: 'Nieuweling', email: newcomerEmail, password };
 const wishTitle = `Smoke wens ${runId}`;
 
 test.describe.configure({ mode: 'serial' });
 
 test.describe('kernflows', () => {
   test.beforeAll(async () => {
-    await removeAccount(newcomerEmail);
     // Vaste accounts (sc-3283): begin met lege lijsten, ook na een afgebroken run.
     await clearWishes(owner);
     await clearWishes(giver);
@@ -35,18 +33,12 @@ test.describe('kernflows', () => {
         fouten.push(`${account.email}: ${(err as Error).message}`);
       }
     }
-    try {
-      await removeAccount(newcomerEmail);
-    } catch (err) {
-      fouten.push(`${newcomerEmail}: ${(err as Error).message}`);
-    }
     if (fouten.length) throw new Error(['Opruimen mislukt, draai npm run e2e:cleanup:', ...fouten].join('\n'));
   });
 
-  test('1. registreren', async ({ browser }) => {
+  test('1. registreren: het adres opgeven en de bevestigingsmail afwachten', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
-    await register(page, newcomer);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(`${newcomer.firstName} ${newcomer.lastName}`);
+    await requestRegistration(page, newcomerEmail);
     await context.close();
   });
 

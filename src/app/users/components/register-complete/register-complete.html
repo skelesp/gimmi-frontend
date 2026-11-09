@@ -1,0 +1,73 @@
+<div class="container">
+  <div class="row align-items-center justify-content-center">
+    <div class="col-lg-9">
+      <h2 class="h3">Rond je registratie af</h2>
+      @if (!pending()) {
+        <div id="registrationExpired" class="alert alert-danger">
+          Deze link werkt niet (meer). Hij is ouder dan 24 uur, of je gebruikte hem al.
+          <a [routerLink]="['/users/register']">Vraag een nieuwe link aan</a> met je e-mailadres.
+        </div>
+      } @else {
+        @if (emailTaken()) {
+          <div id="emailTaken" class="alert alert-danger">
+            Er bestaat al een gebruiker met dit emailadres.
+            <a [routerLink]="['/users', 'login']" [queryParams]="{e: pending()!.email}">Log in met dit emailadres</a>.
+          </div>
+        }
+        <p>Je e-mailadres <strong>{{pending()!.email}}</strong> is bevestigd. Vul nog je gegevens in.</p>
+        <form class="form" (submit)="register($event)" novalidate>
+          <div class="mb-3">
+            <label for="register-first-name">Voornaam</label>
+            <input id="register-first-name" [formField]="registerForm.firstName" type="text" class="form-control">
+            @if (registerForm.firstName().touched() && registerForm.firstName().invalid()) {
+              <div id="firstNameError" class="form-text text-danger">
+                @for (error of registerForm.firstName().errors(); track error.kind) {
+                  <small>{{error.message}}</small>
+                }
+              </div>
+            }
+            @for (message of serverErrors()['firstName']; track message) {
+              <div class="form-text text-danger"><small>{{message}}</small></div>
+            }
+
+            <label for="register-last-name">Familienaam</label>
+            <input id="register-last-name" [formField]="registerForm.lastName" type="text" class="form-control">
+            @if (registerForm.lastName().touched() && registerForm.lastName().invalid()) {
+              <div id="lastNameError" class="form-text text-danger">
+                @for (error of registerForm.lastName().errors(); track error.kind) {
+                  <small>{{error.message}}</small>
+                }
+              </div>
+            }
+            @for (message of serverErrors()['lastName']; track message) {
+              <div class="form-text text-danger"><small>{{message}}</small></div>
+            }
+
+            <label for="register-birthday">Geboortedatum</label>
+            <input id="register-birthday" [formField]="registerForm.birthday" type="date" class="form-control">
+            @if (registerForm.birthday().touched() && registerForm.birthday().invalid()) {
+              <div id="birthdayError" class="form-text text-danger">
+                @for (error of registerForm.birthday().errors(); track error.kind) {
+                  <small>{{error.message}}</small>
+                }
+              </div>
+            }
+            @for (message of serverErrors()['birthday']; track message) {
+              <div class="form-text text-danger"><small>{{message}}</small></div>
+            }
+          </div>
+
+          <gimmi-password-field [field]="registerForm.password" label="Wachtwoord" />
+          @for (message of serverErrors()['password']; track message) {
+            <div class="form-text text-danger"><small>{{message}}</small></div>
+          }
+          <gimmi-password-field [field]="registerForm.passwordCheck" label="Wachtwoordcontrole"
+            placeholder="Geef wachtwoord nogmaals in" />
+          <div>
+            <button type="submit" class="btn btn-danger mt-3" [disabled]="registerForm().invalid()">Registreer</button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>
