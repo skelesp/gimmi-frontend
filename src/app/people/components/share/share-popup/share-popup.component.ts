@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, inject, input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { PersonToShare } from 'src/app/people/models/person.model';
@@ -20,7 +20,7 @@ export class SharePopupComponent {
   private userService = inject(UserService);
 
   @Input() linkToShare : string;
-  readonly personToShare = input<PersonToShare>(undefined);
+  @Input() personToShare : PersonToShare;
   readonly currentUser = toSignal(this.userService.currentUser$);
   message = 'Hey, op volgende link vind je mijn wensenlijst voor een cadeautje.';
 

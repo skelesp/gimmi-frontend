@@ -83,6 +83,10 @@ test.describe('wensbeheer en navigatie', () => {
     // Een bronsite kan weigeren (sc-2960): dan een melding en het volgende resultaat proberen.
     let gelukt = false;
     for (let i = 0; i < Math.min(await resultaten.count(), 6) && !gelukt; i++) {
+      // Wacht tot een vorige poging klaar is: haar melding blijft zichtbaar tot de weergave ververst.
+      await expect.poll(async () => await kiezer.count() === 0 || await resultaten.nth(i).isEnabled({ timeout: 1_000 }).catch(() => false),
+        { timeout: 20_000 }).toBe(true);
+      if (await kiezer.count() === 0) { gelukt = true; break; }
       await resultaten.nth(i).click();
       await expect.poll(async () => await kiezer.count() === 0 || await kiezer.getByRole('alert').isVisible(),
         { timeout: 20_000 }).toBe(true);
