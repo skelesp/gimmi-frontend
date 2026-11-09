@@ -1,0 +1,112 @@
+import type { Mock } from "vitest";
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+
+import { ImagePicker } from '../image-picker/image-picker';
+import { ImageUpload } from './image-upload';
+
+// De knop "Kies afbeelding" opent de afbeeldingskiezer als popup (sc-3028).
+describe('ImageUpload', () => {
+    beforeEach(() => {
+        vi.useFakeTimers({ advanceTimeDelta: 1, shouldAdvanceTime: true });
+    });
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+    let fixture: ComponentFixture<ImageUpload>;
+    let component: ImageUpload;
+    let modalService: Record<string, any>;
+    let kiezer: {
+        componentInstance: any;
+        result: Promise<any>;
+        dismiss: Mock;
+    };
+    let sluit: (waarde: any) => void;
+    let annuleer: (reden: any) => void;
+    let opgeladen: Mock;
+
+    async function maak(opties: {
+        zoekterm?: string;
+    } = {}) {
+        fixture = TestBed.createComponent(ImageUpload);
+        component = fixture.componentInstance;
+        if (opties.zoekterm)
+            component.searchTerm = opties.zoekterm;
+        opgeladen = vi.fn().mockName('imageUploaded');
+        component.imageUploaded.subscribe(opgeladen);
+        await fixture.whenStable();
+    }
+    function klikKnop() {
+        const knop: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+        expect(knop.textContent).toContain('Kies afbeelding');
+        knop.click();
+    }
+
+    beforeEach(async () => {
+        modalService = {
+            open: vi.fn().mockName("NgbModal.open")
+        };
+        modalService.open.mockImplementation(() => {
+            kiezer = {
+                componentInstance: {},
+                result: new Promise((ok, nok) => { sluit = ok; annuleer = nok; }),
+                dismiss: vi.fn().mockName('dismiss')
+            };
+            return kiezer as unknown as NgbModalRef;
+        });
+        await TestBed.configureTestingModule({
+    imports: [ImageUpload],
+    providers: [
+        { provide: NgbModal, useValue: modalService }
+    ]
+}).compileComponents();
+    });
+
+    it('opent de kiezer als grote popup met de titel als zoekterm', async () => {
+        await maak({ zoekterm: 'Rode fiets' });
+        klikKnop();
+        expect(modalService.open).toHaveBeenCalledWith(ImagePicker, { size: 'lg', scrollable: true, ariaLabelledBy: 'kiezer-titel' });
+        expect(kiezer.componentInstance.searchTerm).toBe('Rode fiets');
+    });
+
+    it('de titel op het moment van openen telt, niet die bij het aanmaken', async () => {
+        await maak({ zoekterm: 'fiets' });
+        component.searchTerm = 'step';
+        klikKnop();
+        expect(kiezer.componentInstance.searchTerm).toBe('step');
+    });
+
+    it('kiezer sluit met een afbeelding: eerst de voorvertoning, dan de afbeelding', async () => {
+        await maak();
+        const volgorde: string[] = [];
+        component.previewChanged.subscribe(v => volgorde.push('voorvertoning ' + v));
+        component.imageUploaded.subscribe(a => volgorde.push('afbeelding ' + a.key));
+        klikKnop();
+        sluit({ afbeelding: { key: 'wishes/a.jpg', url: 'u' }, voorvertoning: 'data:image/jpeg;base64,AAA' });
+        await vi.advanceTimersByTimeAsync(0);
+        expect(opgeladen).toHaveBeenCalledWith({ key: 'wishes/a.jpg', url: 'u' });
+        expect(volgorde).toEqual(['voorvertoning data:image/jpeg;base64,AAA', 'afbeelding wishes/a.jpg']);
+    });
+
+    it('kiezer geannuleerd: niets doorgegeven, en bij het sluiten van de wens-popup niets meer te sluiten', async () => {
+        await maak();
+        klikKnop();
+        annuleer('Cancel');
+        await vi.advanceTimersByTimeAsync(0);
+        expect(opgeladen).not.toHaveBeenCalled();
+        fixture.destroy();
+        expect(kiezer.dismiss).not.toHaveBeenCalled();
+    });
+
+    it('de wens-popup sluit terwijl de kiezer open is: de kiezer sluit mee (sc-1391)', async () => {
+        await maak();
+        klikKnop();
+        fixture.destroy();
+        expect(kiezer.dismiss).toHaveBeenCalledWith('Wens-popup gesloten');
+    });
+
+    it('zonder geopende kiezer: sluiten van de wens-popup gaat gewoon', async () => {
+        await maak();
+        expect(() => fixture.destroy()).not.toThrow();
+    });
+});
