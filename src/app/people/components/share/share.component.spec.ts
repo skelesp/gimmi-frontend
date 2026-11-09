@@ -1,7 +1,7 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NgbConfig, NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Person } from 'src/app/people/models/person.model';
 import { ShareComponent } from './share.component';
 
@@ -12,7 +12,9 @@ describe('ShareComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     imports: [ShareComponent],
-    schemas: [NO_ERRORS_SCHEMA]
+    schemas: [NO_ERRORS_SCHEMA],
+    // Zonder animatie is de popup meteen weg; anders verwijdert hij zijn elementen nog nadat de test is opgeruimd.
+    providers: [{ provide: NgbConfig, useFactory: () => Object.assign(new NgbConfig(), { animation: false }) }]
 })
     .compileComponents();
   });
@@ -39,5 +41,6 @@ describe('ShareComponent', () => {
     expect(popup.componentInstance.personToShare).toBe(ilse);
     expect(popup.componentInstance.linkToShare).toContain('/people/p1');
     popup.close();
+    await popup.hidden.toPromise();
   });
 });
