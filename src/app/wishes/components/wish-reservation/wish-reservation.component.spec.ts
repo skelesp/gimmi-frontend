@@ -46,7 +46,7 @@ describe('WishReservationComponent', () => {
     imports: [ReactiveFormsModule, WishReservationComponent],
     providers: [
         { provide: NgbActiveModal, useValue: activeModal },
-        { provide: UserService, useValue: { currentUser: new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', {}) } },
+        { provide: UserService, useValue: { currentUser: new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', []) } },
         { provide: WishService, useValue: wishService },
         { provide: NotificationService, useValue: notifications }
     ]

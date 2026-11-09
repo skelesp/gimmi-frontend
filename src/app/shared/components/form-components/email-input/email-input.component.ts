@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy, inject, input } from '@angular/core';
-import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, AbstractControlOptions, FormControl, ValidationErrors, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DynamicFormGroup } from '../dynamic-form-group';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { faAt } from '@fortawesome/free-solid-svg-icons'
@@ -22,7 +23,7 @@ type EmailExistsRedirectType = "wishlist" | "login";
 export class EmailInputComponent implements OnInit {
   private _peopleService = inject(PeopleService);
 
-  @Input() parentFormGroup: UntypedFormGroup;
+  @Input() parentFormGroup: DynamicFormGroup;
   @Input() label: string = null;
   readonly bindedQueryParam = input<string>(null);
   @Input() controlName = 'email';
@@ -43,11 +44,11 @@ export class EmailInputComponent implements OnInit {
     }
     this.parentFormGroup.addControl(
       this.controlName,
-      new UntypedFormControl(null, emailControlOptions)
+      new FormControl<string | null>(null, emailControlOptions)
     );
   }
 
-  emailExists(control: UntypedFormControl): Promise<any> | Observable<any> {
+  emailExists(control: AbstractControl): Observable<ValidationErrors | null> {
     return this._peopleService.findPersonByEmail(control.value)
       .pipe(
         tap(value => this.knownPerson = value),

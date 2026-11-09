@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Person } from 'src/app/people/models/person.model';
 import { NotificationService } from 'src/app/shared/services/notification.service';
@@ -23,13 +23,16 @@ export class WishReservationComponent implements OnInit {
   private notificationService = inject(NotificationService);
 
   @Input() wish: Wish;
-  reservationForm: UntypedFormGroup;
+  reservationForm: FormGroup<{
+    handoverDate: FormControl<string>;
+    reason: FormControl<string | null>;
+  }>;
   readonly reasonOptions: string[] = ['Verjaardag', 'Sinterklaas', 'Kerstmis', 'Nieuwjaar', 'Housewarming', 'Geboorte', 'Huwelijk', 'Afscheid collega', 'Afscheid', 'Communie / Lentefeest', 'Vader/moederdag', 'Andere reden']
 
   ngOnInit(): void {
-    this.reservationForm = new UntypedFormGroup({
-      'handoverDate': new UntypedFormControl(new Date().toISOString().substring(0, 10), Validators.required), //https://stackoverflow.com/questions/45330319/angular2-setting-date-field-on-reactive-form
-      'reason': new UntypedFormControl(null, Validators.required)
+    this.reservationForm = new FormGroup({
+      'handoverDate': new FormControl(new Date().toISOString().substring(0, 10), { nonNullable: true, validators: Validators.required }), //https://stackoverflow.com/questions/45330319/angular2-setting-date-field-on-reactive-form
+      'reason': new FormControl<string | null>(null, Validators.required)
     })
   }
 

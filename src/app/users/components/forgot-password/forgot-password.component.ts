@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
-import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup } from '@angular/forms';
+import { DynamicFormGroup } from '../../../shared/components/form-components/dynamic-form-group';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { UserService } from '../../service/user.service';
 
@@ -17,12 +18,12 @@ export class ForgotPasswordComponent implements OnInit {
   private userService = inject(UserService);
   private notificationService = inject(NotificationService);
 
-  forgotPasswordForm : UntypedFormGroup;
+  forgotPasswordForm : DynamicFormGroup;
   successAlertClosed : boolean;
   requestSent  = false;
 
   ngOnInit(): void {
-    this.forgotPasswordForm = new UntypedFormGroup ({});
+    this.forgotPasswordForm = new FormGroup({});
   }
 
   public requestPasswordReset () : void {

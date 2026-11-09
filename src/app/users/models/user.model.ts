@@ -6,7 +6,7 @@ export class User {
         public email: string,
         public loginStrategy: string,
         public token: string,
-        public accounts: any
+        public accounts: unknown[]
     ) { };
 
     get fullName(): string { // TODO: User should extend Person so this duplication isn't needed anymore (name should come from Person class, not User Class)
@@ -30,5 +30,5 @@ export interface IDecodedUserToken {
     exp: number;
     iat: number;
     loginStrategy: string;
-    accounts: any[];
+    accounts: unknown[];
 }

@@ -61,7 +61,7 @@ describe('WishPopupComponent', () => {
     imports: [ReactiveFormsModule, NgbAlertModule, WishPopupComponent],
     providers: [
         { provide: NgbActiveModal, useValue: activeModal },
-        { provide: UserService, useValue: { currentUser: new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', {}) } },
+        { provide: UserService, useValue: { currentUser: new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', []) } },
         { provide: WishService, useValue: wishService }
     ],
     schemas: [NO_ERRORS_SCHEMA]

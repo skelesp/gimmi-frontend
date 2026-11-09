@@ -43,7 +43,7 @@ describe('GiftFeedbackComponent', () => {
     it('opslaan sluit de popup met de feedback en de tekst van de tevredenheid', () => {
         fixture.componentInstance.giftFeedbackForm.patchValue({ satisfaction: 5, message: 'Dank!', putBackOnList: true });
         fixture.componentInstance.saveGiftFeedback();
-        expect(activeModal.close).toHaveBeenCalledWith({ satisfaction: 'Heel blij', receivedOn: '2026-03-05', message: 'Dank!', putBackOnList: true });
+        expect(activeModal.close).toHaveBeenCalledWith({ satisfaction: 'Heel blij', receivedOn: new Date('2026-03-05'), message: 'Dank!', putBackOnList: true });
     });
 
     it('annuleren en sluiten via het kruisje', () => {

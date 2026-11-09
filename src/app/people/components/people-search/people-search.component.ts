@@ -66,7 +66,7 @@ export class PeopleSearchComponent implements OnInit, OnDestroy {
     return `${person.fullName}`;
   }
 
-  onPersonSelect($event) {
+  onPersonSelect($event: { preventDefault(): void; item?: Person | null }) {
     $event.preventDefault();
     if ($event.item) {
       const personId = $event.item.id;

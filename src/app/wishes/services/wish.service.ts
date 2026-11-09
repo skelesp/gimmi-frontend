@@ -43,13 +43,7 @@ interface IWishResponse {
   description?: string;
   amountWanted: number;
   reservation?: IReservationResponse,
-  giftFeedback?: {
-    _id: string;
-    satisfaction: string;
-    receivedOn: Date;
-    message: string;
-    putBackOnList: boolean;
-  },
+  giftFeedback?: IGiftFeedbackResponse,
   closure?: IClosureResponse;
   createdAt: Date;
   updatedAt: Date;
@@ -67,9 +61,9 @@ interface IWishResponseWithFullCreatedBy {
   size?: string;
   description?: string;
   amountWanted: number;
-  reservation?: any;
-  giftFeedback?: any;
-  closure?: any;
+  reservation?: IReservationResponse | IReservationResponseWithFullReservedBy;
+  giftFeedback?: IGiftFeedbackResponse;
+  closure?: IClosureResponse;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -106,6 +100,7 @@ interface IReservationResponse {
 }
 
 interface IGiftFeedbackResponse {
+  _id?: string,
   message: string,
   putBackOnList: boolean,
   receivedOn: Date,
@@ -290,8 +285,6 @@ export class WishService {
     return receiver ? 
       this.http$.get<Wish[]>(
         environment.apiUrl + 'wishlist/' + receiver.id + '/copies'
-      ).pipe(
-        tap(wishes => console.log(wishes))
       )
     : of([]);
   } 
@@ -358,11 +351,11 @@ export class WishService {
   private convertWishReservationResponseToUpdatedWish (wishReservationResponse: IWishReservationResponse | IWishResponseWithFullCreatedBy, wish: Wish) : Observable<Wish>{
     return of(wishReservationResponse).pipe(
       // !! Dit is een nutteloze actie puur om ervoor te zorgen dat de wishResponse van deze call gelijk is aan deze van de getWishlist
-      map(wishResponse => {
-        const newWishResponse: any = { ...wishResponse };
-        if (newWishResponse.reservation)
-          newWishResponse.reservation.reservedBy = newWishResponse.reservation.reservedBy.id;
-        return newWishResponse;
+      map((wishResponse): IWishResponse => {
+        const { reservation, ...rest } = wishResponse;
+        if (!reservation) return rest;
+        const reservedBy = typeof reservation.reservedBy === 'string' ? reservation.reservedBy : reservation.reservedBy.id;
+        return { ...rest, reservation: { ...reservation, reservedBy } };
       }),
       switchMap(wishResponse => this.convertWishResponseToFullWishInstance(wishResponse, wish.receiver)
       ),
@@ -467,7 +460,7 @@ export class WishService {
       )
   }
   
-  private createBasicWishInstanceFromResponse ( wishResponse : IWishResponse, receiver: Person ) : Wish {
+  private createBasicWishInstanceFromResponse ( wishResponse : IWishResponse | IWishResponseWithFullCreatedBy, receiver: Person ) : Wish {
     const wish : Wish = new Wish (
       wishResponse._id,
       wishResponse.title,

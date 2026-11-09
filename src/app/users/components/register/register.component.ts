@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DynamicFormGroup } from '../../../shared/components/form-components/dynamic-form-group';
 import { Person } from 'src/app/people/models/person.model';
 import { PeopleService } from 'src/app/people/service/people.service';
 import { INewUserRequestInfo } from '../../service/user.service';
@@ -25,18 +26,25 @@ export class RegisterComponent implements OnInit {
 
   invitedFor: string;
   knownUser: boolean;
-  registrationForm: UntypedFormGroup;
+  registrationForm: FormGroup<{
+    personData: FormGroup<{
+      firstName: FormControl<string | null>;
+      lastName: FormControl<string | null>;
+      birthday: FormControl<string | null>;
+    }>;
+    localAccountData: DynamicFormGroup;
+  }>;
   infoAlertClosed: boolean;
 
   ngOnInit(): void {
     this.invitedFor = null; // Wordt pas geïmplementeerd als wishlist geïmplementeerd worden.
-    this.registrationForm = new UntypedFormGroup ({
-      'personData': new UntypedFormGroup({
-        'firstName': new UntypedFormControl(null, Validators.required),
-        'lastName': new UntypedFormControl(null, Validators.required),
-        'birthday': new UntypedFormControl(null, Validators.required)
+    this.registrationForm = new FormGroup({
+      'personData': new FormGroup({
+        'firstName': new FormControl<string | null>(null, Validators.required),
+        'lastName': new FormControl<string | null>(null, Validators.required),
+        'birthday': new FormControl<string | null>(null, Validators.required)
       }),
-      'localAccountData': new UntypedFormGroup({})
+      'localAccountData': new FormGroup({})
     });
   }
 

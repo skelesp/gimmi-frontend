@@ -266,7 +266,7 @@ describe('WishCardComponent', () => {
 
         it('feedback: slaat feedback op, sluit de wens en mailt de gever de boodschap', async () => {
             const wens = maakWens({ status: 'Received', reservedBy: rob, viewer: 'ria' });
-            const feedback = { satisfaction: '5', receivedOn: null, message: 'Merci!', putBackOnList: false };
+            const feedback = { satisfaction: '5', receivedOn: null as Date, message: 'Merci!', putBackOnList: false };
             popup.result = Promise.resolve(feedback);
             const gesloten = maakWens({ status: 'Fulfilled', reservedBy: rob, viewer: 'ria' });
             gesloten.giftFeedback = feedback;
@@ -287,7 +287,7 @@ describe('WishCardComponent', () => {
 
         it('feedback zonder boodschap: geen mail', async () => {
             const wens = maakWens({ status: 'Received', reservedBy: rob, viewer: 'ria' });
-            const feedback = { satisfaction: '4', receivedOn: null, message: '', putBackOnList: false };
+            const feedback = { satisfaction: '4', receivedOn: null as Date, message: '', putBackOnList: false };
             popup.result = Promise.resolve(feedback);
             const gesloten = maakWens({ status: 'Fulfilled', reservedBy: rob, viewer: 'ria' });
             gesloten.giftFeedback = feedback;

@@ -18,7 +18,7 @@ import { WishListComponent } from '../../../wishes/components/wish-list/wish-lis
 describe('PersonDashboardComponent', () => {
     let fixture: ComponentFixture<PersonDashboardComponent>;
     let currentUser$: BehaviorSubject<User>;
-    const ilse = new User('ilse', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', {});
+    const ilse = new User('ilse', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
 
     function ria(): Person {
         const p = new Person('ria', 'Ria', 'Receiver');
@@ -78,7 +78,7 @@ describe('PersonDashboardComponent', () => {
     });
 
     it('eigen lijst: link verborgen en extra info bewerkbaar', () => {
-        toon(ria(), new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', {}));
+        toon(ria(), new User('ria', 'Receiver', 'Ria', 'ria@gimmi.be', 'local', 't', []));
         expect((el().querySelector('a.badge') as HTMLElement).hidden).toBe(true);
         expect(fixture.componentInstance.personIsUser).toBe(true);
         expect(kind('gimmi-extra-info').nativeElement.personIsUser).toBe(true);

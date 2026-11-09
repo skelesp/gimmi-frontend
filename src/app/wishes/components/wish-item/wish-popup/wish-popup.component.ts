@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
@@ -24,7 +24,15 @@ export class WishPopupComponent implements OnInit {
 
   @Input() wish: Wish = new Wish(null, null, null, null, null, null, null, null, null, 1);
   @Input() mode: 'edit' | 'create' | 'copy';
-  wishForm: UntypedFormGroup;
+  wishForm: FormGroup<{
+    title: FormControl<string | null>;
+    price: FormControl<number | null>;
+    image: FormControl<IWishImage | null>;
+    url: FormControl<string | null>;
+    color: FormControl<string | null>;
+    size: FormControl<string | null>;
+    description: FormControl<string | null>;
+  }>;
   actionButtonText: string;
   popupTitle: string;
   saving = false;
@@ -34,14 +42,14 @@ export class WishPopupComponent implements OnInit {
   imagePreview: string = null;
 
   ngOnInit(): void {
-    this.wishForm = new UntypedFormGroup({
-      'title': new UntypedFormControl(this.wish?.title, [Validators.required]),
-      'price': new UntypedFormControl(this.wish?.price),
-      'image': new UntypedFormControl(this.wish?.image),
-      'url': new UntypedFormControl(this.wish?.url),
-      'color': new UntypedFormControl(this.wish?.color),
-      'size': new UntypedFormControl(this.wish?.size),
-      'description': new UntypedFormControl(this.wish?.description)
+    this.wishForm = new FormGroup({
+      'title': new FormControl<string | null>(this.wish?.title, [Validators.required]),
+      'price': new FormControl<number | null>(this.wish?.price),
+      'image': new FormControl<IWishImage | null>(this.wish?.image),
+      'url': new FormControl<string | null>(this.wish?.url),
+      'color': new FormControl<string | null>(this.wish?.color),
+      'size': new FormControl<string | null>(this.wish?.size),
+      'description': new FormControl<string | null>(this.wish?.description)
     });
     
     this.setSaveButtonText();
@@ -84,7 +92,7 @@ export class WishPopupComponent implements OnInit {
 
   saveWish () {
     this.saving = true;
-    const returnedWish: Wish = { ...this.wish, ...this.wishForm.value };
+    const returnedWish = { ...this.wish, ...this.wishForm.value } as Wish;
     this.activeModal.close(returnedWish);    
   }
 

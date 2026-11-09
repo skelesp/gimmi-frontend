@@ -12,7 +12,7 @@
                         <fa-icon [icon]="mailIcon" class="me-2"></fa-icon><label>Verstuur een uitnodiging naar de
                             persoon die je zocht</label>
                         <gimmi-email-input
-                            [parentFormGroup]='invitationForm.get("invitationData")'
+                            [parentFormGroup]='invitationForm.controls.invitationData'
                             placeholder='Emailadres (verplicht in te vullen)'
                             controlName='emailaddress'
                             [emailExistsValidation]='true'>

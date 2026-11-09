@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
-import { UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormArray, FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DynamicFormGroup } from '../../../../shared/components/form-components/dynamic-form-group';
 import { ILike } from 'src/app/people/models/person.model';
 import { itemTypes } from '../extra-info.component';
 import { faPlus, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
@@ -18,9 +19,9 @@ export class ExtraInfoEditComponent implements OnInit {
   readonly firstName = input<string>(undefined);
   readonly items = input<ILike[]>([]);
   readonly itemType = input<itemTypes>(undefined);
-  readonly parentForm = input<UntypedFormGroup>(undefined);
+  readonly parentForm = input<DynamicFormGroup>(undefined);
 
-  formItems: UntypedFormArray = new UntypedFormArray([]);
+  formItems = new FormArray<FormGroup<{ text: FormControl<string>; url: FormControl<string> }>>([]);
 
   deleteIcon = faTrashAlt;
   addIcon = faPlus;
@@ -36,9 +37,9 @@ export class ExtraInfoEditComponent implements OnInit {
   }
 
   addItem(item: ILike = { text:'', url: ''} ) {
-    const itemControlGroup = new UntypedFormGroup({
-      text: new UntypedFormControl(item.text, Validators.required),
-      url: new UntypedFormControl(item.url)
+    const itemControlGroup = new FormGroup({
+      text: new FormControl(item.text, { nonNullable: true, validators: Validators.required }),
+      url: new FormControl(item.url, { nonNullable: true })
     })
     this.formItems.push(itemControlGroup);
   }

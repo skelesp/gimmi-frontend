@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
-import { FormControl, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Validators, FormsModule, ReactiveFormsModule, FormGroup } from '@angular/forms';
+import { DynamicFormGroup } from '../../../shared/components/form-components/dynamic-form-group';
 import { ActivatedRoute, Router } from '@angular/router';
 import { faWindows } from '@fortawesome/free-brands-svg-icons';
 import { NotificationService } from 'src/app/shared/services/notification.service';
@@ -22,11 +23,11 @@ export class ResetPasswordComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  resetPasswordForm: UntypedFormGroup;
+  resetPasswordForm: DynamicFormGroup;
   invalidToken : boolean;
 
   ngOnInit(): void {
-    this.resetPasswordForm = new UntypedFormGroup({ });
+    this.resetPasswordForm = new FormGroup({});
     this.route.data.subscribe( data => {
       this.invalidToken = !data.validToken;
     });

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { DynamicFormGroup } from '../dynamic-form-group';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 import { PasswordInputComponent } from './password-input.component';
@@ -14,7 +15,7 @@ describe('PasswordInputComponent', () => {
     });
     let fixture: ComponentFixture<PasswordInputComponent>;
     let component: PasswordInputComponent;
-    let form: UntypedFormGroup;
+    let form: DynamicFormGroup;
 
     function input(): HTMLInputElement {
         return fixture.nativeElement.querySelector('input');
@@ -25,7 +26,7 @@ describe('PasswordInputComponent', () => {
     imports: [ReactiveFormsModule, FontAwesomeModule, PasswordInputComponent]
 }).compileComponents();
 
-        form = new UntypedFormGroup({});
+        form = new FormGroup({});
         fixture = TestBed.createComponent(PasswordInputComponent);
         component = fixture.componentInstance;
         component.parentFormGroup = form;

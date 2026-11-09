@@ -87,14 +87,14 @@
               </div>
 
               <gimmi-email-input
-                [parentFormGroup]='registrationForm.get("localAccountData")'
+                [parentFormGroup]='registrationForm.controls.localAccountData'
                 label="Email"
                 bindedQueryParam='e'
                 [emailExistsValidation]='true'
                 emailExistsRedirectTo='login'>
               </gimmi-email-input>
               <gimmi-password-check
-                [parentFormGroup]="registrationForm.get('localAccountData')">
+                [parentFormGroup]="registrationForm.controls.localAccountData">
               </gimmi-password-check>
               <div>
                 <button type="submit" class="btn btn-danger mt-3" [disabled]='!registrationForm.valid'>Registreer</button>

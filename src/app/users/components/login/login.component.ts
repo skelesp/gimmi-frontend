@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
-import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup } from '@angular/forms';
+import { DynamicFormGroup } from '../../../shared/components/form-components/dynamic-form-group';
 import { UserService } from '../../service/user.service';
 import { ILocalLoginInfo } from "../../models/user.model";
 import { Subscription } from 'rxjs';
@@ -22,14 +23,14 @@ import { PasswordInputComponent } from '../../../shared/components/form-componen
 export class LoginComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
 
-  loginForm: UntypedFormGroup;
+  loginForm: DynamicFormGroup;
   authenticationError = false;
   loggedInUser: User;
   currentUserSubscription: Subscription;
   redirectUrl: string;
 
   ngOnInit(): void {
-    this.loginForm = new UntypedFormGroup({});
+    this.loginForm = new FormGroup({});
 
     this.currentUserSubscription = this.userService.currentUser$.subscribe( user => {
       this.loggedInUser = user;

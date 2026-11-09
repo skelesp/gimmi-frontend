@@ -1,6 +1,7 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { DynamicFormGroup } from '../dynamic-form-group';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { of, throwError } from 'rxjs';
@@ -20,11 +21,11 @@ describe('EmailInputComponent', () => {
     });
     let fixture: ComponentFixture<EmailInputComponent>;
     let component: EmailInputComponent;
-    let form: UntypedFormGroup;
+    let form: DynamicFormGroup;
     let people: Record<string, any>;
 
     function create(inputs: Record<string, unknown> = {}) {
-        form = new UntypedFormGroup({});
+        form = new FormGroup({});
         fixture = TestBed.createComponent(EmailInputComponent);
         component = fixture.componentInstance;
         component.parentFormGroup = form;

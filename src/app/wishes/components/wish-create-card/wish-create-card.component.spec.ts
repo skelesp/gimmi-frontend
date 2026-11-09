@@ -15,7 +15,7 @@ import { WishCreateCardComponent } from './wish-create-card.component';
 // Kaart "Voeg wens toe" vooraan in de wenslijst.
 describe('WishCreateCardComponent', () => {
     const ria = new Person('ria', 'Ria', 'Receiver');
-    const rob = new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', {});
+    const rob = new User('rob', 'Reservator', 'Rob', 'rob@gimmi.be', 'local', 't', []);
     let fixture: ComponentFixture<WishCreateCardComponent>;
     let modal: Record<string, any>;
     let popup: { componentInstance: Record<string, any>; result: Promise<any> };

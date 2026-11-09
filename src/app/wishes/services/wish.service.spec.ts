@@ -192,7 +192,7 @@ describe('WishService', () => {
 
     it('addGiftFeedback: post de feedback naar /feedback', () => {
         const [wens] = laadLijst('w1');
-        const feedback = { satisfaction: 'blij', receivedOn: null, message: 'dank je', putBackOnList: false };
+        const feedback = { satisfaction: 'blij', receivedOn: null as Date, message: 'dank je', putBackOnList: false };
         let bijgewerkt: Wish;
         service.addGiftFeedback(wens, feedback).subscribe(w => bijgewerkt = w);
         const req = http.expectOne(`${api}wish/w1/feedback`);

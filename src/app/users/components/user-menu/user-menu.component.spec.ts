@@ -11,7 +11,7 @@ import { UserMenuComponent } from './user-menu.component';
 describe('UserMenuComponent', () => {
     let fixture: ComponentFixture<UserMenuComponent>;
     let currentUser$: BehaviorSubject<User>;
-    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', {});
+    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
 
     beforeEach(async () => {
         currentUser$ = new BehaviorSubject<User>(ilse);

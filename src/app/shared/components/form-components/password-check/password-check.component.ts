@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { UntypedFormGroup, ValidationErrors, ValidatorFn, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormGroup, ValidationErrors, ValidatorFn, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DynamicFormGroup } from '../dynamic-form-group';
 import { PasswordInputComponent } from '../password-input/password-input.component';
 
 
@@ -11,18 +12,22 @@ import { PasswordInputComponent } from '../password-input/password-input.compone
     imports: [FormsModule, ReactiveFormsModule, PasswordInputComponent]
 })
 export class PasswordCheckComponent implements OnInit {
-  @Input() parentFormGroup : UntypedFormGroup;
+  @Input() parentFormGroup : DynamicFormGroup;
   @Input() controlName  = 'passwordGroup';
+
+  get passwordGroup(): DynamicFormGroup {
+    return this.parentFormGroup.get(this.controlName) as DynamicFormGroup;
+  }
 
   constructor() { }
 
   ngOnInit(): void {
-    this.parentFormGroup.addControl(this.controlName, new UntypedFormGroup({}, {
+    this.parentFormGroup.addControl(this.controlName, new FormGroup({}, {
       validators: this.passwordMatchValidator
     }));
   }
 
-   passwordMatchValidator : ValidatorFn = (control : UntypedFormGroup) : ValidationErrors | null => {
+   passwordMatchValidator : ValidatorFn = (control : AbstractControl) : ValidationErrors | null => {
     const password = control.get('password');
     const passwordCheck = control.get('passwordCheck');
 

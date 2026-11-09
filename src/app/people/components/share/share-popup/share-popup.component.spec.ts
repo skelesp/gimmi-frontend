@@ -12,7 +12,7 @@ describe('SharePopupComponent', () => {
     let fixture: ComponentFixture<SharePopupComponent>;
     let currentUser$: BehaviorSubject<User>;
     let activeModal: Record<string, any>;
-    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', {});
+    const ilse = new User('u1', 'Ingelogd', 'Ilse', 'ilse@gimmi.be', 'local', 't', []);
 
     beforeEach(async () => {
         currentUser$ = new BehaviorSubject<User>(ilse);

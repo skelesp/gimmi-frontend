@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject, input } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs';
-import { Person } from 'src/app/people/models/person.model';
+import { PersonToShare } from 'src/app/people/models/person.model';
 import { User } from 'src/app/users/models/user.model';
 import { UserService } from 'src/app/users/service/user.service';
 import { CursorPointerDirective } from '../../../../shared/directives/cursor-pointer.directive';
@@ -21,7 +21,7 @@ export class SharePopupComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
 
   @Input() linkToShare : string;
-  readonly personToShare = input<Person>(undefined);
+  readonly personToShare = input<PersonToShare>(undefined);
   currentUser: User; currentUserSubscription: Subscription;
   message = 'Hey, op volgende link vind je mijn wensenlijst voor een cadeautje.';
 

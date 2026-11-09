@@ -53,7 +53,7 @@ export class WishCreateCardComponent implements OnInit {
       .catch( reason => this.handlePopupDismissal(reason) );
   }
 
-  private handlePopupDismissal (reason : any) : void {
+  private handlePopupDismissal (reason: unknown) : void {
     if (reason === ModalDismissReasons.ESC) reason = 'ESC pressed';
     else if (reason === ModalDismissReasons.BACKDROP_CLICK) reason = 'Backdrop click';
 

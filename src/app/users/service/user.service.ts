@@ -144,7 +144,7 @@ export class UserService {
    * @method @public
    * @description 
    */
-  public requestPasswordReset(email: string): Observable<any> {
+  public requestPasswordReset(email: string): Observable<unknown> {
     const body: IPasswordResetRequest = {
       email: email,
       resetPasswordRoute: environment.rootSiteUrl + "/users/resetpassword"
