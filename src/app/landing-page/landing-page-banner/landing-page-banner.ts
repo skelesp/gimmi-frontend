@@ -1,3 +1,4 @@
+import { NgOptimizedImage } from '@angular/common';
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
@@ -12,7 +13,7 @@ import { CursorPointer } from '../../shared/directives/cursor-pointer';
     templateUrl: './landing-page-banner.html',
     styleUrls: ['./landing-page-banner.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FaIconComponent, RouterLink, CursorPointer]
+    imports: [FaIconComponent, RouterLink, CursorPointer, NgOptimizedImage]
 })
 export class LandingPageBanner {
   private userService = inject(UserService);

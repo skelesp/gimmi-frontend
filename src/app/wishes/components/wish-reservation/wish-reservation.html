@@ -2,7 +2,7 @@
   <h3 class="modal-title" id="modal-title">
     Reserveer {{wish.title}}
   </h3>
-  <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
+  <button type="button" class="btn-close" aria-label="Sluiten" (click)="activeModal.dismiss('Cross click')"></button>
 </div>
 
 <form class="form" (ngSubmit)="saveReservation()" [formGroup]="reservationForm">

@@ -3,7 +3,7 @@
   @if (person) {
     <div>
       @if (person.pic) {
-        <img [src]="person.pic" class="me-2" style="width: 16px">
+        <img [src]="person.pic" alt="" class="me-2" style="width: 16px">
       }
       @if (!person.pic) {
         <fa-icon [icon]="userIcon" class="me-2"></fa-icon>

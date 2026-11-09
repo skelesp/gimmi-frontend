@@ -44,7 +44,7 @@ describe('WishList', () => {
     }
 
     async function klikTab(tekst: string) {
-        const tab: HTMLElement = Array.from(fixture.nativeElement.querySelectorAll('a[ngbNavLink]') as NodeListOf<HTMLElement>)
+        const tab: HTMLElement = Array.from(fixture.nativeElement.querySelectorAll('.nav-tabs button') as NodeListOf<HTMLElement>)
             .find(a => a.textContent.trim() === tekst);
         tab.click();
         await fixture.whenStable();

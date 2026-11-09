@@ -1,3 +1,4 @@
+import { NgOptimizedImage } from '@angular/common';
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { faUserPlus, IconDefinition } from "@fortawesome/free-solid-svg-icons";
@@ -15,7 +16,7 @@ import { Share } from '../../people/components/share/share';
     templateUrl: './how-to-use.html',
     styleUrls: ['./how-to-use.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FaIconComponent, NgbTooltip, RouterLink, CursorPointer, Share]
+    imports: [FaIconComponent, NgbTooltip, RouterLink, CursorPointer, Share, NgOptimizedImage]
 })
 export class HowToUse {
   private userService = inject(UserService);

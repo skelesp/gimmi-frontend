@@ -9,7 +9,9 @@
     <gimmi-extra-info-view class="col-10 col-md-auto"
     [firstName]="firstName" [items]="likes" itemType="likes"></gimmi-extra-info-view>
     <div class="col-2 col-md-auto order-md-3" [hidden]="!personIsUser">
-      <fa-icon [icon]="pencilIcon" (click)="editMode = !editMode"></fa-icon>
+      <button type="button" class="icon-button" aria-label="Extra info aanpassen" (click)="editMode = !editMode">
+        <fa-icon [icon]="pencilIcon"></fa-icon>
+      </button>
     </div>
     <gimmi-extra-info-view class="col-10 col-md-auto" [firstName]="firstName" [items]="dislikes" itemType="dislikes">
     </gimmi-extra-info-view>
@@ -24,11 +26,13 @@
     <div class="col-2 col-md-auto order-md-3">
       <button type="submit"
         class="btn btn-link btn-sm"
+        aria-label="Extra info opslaan"
         [disabled]="editItemsForm.invalid">
         <fa-icon [icon]="checkIcon" class="text-success me-2"></fa-icon>
       </button>
       <button type="button"
         class="btn btn-link btn-sm"
+        aria-label="Wijzigingen annuleren"
         (click)="resetEditForm()">
         <fa-icon [icon]="cancelIcon" class="text-danger"></fa-icon>
       </button>
