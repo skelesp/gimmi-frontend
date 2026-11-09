@@ -63,11 +63,8 @@ jobs:
         with:
           name: visuele-baseline
           path: e2e/__screenshots__/
-      # De specs zetten hun testgebruikers rechtstreeks in de testdatabase (sc-3283). Alleen deze stap kent de secrets.
       - run: npm run e2e
         if: ${{ !inputs.update_baseline }}
-        env:
-          E2E_DB_URI: ${{ secrets.E2E_DB_URI }}
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

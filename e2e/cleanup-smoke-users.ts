@@ -1,39 +1,19 @@
-// Ruimt smoke-testgebruikers (en hun wensen) op in de testomgeving. Vangnet voor
-// runs die halverwege stopten.
+// Ruimt de testdata van de smoketests op in de testomgeving (sc-3283). Vangnet voor runs die halverwege stopten.
 //
-//   npm run e2e:cleanup              (E2E_DRY_RUN=1: alleen tonen wat er verwijderd wordt)
+//   npm run e2e:cleanup
 //
-// De kandidaten komen uit de testdatabase (E2E_DB_URI): naam Smoke + Eigenaar/Gever/Opruimer/Nieuweling én een
-// adres dat bij een smoke-account past. Verwijderen gaat via API v2: de gebruikers hebben een bekend
-// wachtwoord, dus het script logt in als elke gebruiker en roept `DELETE /me` aan. Echte gebruikers
-// worden dus nooit geraakt.
-import { apiUrl, deleteAccount, smokePassword } from './helpers/api.ts';
-import { findSmokeAccounts } from './helpers/seed.ts';
+// Via API v2, met het bekende wachtwoord van de smoke-accounts: de vaste accounts (Eigenaar, Gever) houden hun
+// account maar verliezen hun wensen; het wegwerpaccount van kernflows test 1 wordt verwijderd. Echte gebruikers
+// worden nooit geraakt: alleen deze adressen komen aan bod.
+import { apiUrl, clearWishes, newcomerEmail, removeAccount, smokeAccounts } from './helpers/api.ts';
 
 async function main(): Promise<void> {
   console.log(`Opruimen tegen ${apiUrl}`);
-  const kandidaten = await findSmokeAccounts();
-  if (kandidaten.length === 0) {
-    console.log('Geen smoke-gebruikers gevonden.');
-    return;
+  for (const account of Object.values(smokeAccounts)) {
+    console.log(`${account.email}: ${await clearWishes(account)} wensen verwijderd`);
   }
-
-  let verwijderd = 0, mislukt = 0;
-  for (const { id, email } of kandidaten) {
-    if (process.env.E2E_DRY_RUN) {
-      console.log(`Droog: zou verwijderen ${email} (${id})`);
-      continue;
-    }
-    try {
-      await deleteAccount(email, smokePassword);
-      verwijderd++;
-    } catch (err) {
-      console.log(`Mislukt voor ${email}: ${(err as Error).message}`);
-      mislukt++;
-    }
-  }
-  console.log(`Klaar: ${verwijderd} gebruikers verwijderd, ${mislukt} mislukt.`);
-  if (mislukt) process.exit(1);
+  await removeAccount(newcomerEmail);
+  console.log(`${newcomerEmail}: verwijderd als het bestond`);
 }
 
 main().catch(err => { console.error(err); process.exit(1); });

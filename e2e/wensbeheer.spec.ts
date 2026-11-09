@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { deleteAccount, smokePassword } from './helpers/api';
-import { seedAccount } from './helpers/seed';
+import { clearWishes, smokeAccounts } from './helpers/api';
 import { Account, createWish, input, login, newUserPage, submitLogin, wishAction, wishCard } from './helpers/flows';
 
 // Flows rond het beheren van wensen en navigeren, naast de zes kernflows (sc-2979):
@@ -8,13 +7,12 @@ import { Account, createWish, input, login, newUserPage, submitLogin, wishAction
 // naar de eigen lijst (sc-2348), wens verwijderen (sc-1981), uitloggen (sc-1987),
 // wachtwoord vergeten (sc-2004), paginatitel en footer (sc-2027, sc-2575), afbeelding
 // zoeken en een eigen foto opladen (sc-3028).
-// Serieel, met eigen gebruikers die vooraf in de testdatabase staan (sc-3283) en die afterAll weer opruimt
+// Serieel, met eigen gebruikers die als vaste accounts in de testdatabase staan (sc-3283, `npm run e2e:seed`) en die afterAll weer opruimt
 // (zelfde naamregels als e2e:cleanup).
 
 const runId = `${Date.now().toString(36)}w`;
-const password = smokePassword;
-const owner: Account = { firstName: 'Smoke', lastName: 'Eigenaar', email: `smoke+owner-${runId}@gimmi.be`, password };
-const giver: Account = { firstName: 'Smoke', lastName: 'Gever', email: `smoke+giver-${runId}@gimmi.be`, password };
+const owner: Account = { ...smokeAccounts.owner };
+const giver: Account = { ...smokeAccounts.giver };
 const wensA = `Smoke reserveer ${runId}`;
 const wensB = `Smoke kopie ${runId}`;
 
@@ -35,16 +33,16 @@ test.describe.configure({ mode: 'serial' });
 
 test.describe('wensbeheer en navigatie', () => {
   test.beforeAll(async () => {
-    await seedAccount(owner);
-    await seedAccount(giver);
+    // Vaste accounts (sc-3283): begin met lege lijsten, ook na een afgebroken run.
+    await clearWishes(owner);
+    await clearWishes(giver);
   });
 
   test.afterAll(async () => {
     const fouten: string[] = [];
     for (const account of [giver, owner]) {
-      if (!account.id) continue;
       try {
-        await deleteAccount(account.email, account.password);
+        await clearWishes(account);
       } catch (err) {
         fouten.push(`${account.email}: ${(err as Error).message}`);
       }

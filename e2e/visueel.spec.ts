@@ -1,6 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { deleteAccount, smokePassword } from './helpers/api';
-import { seedAccount } from './helpers/seed';
+import { clearWishes, smokeAccounts } from './helpers/api';
 import { Account, createWish, input, login, newUserPage, wishCard } from './helpers/flows';
 
 // Visuele baseline vóór de Angular-klim en Bootstrap 4 → 5 (sc-3277): screenshots van de kernschermen,
@@ -11,8 +10,8 @@ import { Account, createWish, input, login, newUserPage, wishCard } from './help
 test.skip(!process.env.CI && !process.env.E2E_VISUAL, 'Visuele baseline draait alleen in CI of met E2E_VISUAL=1');
 
 const runId = `${Date.now().toString(36)}v`;
-const owner: Account = { firstName: 'Smoke', lastName: 'Eigenaar', email: `smoke+owner-${runId}@gimmi.be`, password: smokePassword };
-const giver: Account = { firstName: 'Smoke', lastName: 'Gever', email: `smoke+giver-${runId}@gimmi.be`, password: smokePassword };
+const owner: Account = { ...smokeAccounts.owner };
+const giver: Account = { ...smokeAccounts.giver };
 const wensA = 'Baseline fiets';
 const wensB = 'Baseline boek';
 
@@ -31,16 +30,16 @@ test.describe.configure({ mode: 'serial' });
 
 test.describe('visuele baseline', () => {
   test.beforeAll(async () => {
-    await seedAccount(owner);
-    await seedAccount(giver);
+    // Vaste accounts (sc-3283): begin met lege lijsten, ook na een afgebroken run.
+    await clearWishes(owner);
+    await clearWishes(giver);
   });
 
   test.afterAll(async () => {
     const fouten: string[] = [];
     for (const account of [giver, owner]) {
-      if (!account.id) continue;
       try {
-        await deleteAccount(account.email, account.password);
+        await clearWishes(account);
       } catch (err) {
         fouten.push(`${account.email}: ${(err as Error).message}`);
       }
