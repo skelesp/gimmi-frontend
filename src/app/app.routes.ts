@@ -12,7 +12,7 @@ import { Register } from './users/components/register/register';
 import { RegisterComplete } from './users/components/register-complete/register-complete';
 import { registrationResolver } from './users/resolvers/registration-resolver';
 import { ResetPassword } from './users/components/reset-password/reset-password';
-import { passwordResetTokenResolver } from './users/resolvers/password-reset-token-resolver';
+import { passwordResetResolver } from './users/resolvers/password-reset-resolver';
 import { WishPage } from './wishes/components/wish-item/wish-page/wish-page';
 import { wishResolver } from './wishes/resolvers/wish-resolver';
 
@@ -32,7 +32,7 @@ export const routes: Routes = [
       { path: 'register', component: Register, canActivate: [emailQueryParamGuard] },
       { path: 'register/:token', component: RegisterComplete, resolve: { registration: registrationResolver } },
       { path: 'forgotpassword', component: ForgotPassword },
-      { path: 'resetpassword/:token', component: ResetPassword, resolve: { validToken: passwordResetTokenResolver } }
+      { path: 'resetpassword/:token', component: ResetPassword, resolve: { passwordReset: passwordResetResolver } }
     ]
   },
   {
