@@ -131,7 +131,7 @@ test.describe('wachtwoord resetten met de link uit de mail (sc-2004)', () => {
     await context.route(new RegExp(api + 'me$'), route => route.fulfill({ status: 200, contentType: 'application/json',
       body: JSON.stringify({ id: '5e2e00000000000000000009', email: 'smoke+reset@gimmi.be', firstName: 'Smoke', lastName: 'Reset', createdAt: '2026-01-01T00:00:00Z' }) }));
     // De lijst van de nieuwe sessie hoeft niet echt te bestaan; het gaat om de doorverwijzing.
-    await context.route(/\/api\/people\/5e2e00000000000000000009/, route => route.fulfill({ status: 404, body: '{}' }));
+    await context.route(new RegExp(api + 'people/5e2e00000000000000000009'),route => route.fulfill({ status: 404, body: '{}' }));
 
     await page.goto('/users/resetpassword/' + token);
     await expect(page.getByRole('heading', { name: 'Vervang je vergeten paswoord' })).toBeVisible();

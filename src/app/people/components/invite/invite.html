@@ -6,34 +6,19 @@
                 We vonden nog geen lijst voor de persoon die je zocht. Vraag deze persoon om een lijst aan te maken via onderstaande
                 mogelijkheden.
             </div>
-            <form [formGroup]='invitationForm' (ngSubmit)="invitePerson()">
-                <div formGroupName="invitationData">
-                    <div class="mb-3">
-                        <fa-icon [icon]="mailIcon" class="me-2"></fa-icon><label for="invite-email">Verstuur een uitnodiging naar de
-                            persoon die je zocht</label>
-                        <gimmi-email-input
-                            inputId="invite-email"
-                            [parentFormGroup]='invitationForm.controls.invitationData'
-                            placeholder='Emailadres (verplicht in te vullen)'
-                            controlName='emailaddress'
-                            [emailExistsValidation]='true'>
-                        </gimmi-email-input>
-                        <small id="emailHelp" class="form-text text-muted">Het emailadres wordt enkel gebruikt om de persoon uit te
-                            nodigen.</small>
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input
-                                type="checkbox"
-                                class="form-check-input"
-                                formControlName="notifyOnRegistration">
-                            <label class="form-check-label" for="notifyOnRegistration">Hou mij op de hoogte als deze persoon zich registreert.</label>
-                        </div>
-                    </div>
+            <form (submit)="invite($event)" novalidate>
+                <div class="mb-3">
+                    <gimmi-email-field
+                        [field]="invitationForm.email"
+                        inputId="invite-email"
+                        label="Verstuur een uitnodiging naar de persoon die je zocht"
+                        placeholder="Emailadres (verplicht in te vullen)" />
+                    <small id="emailHelp" class="form-text text-muted">Het emailadres wordt enkel gebruikt om de persoon uit te
+                        nodigen.</small>
                 </div>
-                <button type="submit" class="btn btn-primary" [disabled]="!invitationForm.valid || !invitationForm.get('invitationData.emailaddress').touched">Submit</button>
+                <button type="submit" class="btn btn-primary" [disabled]="invitationForm().invalid()">Verstuur</button>
             </form>
-        
+
         </div>
     </div>
 </div>

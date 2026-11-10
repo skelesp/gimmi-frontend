@@ -1,4 +1,4 @@
-@if (items?.length) {
+@if (items().length) {
   <div>
     <div class="h6">
       @switch (itemType()) {
@@ -12,7 +12,7 @@
     </div>
     <div class="font-sm">
       <ul>
-        @for (item of items; track item) {
+        @for (item of items(); track item) {
           <li>
             @if (!item.url) {
               <span>{{item.text}}</span>

@@ -3,8 +3,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStore } from 'src/app/core/auth/auth-store';
-import { IExtraPersonInfo, Person } from '../../models/person.model';
-import { PeopleService } from '../../service/people.service';
+import { Person } from '../../models/person.model';
+import { PersonProfile } from '../../service/people';
 
 import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { Share } from '../share/share';
@@ -21,20 +21,24 @@ import { WishList } from '../../../wishes/components/wish-list/wish-list';
 })
 export class PersonDashboard {
   private auth = inject(AuthStore);
-  private personService = inject(PeopleService);
   private route = inject(ActivatedRoute);
 
   readonly currentUser = this.auth.user;
-  private readonly routePerson = toSignal(this.route.data.pipe(map(data => data.person as Person)));
-  // Altijd "gewijzigd": updateExtraInfo muteert de persoon, en dat moet de weergave verversen.
-  readonly person = linkedSignal<Person, Person>({ source: this.routePerson, computation: person => person, equal: () => false });
-  readonly personIsUser = computed(() => this.personService.isEqualToCurrentUser(this.person()));
+  private readonly routeProfile = toSignal(this.route.data.pipe(map(data => data.person as PersonProfile | null)));
+  /** The profile from the route; replaced by the answer when the likes and dislikes are saved. */
+  readonly profile = linkedSignal(() => this.routeProfile());
+  readonly personIsUser = computed(() => this.profile()?.viewer.isSelf ?? false);
+  readonly canEdit = computed(() => this.profile()?.viewer.can.update ?? false);
+  /**
+   * The person as the (v1) wish list wants it. The same object for the same person, so saving the likes
+   * does not reload the wishes. Goes away with sc-3288.
+   */
+  readonly receiver = computed(() => {
+    const profile = this.profile();
+    return profile ? new Person(profile.id, profile.firstName, profile.lastName) : null;
+  }, { equal: (a, b) => a?.id === b?.id });
 
-  updateExtraInfo(extraInfo: IExtraPersonInfo) {
-    this.person.update(person => {
-      person.extraInfo = extraInfo;
-      return person;
-    });
+  updateProfile(profile: PersonProfile) {
+    this.profile.set(profile);
   }
-
 }

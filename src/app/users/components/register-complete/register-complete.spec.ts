@@ -2,8 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
-import { Person } from 'src/app/people/models/person.model';
-import { PeopleService } from 'src/app/people/service/people.service';
 import { ApiProblem } from 'src/app/core/api/api-problem';
 import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
 import { AuthStore } from 'src/app/core/auth/auth-store';
@@ -17,7 +15,6 @@ describe('RegisterComplete', () => {
     let fixture: ComponentFixture<RegisterComplete>;
     let registration: { complete: ReturnType<typeof vi.fn> };
     let auth: ReturnType<typeof fakeAuthStore>;
-    let people: { addPerson: ReturnType<typeof vi.fn> };
     let problems: { show: ReturnType<typeof vi.fn> };
     let notifications: { showNotification: ReturnType<typeof vi.fn> };
 
@@ -51,7 +48,6 @@ describe('RegisterComplete', () => {
                 { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ token: 'tok1' }), data: { registration: registrationInfo } } } },
                 { provide: Registration, useValue: registration },
                 { provide: AuthStore, useValue: auth },
-                { provide: PeopleService, useValue: people },
                 { provide: ProblemNotifier, useValue: problems },
                 { provide: NotificationService, useValue: notifications }
             ]
@@ -63,7 +59,6 @@ describe('RegisterComplete', () => {
     beforeEach(() => {
         registration = { complete: vi.fn().mockName('Registration.complete') };
         auth = fakeAuthStore();
-        people = { addPerson: vi.fn() };
         problems = { show: vi.fn() };
         notifications = { showNotification: vi.fn() };
     });
@@ -102,8 +97,6 @@ describe('RegisterComplete', () => {
         expect(registration.complete).toHaveBeenCalledWith('tok1', {
             firstName: 'Ria', lastName: 'Receiver', birthday: '1990-05-17', password: 'geheim-genoeg'
         });
-        expect(people.addPerson).toHaveBeenCalledWith(expect.any(Person));
-        expect(vi.mocked(people.addPerson).mock.lastCall![0].id).toBe('u1');
         expect(auth.showAuthenticationConfirmation).toHaveBeenCalled();
         expect(auth.redirectAfterAuthentication).toHaveBeenCalled();
     });

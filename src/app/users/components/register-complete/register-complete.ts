@@ -3,8 +3,6 @@ import { form, maxLength, minLength, required, submit, validate } from '@angular
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormField } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
-import { Person } from 'src/app/people/models/person.model';
-import { PeopleService } from 'src/app/people/service/people.service';
 import { ApiProblem } from '../../../core/api/api-problem';
 import type { Schema } from '../../../core/api/api-types';
 import { problemMessage } from '../../../core/api/error-messages';
@@ -27,7 +25,6 @@ export class RegisterComplete {
   private route = inject(ActivatedRoute);
   private registration = inject(Registration);
   private auth = inject(AuthStore);
-  private people = inject(PeopleService);
   private problems = inject(ProblemNotifier);
   private notifications = inject(NotificationService);
 
@@ -56,8 +53,7 @@ export class RegisterComplete {
       const { firstName, lastName, birthday, password } = this.details();
       this.serverErrors.set({});
       try {
-        const user = await firstValueFrom(this.registration.complete(this.token, { firstName, lastName, birthday, password }));
-        this.people.addPerson(new Person(user.id, user.firstName, user.lastName));
+        await firstValueFrom(this.registration.complete(this.token, { firstName, lastName, birthday, password }));
         this.auth.showAuthenticationConfirmation();
         this.auth.redirectAfterAuthentication();
       } catch (error) {
