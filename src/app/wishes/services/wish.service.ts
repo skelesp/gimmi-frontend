@@ -1,24 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { EMPTY, Observable, of, BehaviorSubject } from 'rxjs';
-import { expand, map, reduce, switchMap, tap } from 'rxjs/operators';
+import { catchError, expand, map, reduce, switchMap, tap } from 'rxjs/operators';
 
 import { environment } from 'src/environments/environment';
 import { ApiClient } from 'src/app/core/api/api-client';
+import { ApiProblem } from 'src/app/core/api/api-problem';
+import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
+import { validateUrl } from 'src/app/_utility/url_utility';
 import type { Schema } from 'src/app/core/api/api-types';
 import { Person } from 'src/app/people/models/person.model';
 import { AuthStore } from 'src/app/core/auth/auth-store';
-import { IGiftFeedback, IReservation, IWishImage, Wish } from '../models/wish.model';
+import { IGiftFeedback, IReservation, Wish } from '../models/wish.model';
 import { wishFromApi } from '../models/wish-from-api';
-
-/**
- * Afbeeldingsveld zoals de API het geeft en verwacht: R2 {key, url} (sc-3052). De API
- * bewaart alleen `key` en geeft `url` erbij.
- */
-interface IWishImageApi {
-  key?: string;
-  url?: string;
-}
 
 interface IReservationRequest {
   reservedBy: string;
@@ -34,44 +28,12 @@ interface IClosureRequest {
   closedOn: Date;
 }
 
-interface IWishRequest {
-  id: string;
-  title: string;
-  price: number;
-  image?: IWishImageApi;
-  reservation: IReservation;
-  giftFeedback: IGiftFeedback;
-  copyOf: string;
-  url: string;
-  receiver: Person;
-  createdBy: Person;
-  color: string;
-  size: string;
-  description: string;
-  amountWanted: number;
-  _id: string;
-}
-
-interface IWishCreateRequest {
-  title: string;
-  price: number;
-  url: string;
-  color: string;
-  size: string;
-  description: string;
-  receiver: string;
-  createdBy: string;
-  amountWanted: number;
-  image?: IWishImageApi;
-  copyOf?: string;
-}
-
 // A page holds at most 100 wishes; a list is read to the end (there is no "load more" yet).
 const pageSize = 100;
 
 /**
- * Reads go to API v2 (a list per request, status and rights from the server). Writes still go to API v1 and
- * are followed by a read of the wish, until sc-3289 and sc-3291 move them too.
+ * Reads and the wish itself (create, change, delete, copy) go to API v2. Reserving and the feedback still go
+ * to API v1 and are followed by a read of the wish, until sc-3291 moves them too.
  */
 @Injectable({
   providedIn: 'root'
@@ -80,6 +42,7 @@ export class WishService {
   private http$ = inject(HttpClient);
   private api = inject(ApiClient);
   private auth = inject(AuthStore);
+  private problems = inject(ProblemNotifier);
 
   private _wishes$: BehaviorSubject<Wish[]> = new BehaviorSubject<Wish[]>([]);
   public readonly wishes: Observable<Wish[]> = this._wishes$.asObservable();
@@ -122,12 +85,11 @@ export class WishService {
   }
 
   public delete (wish: Wish) : Observable<Wish>{
-    return this.http$.delete(
-      environment.apiUrl + 'wish/' + wish.id
-    ).pipe(
-      // De afbeelding ruimt de backend zelf op (sc-3052).
+    return this.api.delete('/wishes/{wishId}', { path: { wishId: wish.id } }).pipe(
+      // The server removes the image when no other wish uses it (sc-3052).
       map(() => wish),
-      tap(wish => this.deleteWishFromWishlist(wish) )
+      tap(wish => this.deleteWishFromWishlist(wish)),
+      this.showProblem()
     );
   }
 
@@ -140,49 +102,30 @@ export class WishService {
     )
   }
 
+  /** Adds the wish to the list of `newWish.receiver`; with `copyOf` it is a copy of that wish on the list of the viewer. */
   public create ( newWish : Wish) : Observable<Wish>{
-    const wishCreatePayload : IWishCreateRequest = {
-      title: newWish.title,
-      price: newWish.price,
-      url: newWish.url,
-      color: newWish.color,
-      size: newWish.size,
-      description: newWish.description,
-      receiver: newWish.receiver.id,
-      createdBy: newWish.createdBy.id,
-      amountWanted: newWish.amountWanted,
-    }
-
-    const image = imageVoorApi(newWish.image);
-    if (image) wishCreatePayload.image = image;
-
-    if (newWish.copyOf) wishCreatePayload.copyOf = newWish.copyOf;
-
-    return this.http$.post<{ _id: string }>(
-      environment.apiUrl + "wish",
-      wishCreatePayload
-    ).pipe(
-      switchMap(created => this.fetchWish(created._id)),
+    const created = newWish.copyOf
+      ? this.api.post('/wishes/{wishId}/copies', { path: { wishId: newWish.copyOf }, body: this.copyBody(newWish) })
+      : this.api.post('/people/{personId}/wishes', { path: { personId: newWish.receiver.id }, body: this.createBody(newWish) });
+    return created.pipe(
+      map(wishFromApi),
       tap(wish => {
         this.addWishToWishlist(wish);
         if (newWish.copyOf) this.markCopied(newWish.copyOf, wish.id);
-      })
-    )
+      }),
+      this.showProblem()
+    );
   }
 
+  /** Sends only what differs from the wish as we know it (JSON Merge Patch). */
   public update ( wish : Wish ) : Observable<Wish>{
-    const wishRequest = {
-      ...wish,
-      _id: wish.id,
-      receiver: wish.receiver,
-      // De API bewaart van het afbeeldingsveld alleen de sleutel.
-      image: imageVoorApi(wish.image)
-    } as IWishRequest;
-    return this.http$.put(
-      environment.apiUrl + 'wish/' + wish.id,
-      wishRequest
-    ).pipe(
-      switchMap(() => this.reloadWish(wish))
+    const original = this.findKnownWish(wish.id);
+    const changes = this.changesTo(wish, original);
+    if (Object.keys(changes).length === 0) return of(original ?? wish);
+    return this.api.patch('/wishes/{wishId}', { path: { wishId: wish.id }, body: changes }).pipe(
+      map(wishFromApi),
+      tap(updated => this.updateWishInWishlist(updated)),
+      this.showProblem()
     );
   }
 
@@ -233,6 +176,56 @@ export class WishService {
     }
   }
 
+  /** Shows an `ApiProblem` as a toast and ends the stream without a value, so the "it worked" messages stay away. */
+  private showProblem<T>() {
+    return catchError<T, Observable<never>>(error => {
+      if (!(error instanceof ApiProblem)) throw error;
+      this.problems.show(error);
+      return EMPTY;
+    });
+  }
+
+  private findKnownWish (wishId: string) : Wish | undefined {
+    return this._wishes$.value.find(wish => wish.id === wishId)
+      ?? (this._selectedWish$.value?.id === wishId ? this._selectedWish$.value : undefined);
+  }
+
+  private createBody (wish: Wish) : Schema<'WishCreate'> {
+    return {
+      title: wish.title,
+      description: blankToNull(wish.description),
+      price: toMoney(wish.price),
+      links: toLinks(wish.url),
+      // The server sets `url`; the generated type wants it too.
+      image: wish.image?.key ? { key: wish.image.key } as Schema<'Image'> : null,
+      color: blankToNull(wish.color),
+      size: blankToNull(wish.size)
+    };
+  }
+
+  /** What the copier filled in; the server copies the rest. The image is shared unless the copier chose another. */
+  private copyBody (copy: Wish) : Schema<'WishCopyCreate'> {
+    const { image, ...fields } = this.createBody(copy);
+    const original = this.findKnownWish(copy.copyOf);
+    const imageChanged = (copy.image?.key ?? null) !== (original?.image?.key ?? null);
+    return imageChanged ? { ...fields, image } : fields;
+  }
+
+  private changesTo (wish: Wish, original: Wish | undefined) : Schema<'WishUpdate'> {
+    const wanted = this.createBody(wish);
+    // The form shows the first link only: the others stay as they are.
+    wanted.links = toLinks(wish.url, original?.links.slice(1));
+    if (!original) return wanted;
+
+    const known = this.createBody(original);
+    known.links = toLinks(original.links[0], original.links.slice(1));
+    const changes: Record<string, unknown> = {};
+    for (const [field, value] of Object.entries(wanted)) {
+      if (JSON.stringify(value) !== JSON.stringify(known[field as keyof typeof known])) changes[field] = value;
+    }
+    return changes;
+  }
+
   private updateSelectedWish ( wish: Wish ) : void {
     this._selectedWish$.next(wish);
   }
@@ -268,8 +261,15 @@ export class WishService {
     this._wishes$.next(filteredWishlist);
   }
 }
-/** Afbeelding van de app naar de vorm van de API; undefined als er geen is. */
-export function imageVoorApi(image: IWishImage): IWishImageApi {
-  if (image?.key) return { key: image.key };
-  return undefined;
-}
+
+const blankToNull = (text: string | null | undefined) => text?.trim() ? text.trim() : null;
+
+/** Euros from the form to cents for the API; `null` when there is no price. */
+const toMoney = (euros: number | null | undefined): Schema<'Money'> | null =>
+  euros === null || euros === undefined || Number.isNaN(Number(euros)) || String(euros).trim() === ''
+    ? null
+    : { amount: Math.round(Number(euros) * 100), currency: 'EUR' };
+
+/** The first link from the form (made absolute) followed by the links the form does not show. */
+const toLinks = (first: string | null | undefined, others: string[] = []): Schema<'WishLink'>[] =>
+  [...(first?.trim() ? [validateUrl(first)] : []), ...others].map(url => ({ url }));

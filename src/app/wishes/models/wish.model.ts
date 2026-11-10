@@ -39,6 +39,8 @@ export class Wish {
     public giftFeedback: IGiftFeedback;
     public closure: IClosure;
     public copyOf: string;
+    /** All links of the wish; the form shows the first (`url`) only. */
+    public links: string[] = [];
     public createdAt: Date;
     /** What the viewer is to this wish and may do with it, as the server says (`viewer.can`, `viewer.ownCopyId`). */
     public viewer?: Schema<'WishViewer'>;
@@ -87,6 +89,12 @@ export class Wish {
             creator: viewer.roles.includes('creator'),
             reservator: viewer.roles.includes('giver')
         };
+    }
+
+    /** Whether the viewer may do this to the wish: the server says so (`viewer.can`); without that, the roles decide. */
+    public can(action: 'update' | 'delete' | 'copy'): boolean {
+        if (this.viewer) return this.viewer.can[action];
+        return action === 'copy' ? !this._userIs.receiver : !!(this._userIs.receiver || this._userIs.creator);
     }
 
     public setUserIsFlags(user: CurrentUser) {

@@ -31,6 +31,7 @@ export function wishFromApi(api: Schema<'Wish'>): Wish {
   );
   wish.createdAt = new Date(api.createdAt);
   wish.copyOf = api.copyOf;
+  wish.links = api.links.map(link => link.url);
   wish.image = api.image ? { key: api.image.key, url: api.image.url } : undefined;
   wish.status = statuses[api.status] ?? 'Open';
 
