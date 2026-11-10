@@ -44,7 +44,7 @@
                   [disabled]="!!bezigMet() || mislukt().has(r.url)"
                   [title]="r.title + (r.source ? ' (' + r.source + ')' : '')"
                   (click)="kies(r)">
-                  <img [src]="r.thumbnail" [alt]="r.title" loading="lazy" referrerpolicy="no-referrer"
+                  <img [src]="r.thumbnailUrl" [alt]="r.title" loading="lazy" referrerpolicy="no-referrer"
                     (error)="verwijderResultaat(r)" />
                     @if (bezigMet() === r.url) {
                       <span class="spinner-border text-light" role="status">

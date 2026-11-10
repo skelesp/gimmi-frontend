@@ -1,6 +1,7 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { NgbActiveModal, NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, NgbNavContent, NgbAlert, NgbNavOutlet } from '@ng-bootstrap/ng-bootstrap';
+import { ApiProblem } from 'src/app/core/api/api-problem';
+import { problemMessage } from 'src/app/core/api/error-messages';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { Subscription } from 'rxjs';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
@@ -27,25 +28,12 @@ export const MAX_BESTAND_BYTES = 30 * 1024 * 1024;
 
 const BESTAND = 'bestand';
 
-// Uitleg per `reason` van de backend (sc-2960, sc-3028).
-const BOODSCHAPPEN: Record<string, string> = {
-  'bron-weigert': 'Deze website laat niet toe dat we de afbeelding overnemen. Kies een andere.',
-  'niet-gevonden': 'Deze afbeelding bestaat niet meer. Kies een andere.',
-  'geen-afbeelding': 'Dit resultaat is geen bruikbare afbeelding. Kies een andere.',
-  'ongeldige-url': 'Dit resultaat is geen bruikbare afbeelding. Kies een andere.',
-  'ongeldige-afbeelding': 'Dit bestand is geen bruikbare afbeelding.',
-  'te-groot': 'Deze afbeelding is te groot. Kies een andere.',
-  'onbereikbaar': 'De website van deze afbeelding reageert niet. Kies een andere.',
-  'rate-limit': 'Je hebt veel gezocht op korte tijd. Wacht een minuutje en probeer opnieuw.',
-  'zoeken-niet-beschikbaar': 'Zoeken lukt nu even niet. Je kunt wel een foto of bestand opladen.'
-};
+const ONGELDIGE_AFBEELDING = 'Dit bestand is geen bruikbare afbeelding.';
 const ALGEMENE_FOUT = 'Er ging iets mis. Probeer het opnieuw.';
 
-export function boodschapVoor(err: HttpErrorResponse): string {
-  const reason = err?.error?.reason;
-  if (reason && BOODSCHAPPEN[reason]) return BOODSCHAPPEN[reason];
-  if (err?.status === 413) return BOODSCHAPPEN['te-groot'];
-  return ALGEMENE_FOUT;
+/** De melding voor een mislukte oproep: de tekst bij de foutcode van API v2 (sc-3290), anders een algemene. */
+export function boodschapVoor(err: unknown): string {
+  return err instanceof ApiProblem ? problemMessage(err) : ALGEMENE_FOUT;
 }
 
 /**
@@ -115,7 +103,7 @@ export class ImagePicker implements OnInit, OnDestroy {
         this.resultaten.set(resultaten);
         this.zoeken.set(false);
       },
-      error: (err: HttpErrorResponse) => {
+      error: (err: unknown) => {
         this.resultaten.set(null);
         this.zoeken.set(false);
         this.zoekFout.set(boodschapVoor(err));
@@ -136,7 +124,7 @@ export class ImagePicker implements OnInit, OnDestroy {
 
   kies(resultaat: IImageSearchResult): void {
     if (this.bezigMet() || this.mislukt().has(resultaat.url)) return;
-    this.laadOp(resultaat.url, resultaat.url, resultaat.thumbnail);
+    this.laadOp(resultaat.url, resultaat.url, resultaat.thumbnailUrl);
   }
 
   async bestandGekozen(event: Event): Promise<void> {
@@ -147,7 +135,7 @@ export class ImagePicker implements OnInit, OnDestroy {
 
     this.uploadFout.set(null);
     if (!bestand.type.startsWith('image/')) {
-      this.uploadFout.set(BOODSCHAPPEN['ongeldige-afbeelding']);
+      this.uploadFout.set(ONGELDIGE_AFBEELDING);
       return;
     }
     if (bestand.size > MAX_BESTAND_BYTES) {
@@ -156,9 +144,9 @@ export class ImagePicker implements OnInit, OnDestroy {
     }
 
     this.bezigMet.set(BESTAND);
-    let dataUri: string;
+    let foto: Blob;
     try {
-      dataUri = await verkleinAfbeelding(bestand);
+      foto = await verkleinAfbeelding(bestand);
     } catch (e) {
       this.bezigMet.set(null);
       this.uploadFout.set('Deze afbeelding kunnen we niet lezen. Kies een andere (jpg, png, webp of gif).');
@@ -166,10 +154,10 @@ export class ImagePicker implements OnInit, OnDestroy {
     }
     // Popup gesloten tijdens het verkleinen: niets meer doen.
     if (this.vernietigd) return;
-    this.laadOp(dataUri, BESTAND, dataUri);
+    this.laadOp(foto, BESTAND, URL.createObjectURL(foto));
   }
 
-  private laadOp(image: string, sleutel: string, voorvertoning: string): void {
+  private laadOp(image: Blob | string, sleutel: string, voorvertoning: string): void {
     this.bezigMet.set(sleutel);
     this.uploadFout.set(null);
     this.uploadSub = this.imageService.uploadImage(image).subscribe({
@@ -177,7 +165,7 @@ export class ImagePicker implements OnInit, OnDestroy {
         this.bezigMet.set(null);
         this.activeModal.close({ afbeelding: nieuweAfbeelding, voorvertoning } as IGekozenAfbeelding);
       },
-      error: (err: HttpErrorResponse) => {
+      error: (err: unknown) => {
         this.bezigMet.set(null);
         this.uploadFout.set(boodschapVoor(err));
         if (sleutel !== BESTAND) this.mislukt.update(set => new Set(set).add(sleutel));

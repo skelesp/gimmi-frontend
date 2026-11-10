@@ -3,17 +3,17 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 
 import { environment } from 'src/environments/environment';
 import { BREEDTES, ImageService, STANDAARD_AFBEELDING } from './image.service';
-import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 
 // Afbeeldingen in R2 via de backend (sc-2911, sc-3052). Cloudinary is weg sinds sc-3070.
 describe('ImageService', () => {
-    const api = environment.apiUrl;
+    const api = environment.apiV2Url;
     const r2 = { key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' };
     let service: ImageService;
     let http: HttpTestingController;
 
     beforeEach(() => {
-        TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()] });
+        TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withXhr()), provideHttpClientTesting()] });
         service = TestBed.inject(ImageService);
         http = TestBed.inject(HttpTestingController);
     });
@@ -21,14 +21,23 @@ describe('ImageService', () => {
     afterEach(() => http.verify());
 
     describe('uploadImage', () => {
-        it('post alleen de afbeelding (geen public_id: dan kiest de backend R2) en geeft {key, url} door', () => {
+        it('een URL gaat als JSON {sourceUrl} en geeft {key, url} door', () => {
             let beeld: any;
             service.uploadImage('https://x.be/a.jpg').subscribe(b => beeld = b);
             const req = http.expectOne(api + 'images');
             expect(req.request.method).toBe('POST');
-            expect(req.request.body).toEqual({ image: 'https://x.be/a.jpg' });
+            expect(req.request.body).toEqual({ sourceUrl: 'https://x.be/a.jpg' });
             req.flush(r2);
             expect(beeld).toEqual(r2);
+        });
+
+        it('een verkleinde foto gaat als ruwe Blob met zijn eigen Content-Type', () => {
+            const foto = new Blob(['jpeg'], { type: 'image/jpeg' });
+            service.uploadImage(foto).subscribe();
+            const req = http.expectOne(api + 'images');
+            expect(req.request.body).toBe(foto);
+            expect(req.request.detectContentTypeHeader()).toBe('image/jpeg');
+            req.flush(r2);
         });
 
         it('zonder afbeelding: null, geen request', () => {

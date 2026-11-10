@@ -14,14 +14,14 @@ describe('resize-image', () => {
         return new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/png'));
     }
 
-    function afmetingenVan(dataUri: string): Promise<{
+    function afmetingenVan(blob: Blob): Promise<{
         w: number;
         h: number;
     }> {
         return new Promise(resolve => {
             const img = new Image();
             img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
-            img.src = dataUri;
+            img.src = URL.createObjectURL(blob);
         });
     }
 
@@ -37,15 +37,15 @@ describe('resize-image', () => {
         });
     });
 
-    it('verkleinAfbeelding: geeft een JPEG-data-URI op de verkleinde maat', async () => {
-        const dataUri = await verkleinAfbeelding(await maakPng(400, 200), 100);
-        expect(dataUri.startsWith('data:image/jpeg;base64,')).toBe(true);
-        expect(await afmetingenVan(dataUri)).toEqual({ w: 100, h: 50 });
+    it('verkleinAfbeelding: geeft een JPEG-Blob op de verkleinde maat', async () => {
+        const jpeg = await verkleinAfbeelding(await maakPng(400, 200), 100);
+        expect(jpeg.type).toBe('image/jpeg');
+        expect(await afmetingenVan(jpeg)).toEqual({ w: 100, h: 50 });
     });
 
     it('verkleinAfbeelding: een doorzichtig deel wordt wit, niet zwart', async () => {
-        const dataUri = await verkleinAfbeelding(await maakPng(20, 10), 20);
-        const img = await laadAfbeelding(await (await fetch(dataUri)).blob());
+        const jpeg = await verkleinAfbeelding(await maakPng(20, 10), 20);
+        const img = await laadAfbeelding(jpeg);
         const canvas = document.createElement('canvas');
         canvas.width = 20;
         canvas.height = 10;

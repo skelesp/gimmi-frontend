@@ -129,7 +129,7 @@ test.describe('wensbeheer en navigatie', () => {
     });
     await expect(kiezer).toHaveCount(0, { timeout: 20_000 });
     // Meteen de voorvertoning (de verkleinde foto), niet eerst de oude afbeelding.
-    await expect(wens.locator('gimmi-image-view img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await expect(wens.locator('gimmi-image-view img')).toHaveAttribute('src', /^blob:/);
     await wens.locator('button[type="submit"]').click();
     await expect(wens).toBeHidden();
     await expect(wishCard(page, 'Smoke foto').locator('img').first()).toHaveAttribute('src', R2_BEELD);
