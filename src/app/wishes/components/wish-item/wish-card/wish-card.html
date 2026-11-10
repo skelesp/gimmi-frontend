@@ -7,7 +7,7 @@
     ></gimmi-image-view>
     <!-- Wish card overlay with banners -->
     <div class="card-img-overlay p-1 text-end h6" [class.blurred-card-overlay]="canShowReservationStatus()">
-      <gimmi-wish-banner [bannerConfig]="wishScenarioConfig[wish.scenario].bannerConfig" ></gimmi-wish-banner>
+      <gimmi-wish-banner [bannerConfig]="presentation().bannerConfig" ></gimmi-wish-banner>
     </div>
   </div>
   <div class="card-block p-1 container">
@@ -45,7 +45,7 @@
     <div class="row g-0 mt-2">
       <gimmi-wish-call-to-action-button
         class="w-100"
-        [CTAconfig]="wishScenarioConfig[wish.scenario].CTAbutton">
+        [CTAconfig]="presentation().CTAbutton">
       </gimmi-wish-call-to-action-button>
     </div>
   </div>

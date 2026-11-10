@@ -58,6 +58,6 @@ export function wishFromApi(api: Schema<'Wish'>): Wish {
       reason: 'Cadeau ontvangen'
     } satisfies IClosure;
   }
-  wish.setViewer(api.viewer);
+  wish.viewer = api.viewer;
   return wish;
 }

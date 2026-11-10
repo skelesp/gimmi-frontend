@@ -7,6 +7,7 @@ import { BehaviorSubject } from 'rxjs';
 
 import { ImageService } from 'src/app/images/services/image.service';
 import { Person } from 'src/app/people/models/person.model';
+import { viewWishAs } from '../../../models/wish-from-api.testing';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { AuthStore } from 'src/app/core/auth/auth-store';
@@ -43,7 +44,7 @@ describe('WishPage', () => {
         if (opties.reservedBy)
             w.reservation = { reservedBy: opties.reservedBy, amount: 1, reservationDate: new Date(), reason: 'Verjaardag' };
         Object.assign(w, opties.extra ?? {});
-        w.setUserIsFlags(testUser({ id: opties.viewer }));
+        viewWishAs(w, opties.viewer);
         return w;
     }
 
@@ -105,14 +106,14 @@ describe('WishPage', () => {
 
     it('gereserveerd door een ander: wie reserveerde, zonder knop', async () => {
         await toon(maakWens({ viewer: 'carl', status: 'Reserved', reservedBy: rob }));
-        expect(component.wish.scenario).toBe('RESERVED');
+        expect(component.presentation().bannerConfig.text).toBe('Gereserveerd');
         expect(regels()).toContain('Gereserveerd door: Rob Reservator');
         expect(regels()).not.toContain('Nog niet gereserveerd');
     });
 
     it('gereserveerd, bekeken door de ontvanger: incognito, de reservatie blijft verborgen', async () => {
         await toon(maakWens({ viewer: 'ria', status: 'Reserved', reservedBy: rob }));
-        expect(component.wish.scenario).toBe('RESERVED_INCOGNITO_FOR_USER');
+        expect(component.presentation().bannerConfig.text).toBeNull();
         expect(regels()).toContain('Nog niet gereserveerd');
         expect(regels().join()).not.toContain('Rob');
     });

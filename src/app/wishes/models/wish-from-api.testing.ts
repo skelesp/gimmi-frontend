@@ -1,4 +1,5 @@
 import type { Schema } from 'src/app/core/api/api-types';
+import { Wish } from './wish.model';
 
 type ApiWish = Schema<'Wish'>;
 
@@ -29,5 +30,23 @@ export function apiWish(overrides: Partial<Omit<ApiWish, 'viewer'>> & { viewer?:
       ownCopyId: null,
       ...viewer
     }
+  };
+}
+
+/**
+ * Makes `userId` the viewer of the wish, with the roles and rights the server would give: the receiver and the
+ * creator may change and delete it, the receiver does not copy it, the giver is the one who reserved it.
+ */
+export function viewWishAs(wish: Wish, userId: string): void {
+  const roles: Schema<'WishViewer'>['roles'] = [];
+  if (userId === wish.receiver.id) roles.push('receiver');
+  if (userId === wish.createdBy.id) roles.push('creator');
+  if (userId === wish.reservation?.reservedBy.id) roles.push('giver');
+  const receiver = roles.includes('receiver');
+  const mayChange = receiver || roles.includes('creator');
+  wish.viewer = {
+    roles: roles.length ? roles : ['other'],
+    can: { update: mayChange, delete: mayChange, copy: !receiver, reserve: false, unreserve: false, fulfill: false, unfulfill: false },
+    ownCopyId: null
   };
 }

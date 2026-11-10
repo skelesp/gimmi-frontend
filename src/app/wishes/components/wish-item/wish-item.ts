@@ -4,7 +4,7 @@ import { faClone, faComment, faEdit } from '@fortawesome/free-regular-svg-icons'
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import type { Schema } from 'src/app/core/api/api-types';
-import { Wish, WishScenario } from '../../models/wish.model';
+import { Wish } from '../../models/wish.model';
 import { WishReservation } from '../wish-reservation/wish-reservation';
 import { ChangeWishReservation } from '../wish-reservation/change-wish-reservation/change-wish-reservation';
 import { GiftFeedback } from '../gift-feedback/gift-feedback';
@@ -56,48 +56,27 @@ export class WishItem implements OnInit {
     delete: { text: "Verwijderen", icon: faTrashAlt, onClick: this.delete.bind(this) },
     externalSite: { text: "Externe website", icon: faGlobeEurope }
   };
-  readonly wishScenarioConfig: Record<WishScenario, { CTAbutton: CTAButtonConfig, bannerConfig: BannerConfig}> = {
-    'OPEN_WISH': { 
-      CTAbutton: this.CTAbuttonConfigs.reserve,
-      bannerConfig: this.bannerConfigs.noBanner 
-    },
-    'OPEN_WISH_CREATED_BY_USER_FOR_ANOTHER': {
-      CTAbutton: this.CTAbuttonConfigs.reserve,
-      bannerConfig: this.bannerConfigs.yourIdea 
-    },
-    'RESERVED': {
-      CTAbutton: this.CTAbuttonConfigs.noButton,
-      bannerConfig: this.bannerConfigs.reserved 
-    },
-    'RESERVED_BY_USER': {
-      CTAbutton: this.CTAbuttonConfigs.cancel,
-      bannerConfig: this.bannerConfigs.reservedByUser
-    },
-    'RESERVED_INCOGNITO_FOR_USER': {
-      CTAbutton: this.CTAbuttonConfigs.reserve,
-      bannerConfig: this.bannerConfigs.noBanner
-    },
-    'RECEIVED': {
-      CTAbutton: this.CTAbuttonConfigs.noButton,
-      bannerConfig: this.bannerConfigs.received
-    },
-    'RECEIVED_RECEIVER': {
-      CTAbutton: this.CTAbuttonConfigs.feedback,
-      bannerConfig: this.bannerConfigs.received
-    },
-    'RECEIVED_GIVEN_BY_USER': {
-      CTAbutton: this.CTAbuttonConfigs.noButton,
-      bannerConfig: this.bannerConfigs.givenByUser
-    },
-    'FULFILLED': {
-      CTAbutton: this.CTAbuttonConfigs.noButton,
-      bannerConfig: this.bannerConfigs.fulfilled
-    },
-    'FULFILLED_BY_USER': {
-      CTAbutton: this.CTAbuttonConfigs.noButton,
-      bannerConfig: this.bannerConfigs.fulfilledByUser
+  /** The banner and the call-to-action button of the wish: they follow from its status and what the viewer is to it. */
+  presentation(): { CTAbutton: CTAButtonConfig, bannerConfig: BannerConfig } {
+    const giver = this.wish.hasRole('giver');
+    const receiver = this.wish.hasRole('receiver');
+    const banners = this.bannerConfigs;
+    const buttons = this.CTAbuttonConfigs;
+    switch (this.wish.status) {
+      case 'Open':
+        return { CTAbutton: buttons.reserve, bannerConfig: !receiver && this.wish.hasRole('creator') ? banners.yourIdea : banners.noBanner };
+      case 'Reserved':
+        if (giver) return { CTAbutton: buttons.cancel, bannerConfig: banners.reservedByUser };
+        // The receiver must not know that something is reserved on their list.
+        return receiver ? { CTAbutton: buttons.reserve, bannerConfig: banners.noBanner }
+          : { CTAbutton: buttons.noButton, bannerConfig: banners.reserved };
+      case 'Received':
+        if (giver) return { CTAbutton: buttons.noButton, bannerConfig: banners.givenByUser };
+        return { CTAbutton: receiver ? buttons.feedback : buttons.noButton, bannerConfig: banners.received };
+      case 'Fulfilled':
+        return { CTAbutton: buttons.noButton, bannerConfig: giver ? banners.fulfilledByUser : banners.fulfilled };
     }
-  };
+  }
 
   ngOnInit(): void {
     this.defineWishActions();
@@ -114,7 +93,8 @@ export class WishItem implements OnInit {
   }
 
   canShowReservationStatus() : boolean {
-    return !(this.wish.scenario === 'RESERVED_INCOGNITO_FOR_USER' || this.wish.scenario === 'OPEN_WISH_CREATED_BY_USER_FOR_ANOTHER' || this.wish.scenario === 'OPEN_WISH');
+    const { bannerConfig } = this.presentation();
+    return bannerConfig !== this.bannerConfigs.noBanner && bannerConfig !== this.bannerConfigs.yourIdea;
   }
   
   reserve() {
