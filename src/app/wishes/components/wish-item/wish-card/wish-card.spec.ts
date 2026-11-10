@@ -267,6 +267,7 @@ describe('WishCard', () => {
         it('feedback-popup weggeklikt: niets bevestigd', async () => {
             const wens = maakWens({ status: 'Received', reservedBy: rob, viewer: 'ria' });
             popup.result = Promise.reject('Cancel');
+            popup.result.catch(() => { });   // geen unhandled rejection vóór de component luistert
             await toon(wens);
             cta().click();
             await vi.advanceTimersByTimeAsync(0);
