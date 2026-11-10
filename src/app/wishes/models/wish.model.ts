@@ -1,7 +1,7 @@
 import { Person } from 'src/app/people/models/person.model';
 import { CurrentUser } from 'src/app/core/auth/auth-store';
 import { validateUrl } from 'src/app/_utility/url_utility';
-import { environment } from 'src/environments/environment';
+import type { Schema } from 'src/app/core/api/api-types';
 
 export type wishStatus = 'Open' | 'Reserved' | 'Received' | 'Fulfilled';
 export type WishScenario = 'OPEN_WISH' | 'OPEN_WISH_CREATED_BY_USER_FOR_ANOTHER' | 'RESERVED' | 'RESERVED_BY_USER' | 'RESERVED_INCOGNITO_FOR_USER' | 'RECEIVED' | 'RECEIVED_RECEIVER' | 'RECEIVED_GIVEN_BY_USER' | 'FULFILLED' | 'FULFILLED_BY_USER';
@@ -40,6 +40,8 @@ export class Wish {
     public closure: IClosure;
     public copyOf: string;
     public createdAt: Date;
+    /** What the viewer is to this wish and may do with it, as the server says (`viewer.can`, `viewer.ownCopyId`). */
+    public viewer?: Schema<'WishViewer'>;
     private _userIs : Record<string, boolean> = {
         receiver: null,
         creator: null,
@@ -75,6 +77,16 @@ export class Wish {
     } 
     public get userIsReservator(): boolean {
         return this._userIs.reservator;
+    }
+
+    /** Takes the roles from the server (API v2) instead of comparing ids. */
+    public setViewer(viewer: Schema<'WishViewer'>) {
+        this.viewer = viewer;
+        this._userIs = {
+            receiver: viewer.roles.includes('receiver'),
+            creator: viewer.roles.includes('creator'),
+            reservator: viewer.roles.includes('giver')
+        };
     }
 
     public setUserIsFlags(user: CurrentUser) {

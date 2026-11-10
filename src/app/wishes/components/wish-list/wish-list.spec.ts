@@ -8,6 +8,8 @@ import { Person } from 'src/app/people/models/person.model';
 import { Wish, wishStatus } from '../../models/wish.model';
 import { FilterOnStatePipe } from '../../pipes/filter-on-state-pipe';
 import { WishService } from '../../services/wish.service';
+import { ApiProblem } from 'src/app/core/api/api-problem';
+import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
 import { WishList } from './wish-list';
 import { WishCreateCard } from '../wish-create-card/wish-create-card';
 import { WishCard } from '../wish-item/wish-card/wish-card';
@@ -19,6 +21,7 @@ describe('WishList', () => {
     let component: WishList;
     let wishes$: BehaviorSubject<Wish[]>;
     let antwoord$: Subject<Wish[]>;
+    let problems: { show: Mock };
     let wishService: {
         wishes: any;
         getWishlist: Mock;
@@ -53,11 +56,12 @@ describe('WishList', () => {
     beforeEach(async () => {
         wishes$ = new BehaviorSubject<Wish[]>([]);
         antwoord$ = new Subject<Wish[]>();
+        problems = { show: vi.fn().mockName('ProblemNotifier.show') };
         wishService = { wishes: wishes$.asObservable(), getWishlist: vi.fn().mockName('getWishlist').mockReturnValue(antwoord$) };
         TestBed.overrideComponent(WishList, { remove: { imports: [WishCreateCard, WishCard] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
     imports: [NgbNavModule, NgbAlertModule, WishList, FilterOnStatePipe],
-    providers: [{ provide: WishService, useValue: wishService }],
+    providers: [{ provide: WishService, useValue: wishService }, { provide: ProblemNotifier, useValue: problems }],
     schemas: [NO_ERRORS_SCHEMA]
 }).compileComponents();
         fixture = TestBed.createComponent(WishList);
@@ -76,6 +80,16 @@ describe('WishList', () => {
         await fixture.whenStable();
         expect(component.loading()).toBe(false);
         expect(fixture.nativeElement.querySelector('.spinner-border')).toBeNull();
+    });
+
+    it('een fout van de server stopt de spinner en wordt gemeld', async () => {
+        const problem = new ApiProblem({ status: 404, code: 'not-found' as never });
+        component.receiver = ria;
+        component.ngOnChanges({ receiver: new SimpleChange(null, ria, true) });
+        antwoord$.error(problem);
+        await fixture.whenStable();
+        expect(component.loading()).toBe(false);
+        expect(problems.show).toHaveBeenCalledWith(problem);
     });
 
     it('andere wijziging dan de ontvanger: geen nieuwe ophaling', () => {
