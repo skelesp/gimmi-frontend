@@ -8,7 +8,7 @@ import { Person } from 'src/app/people/models/person.model';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { AuthStore } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
-import { IReservation, Wish } from '../../models/wish.model';
+import { Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 import { WishReservation } from './wish-reservation';
 
@@ -84,7 +84,7 @@ describe('WishReservation', () => {
         expect(el().textContent).not.toContain('De gelegenheid is een verplicht veld.');
     });
 
-    it('reserveren: reservatie op naam van de ingelogde gebruiker, melding en popup dicht', async () => {
+    it('reserveren: stuurt de overhandigingsdatum en de gelegenheid als code, meldt dat en sluit de popup', async () => {
         wishService.addReservation.mockImplementation((w: Wish) => of(w));
         await kies('Verjaardag');
         const datum: HTMLInputElement = el().querySelector('#handoverDate');
@@ -93,14 +93,9 @@ describe('WishReservation', () => {
         await fixture.whenStable();
         knop().click();
 
-        const reservatie: IReservation = vi.mocked(wishService.addReservation).mock.lastCall[1];
-        expect(reservatie.reason).toBe('Verjaardag');
-        expect(reservatie.handoverDate).toEqual(new Date('2026-12-24'));
-        expect(reservatie.amount).toBe(1);
-        expect(reservatie.reservedBy.id).toBe('rob');
-        expect(reservatie.reservedBy.fullName).toBe('Rob Reservator');
+        expect(wishService.addReservation).toHaveBeenCalledWith(fixture.componentInstance.wish, { handoverDate: '2026-12-24', occasion: 'birthday' });
         expect(notifications.showNotification).toHaveBeenCalledWith('Wens Fiets is gereserveerd. U hoeft dit perfecte cadeau enkel nog te kopen en af te geven!', 'success', 'Gereserveerd');
-        expect(activeModal.close).toHaveBeenCalledWith(reservatie);
+        expect(activeModal.close).toHaveBeenCalled();
     });
 
     it('annuleren en het kruisje: niets gereserveerd', () => {

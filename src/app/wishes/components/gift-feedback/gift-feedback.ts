@@ -2,11 +2,9 @@ import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angu
 import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { faThumbsUp } from '@fortawesome/free-regular-svg-icons';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { switchMap} from 'rxjs/operators';
-import { PeopleService } from 'src/app/people/service/people.service';
-import { CommunicationService } from 'src/app/shared/services/communication.service';
+import type { Schema } from 'src/app/core/api/api-types';
 
-import { IGiftFeedback, Wish } from '../../models/wish.model';
+import { Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 import { CursorPointer } from '../../../shared/directives/cursor-pointer';
 import { NgbRating } from '@ng-bootstrap/ng-bootstrap/rating';
@@ -46,9 +44,9 @@ export class GiftFeedback implements OnInit {
   }
 
   saveGiftFeedback() {
-    const giftFeedback: IGiftFeedback = {
-      satisfaction: this.satisfactionLevels[this.giftFeedbackForm.value.satisfaction],
-      receivedOn: new Date(this.giftFeedbackForm.getRawValue().receivedOn),
+    const giftFeedback: Schema<'FulfillmentRequest'> = {
+      satisfaction: this.giftFeedbackForm.value.satisfaction,
+      receivedOn: this.giftFeedbackForm.getRawValue().receivedOn,
       message: this.giftFeedbackForm.value.message,
       putBackOnList: this.giftFeedbackForm.value.putBackOnList
     };

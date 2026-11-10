@@ -49,7 +49,8 @@ export function wishFromApi(api: Schema<'Wish'>): Wish {
       satisfaction: String(api.fulfillment.satisfaction ?? ''),
       receivedOn: new Date(api.fulfillment.receivedOn),
       message: api.fulfillment.message ?? null,
-      putBackOnList: !!api.fulfillment.relistedWishId
+      putBackOnList: !!api.fulfillment.relistedWishId,
+      relistedWishId: api.fulfillment.relistedWishId ?? undefined
     } satisfies IGiftFeedback;
     wish.closure = {
       closedBy: wish.receiver,
