@@ -1,51 +1,28 @@
-import { Component, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
-import { FormArray, FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { DynamicFormGroup } from '../../../../shared/components/form-components/dynamic-form-group';
-import { ILike } from 'src/app/people/models/person.model';
-import { itemTypes } from '../extra-info';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { FieldTree, FormField } from '@angular/forms/signals';
 import { faPlus, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
-
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { CursorPointer } from '../../../../shared/directives/cursor-pointer';
+import { itemTypes, PreferenceRow } from '../extra-info';
 
 @Component({
     selector: 'gimmi-extra-info-edit',
     templateUrl: './extra-info-edit.html',
     styleUrls: ['./extra-info-edit.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FormsModule, ReactiveFormsModule, FaIconComponent, CursorPointer]
+    imports: [FormField, FaIconComponent]
 })
-export class ExtraInfoEdit implements OnInit {
-  readonly firstName = input<string>(undefined);
-  readonly items = input<ILike[]>([]);
+export class ExtraInfoEdit {
+  readonly rows = input.required<FieldTree<PreferenceRow[]>>();
   readonly itemType = input<itemTypes>(undefined);
-  readonly parentForm = input<DynamicFormGroup>(undefined);
 
-  formItems = new FormArray<FormGroup<{ text: FormControl<string>; url: FormControl<string> }>>([]);
+  protected readonly deleteIcon = faTrashAlt;
+  protected readonly addIcon = faPlus;
 
-  deleteIcon = faTrashAlt;
-  addIcon = faPlus;
-  
-  constructor() { }
-
-  ngOnInit(): void {
-    this.items()?.forEach(item => {
-      this.addItem(item);
-    });
-
-    this.parentForm().addControl(this.itemType(), this.formItems);
+  protected addRow() {
+    this.rows()().value.update(rows => [...rows, { text: '', url: '' }]);
   }
 
-  addItem(item: ILike = { text:'', url: ''} ) {
-    const itemControlGroup = new FormGroup({
-      text: new FormControl(item.text, { nonNullable: true, validators: Validators.required }),
-      url: new FormControl(item.url, { nonNullable: true })
-    })
-    this.formItems.push(itemControlGroup);
+  protected removeRow(index: number) {
+    this.rows()().value.update(rows => rows.filter((_, i) => i !== index));
   }
-
-  removeItem (index : number) {
-    this.formItems.removeAt(index);
-  }
-
 }

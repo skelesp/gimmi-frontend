@@ -1,15 +1,22 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, Subject, merge, Subscription } from 'rxjs';
-import { debounceTime, map, distinctUntilChanged, filter } from "rxjs/operators";
+import { Observable, Subject, merge, of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap } from "rxjs/operators";
 import { faSearch, faUserCircle } from "@fortawesome/free-solid-svg-icons";
-import { Person } from '../../models/person.model';
-import { PeopleService } from '../../service/people.service';
+import { ApiProblem } from '../../../core/api/api-problem';
+import { ProblemNotifier } from '../../../core/api/problem-notifier';
+import { People, PersonRef } from '../../service/people';
 import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { NgbHighlight, NgbTypeahead as NgbTypeahead_1 } from '@ng-bootstrap/ng-bootstrap/typeahead';
 import { FormsModule } from '@angular/forms';
+
+/** A search result as the typeahead shows it. */
+export type PersonResult = PersonRef & { fullName: string };
+
+// The server needs at least 2 characters.
+const minSearchLength = 2;
 
 @Component({
     selector: 'gimmi-people-search',
@@ -18,10 +25,11 @@ import { FormsModule } from '@angular/forms';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FaIconComponent, NgbHighlight, FormsModule, NgbTypeahead_1]
 })
-export class PeopleSearch implements OnInit, OnDestroy {
-  private peopleService = inject(PeopleService);
+export class PeopleSearch {
+  private people = inject(People);
+  private problems = inject(ProblemNotifier);
   private router = inject(Router);
-  
+
   // Ngbtypeahead variables
   readonly instance = viewChild<NgbTypeahead>('instance');
   focus$ = new Subject<string>();
@@ -29,44 +37,40 @@ export class PeopleSearch implements OnInit, OnDestroy {
   // Icons variables
   userIcon = faUserCircle;
   searchIcon = faSearch;
-  // Peoplelist variables
-  people: Person[] = [];
-  selectedPerson: Person;
-  private peopleSubscription: Subscription;
+  selectedPerson: PersonResult | null = null;
 
-  ngOnInit(): void {
-    this.peopleSubscription = this.peopleService.people.subscribe( people => {
-      this.people = people; 
-    });
-    this.peopleService.retrievePeopleList();
-  }
-
-  search = (text$: Observable<string>) : Observable<Person[]> => {
+  search = (text$: Observable<string>) : Observable<(PersonResult | null)[]> => {
     const debouncedText$ = text$.pipe(
       debounceTime(200),
       distinctUntilChanged()
     );
     const clickWithClosedPopup$ = this.click$.pipe(filter(() => !this.instance().isPopupOpen()));
     const inputFocused$ = this.focus$;
-    
+
     return merge(debouncedText$, clickWithClosedPopup$, inputFocused$).pipe(
-      map(term => {
-        if (term !== '') {
-          const results = this.people
-            .filter(person => person.fullName.toLowerCase().indexOf(term.toLowerCase()) > -1)
-            .slice(0, 10)
-          return results.length > 0 ? results : [null] // [null] is needed to detect the "no results" scenario in the people search HTML, because ng-bootstrap doesn't support "noresults scenario"
-        }
-        return [] ;
+      switchMap(term => {
+        const text = term.trim();
+        if (text.length < minSearchLength) return of([]);
+        return this.people.search(text).pipe(
+          map(found => found.length > 0
+            ? found.map(person => ({ ...person, fullName: `${person.firstName} ${person.lastName}` }))
+            : [null] // [null] is needed to detect the "no results" scenario in the people search HTML, because ng-bootstrap doesn't support "noresults scenario"
+          ),
+          catchError(error => {
+            if (error instanceof ApiProblem) this.problems.show(error);
+            else console.error(error);
+            return of([]);
+          })
+        );
       })
     );
   }
 
-  inputFormatter (person: Person) {
+  inputFormatter (person: PersonResult) {
     return `${person.fullName}`;
   }
 
-  onPersonSelect($event: { preventDefault(): void; item?: Person | null }) {
+  onPersonSelect($event: { preventDefault(): void; item?: PersonResult | null }) {
     $event.preventDefault();
     if ($event.item) {
       const personId = $event.item.id;
@@ -76,9 +80,4 @@ export class PeopleSearch implements OnInit, OnDestroy {
     }
     this.selectedPerson = null;
   }
-
-  ngOnDestroy() {
-    this.peopleSubscription.unsubscribe();
-  }
-
 }

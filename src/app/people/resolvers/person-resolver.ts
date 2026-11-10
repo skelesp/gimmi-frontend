@@ -2,11 +2,11 @@ import { inject } from '@angular/core';
 import { ResolveFn } from '@angular/router';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Person } from '../models/person.model';
-import { PeopleService } from '../service/people.service';
+import { People, PersonProfile } from '../service/people';
 
-export const personResolver: ResolveFn<Person> = (route) => {
-  return inject(PeopleService).getPersonById(route.paramMap.get('personId'))
+/** The profile for the route, or `null` when the person cannot be shown (the page says "no list found"). */
+export const personResolver: ResolveFn<PersonProfile | null> = (route) => {
+  return inject(People).get(route.paramMap.get('personId'))
     .pipe(
       catchError( () => { return of(null); })
     );

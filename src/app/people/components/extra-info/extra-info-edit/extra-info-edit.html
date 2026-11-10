@@ -9,30 +9,31 @@
       }
     }
   </div>
-  @for (item of formItems.controls; track item; let i = $index) {
+  @for (row of rows(); track row; let i = $index) {
     <div class="row g-0 mb-1">
-      <ng-container [formGroup]="item">
-        <div class="col-5 me-1">
-          <input type="text" class="form-control form-control-sm" formControlName="text" placeholder="Beschrijving"/>
-        </div>
-        <div class="col-5 me-1">
-          <input type="text" class="form-control form-control-sm" formControlName="url" placeholder="url (optioneel)"/>
-        </div>
-        <div class="col-1">
-          <button type="button" class="icon-button" aria-label="Verwijder deze lijn" (click)="removeItem(i)">
-            <fa-icon [icon]="deleteIcon"></fa-icon>
-          </button>
-        </div>
-      </ng-container>
+      <div class="col-5 me-1">
+        <input type="text" class="form-control form-control-sm" [formField]="row.text" placeholder="Beschrijving"/>
+      </div>
+      <div class="col-5 me-1">
+        <input type="text" class="form-control form-control-sm" [formField]="row.url" placeholder="url (optioneel)"/>
+      </div>
+      <div class="col-1">
+        <button type="button" class="icon-button" aria-label="Verwijder deze lijn" (click)="removeRow(i)">
+          <fa-icon [icon]="deleteIcon"></fa-icon>
+        </button>
+      </div>
+      @if (row.url().invalid()) {
+        <div class="text-danger font-sm">{{ row.url().errors()[0].message }}</div>
+      }
     </div>
   }
   <button type="button"
     class="btn btn-sm btn-outline btn-outline-success"
     aria-label="Voeg een lijn toe"
-    (click)="addItem()"
-    [disabled]="formItems.invalid">
+    (click)="addRow()"
+    [disabled]="rows()().invalid()">
     <fa-icon [icon]="addIcon"></fa-icon></button>
-    @if (formItems.invalid) {
-      <span class="text-danger font-sm font-sm ms-1">Beschrijving moet ingevuld worden (of verwijder lege lijn)</span>
-    }
-  </div>
+  @if (rows()().invalid()) {
+    <span class="text-danger font-sm ms-1">Beschrijving moet ingevuld worden (of verwijder lege lijn) en een link begint met http(s)://</span>
+  }
+</div>

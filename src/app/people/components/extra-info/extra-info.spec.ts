@@ -1,37 +1,28 @@
-
-import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
-import { ILike, Person } from '../../models/person.model';
-import { PeopleService } from '../../service/people.service';
-import { ExtraInfoEdit } from './extra-info-edit/extra-info-edit';
-import { ExtraInfoView } from './extra-info-view/extra-info-view';
+import { ApiProblem } from '../../../core/api/api-problem';
+import { ProblemNotifier } from '../../../core/api/problem-notifier';
+import { People, PersonPreference, PersonProfile } from '../../service/people';
 import { ExtraInfo } from './extra-info';
 
 // Extra info over een persoon: wat je graag en liever niet krijgt. Leesmodus (sc-1989) en
-// bewerkmodus (sc-2375), enkel voor de persoon zelf.
+// bewerkmodus (sc-2375), enkel voor de persoon zelf (`viewer.can.update`).
 describe('ExtraInfo', () => {
     let fixture: ComponentFixture<ExtraInfo>;
-    let component: ExtraInfo;
-    let people: Record<string, any>;
-    const boeken: ILike = { text: 'Boeken', url: '' };
-    const thee: ILike = { text: 'Thee', url: 'https://thee.be' };
-    const sokken: ILike = { text: 'Sokken', url: null };
+    let people: { updatePreferences: ReturnType<typeof vi.fn> };
+    let problems: { show: ReturnType<typeof vi.fn> };
+    const boeken: PersonPreference = { text: 'Boeken', url: null };
+    const thee: PersonPreference = { text: 'Thee', url: 'https://thee.be' };
+    const sokken: PersonPreference = { text: 'Sokken', url: null };
 
-    async function toon(opties: {
-        likes?: ILike[];
-        dislikes?: ILike[];
-        personIsUser: boolean;
-    }) {
+    async function toon(opties: { likes?: PersonPreference[]; dislikes?: PersonPreference[]; canEdit: boolean }) {
         fixture = TestBed.createComponent(ExtraInfo);
-        component = fixture.componentInstance;
-        component.firstName = 'Ria';
-        component.likes = opties.likes;
-        component.dislikes = opties.dislikes;
-        component.personIsUser = opties.personIsUser;
+        fixture.componentRef.setInput('personId', 'ria');
+        fixture.componentRef.setInput('firstName', 'Ria');
+        fixture.componentRef.setInput('likes', opties.likes ?? []);
+        fixture.componentRef.setInput('dislikes', opties.dislikes ?? []);
+        fixture.componentRef.setInput('canEdit', opties.canEdit);
         await fixture.whenStable();
     }
 
@@ -61,22 +52,20 @@ describe('ExtraInfo', () => {
     function bewaarKnop(): HTMLButtonElement { return el().querySelector('button[type="submit"]'); }
 
     beforeEach(async () => {
-        people = {
-            updateExtraInfo: vi.fn().mockName("PeopleService.updateExtraInfo")
-        };
+        people = { updatePreferences: vi.fn().mockName('People.updatePreferences') };
+        problems = { show: vi.fn().mockName('ProblemNotifier.show') };
         await TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, ExtraInfo, ExtraInfoEdit, ExtraInfoView],
-    providers: [
-        { provide: PeopleService, useValue: people },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ personId: 'ria' }) } } }
-    ],
-    schemas: [NO_ERRORS_SCHEMA]
-}).compileComponents();
+            imports: [ExtraInfo],
+            providers: [
+                { provide: People, useValue: people },
+                { provide: ProblemNotifier, useValue: problems }
+            ]
+        }).compileComponents();
     });
 
     describe('leesmodus (sc-1989)', () => {
         it('toont wat de persoon graag en liever niet krijgt, met een link waar er een url is', async () => {
-            await toon({ likes: [boeken, thee], dislikes: [sokken], personIsUser: false });
+            await toon({ likes: [boeken, thee], dislikes: [sokken], canEdit: false });
             const views = el().querySelectorAll('gimmi-extra-info-view');
             expect(views[0].textContent).toContain('Waarmee kan je Ria een plezier doen?');
             expect(views[1].textContent).toContain('Wat krijgt Ria liever niet?');
@@ -87,26 +76,26 @@ describe('ExtraInfo', () => {
         });
 
         it('een lege lijst toont niets, ook geen kop', async () => {
-            await toon({ likes: [boeken], dislikes: [], personIsUser: false });
+            await toon({ likes: [boeken], dislikes: [], canEdit: false });
             expect(el().querySelectorAll('gimmi-extra-info-view')[1].textContent.trim()).toBe('');
         });
 
         it('een ander ziet geen potlood en geen uitnodiging om info toe te voegen', async () => {
-            await toon({ likes: [], dislikes: [], personIsUser: false });
+            await toon({ canEdit: false });
             const verborgen = Array.from(el().querySelectorAll('div[hidden]')).map(d => d.textContent.trim());
             expect(verborgen).toContain('Voeg extra info over jezelf toe...');
             expect(potlood().hidden).toBe(true);
         });
 
         it('de persoon zelf zonder info: uitnodiging en potlood zichtbaar', async () => {
-            await toon({ likes: [], dislikes: [], personIsUser: true });
+            await toon({ canEdit: true });
             const hint = Array.from(el().querySelectorAll('div')).find(d => d.textContent.trim() === 'Voeg extra info over jezelf toe...');
             expect(hint.hidden).toBe(false);
             expect(potlood().hidden).toBe(false);
         });
 
         it('de persoon zelf met info: geen uitnodiging meer', async () => {
-            await toon({ likes: [boeken], dislikes: [], personIsUser: true });
+            await toon({ likes: [boeken], canEdit: true });
             const hint = Array.from(el().querySelectorAll('div')).find(d => d.textContent.trim() === 'Voeg extra info over jezelf toe...');
             expect(hint.hidden).toBe(true);
         });
@@ -114,9 +103,8 @@ describe('ExtraInfo', () => {
 
     describe('bewerkmodus (sc-2375)', () => {
         it('het potlood opent een formulier met de bestaande items', async () => {
-            await toon({ likes: [boeken, thee], dislikes: [sokken], personIsUser: true });
+            await toon({ likes: [boeken, thee], dislikes: [sokken], canEdit: true });
             await bewerk();
-            expect(component.editMode).toBe(true);
             expect(rijen('likes').map(r => r.map(i => i.value))).toEqual([['Boeken', ''], ['Thee', 'https://thee.be']]);
             expect(rijen('dislikes').map(r => r.map(i => i.value))).toEqual([['Sokken', '']]);
             expect(el().textContent).toContain('Waarmee kan men je een plezier doen?');
@@ -124,7 +112,7 @@ describe('ExtraInfo', () => {
         });
 
         it('een lege lijn is ongeldig: melding, geen nieuwe lijn en niet bewaren', async () => {
-            await toon({ likes: [boeken], dislikes: [], personIsUser: true });
+            await toon({ likes: [boeken], canEdit: true });
             await bewerk();
             const plus = el().querySelector('gimmi-extra-info-edit button[aria-label="Voeg een lijn toe"]') as HTMLButtonElement;
             plus.click();
@@ -139,39 +127,59 @@ describe('ExtraInfo', () => {
             expect(bewaarKnop().disabled).toBe(false);
         });
 
+        it('een link zonder http(s):// is ongeldig', async () => {
+            await toon({ likes: [boeken], canEdit: true });
+            await bewerk();
+            await typ(rijen('likes')[0][1], 'thee.be');
+            expect(bewaarKnop().disabled).toBe(true);
+            expect(el().textContent).toContain('Geef een volledige link in');
+            await typ(rijen('likes')[0][1], 'https://thee.be');
+            expect(bewaarKnop().disabled).toBe(false);
+        });
+
         it('een lijn verwijderen met het vuilbakje', async () => {
-            await toon({ likes: [boeken, thee], dislikes: [], personIsUser: true });
+            await toon({ likes: [boeken, thee], canEdit: true });
             await bewerk();
             el().querySelector<HTMLElement>('gimmi-extra-info-edit .col-1 button').click();
             await fixture.whenStable();
             expect(rijen('likes').map(r => r[0].value)).toEqual(['Thee']);
         });
 
-        it('bewaren stuurt beide lijsten voor de persoon uit de url en geeft het resultaat door', async () => {
-            const bijgewerkt = new Person('ria', 'Ria', 'Receiver');
-            bijgewerkt.extraInfo = { likes: [{ text: 'Puzzels', url: '' }], dislikes: [sokken] };
-            people.updateExtraInfo.mockReturnValue(of(bijgewerkt));
-            await toon({ likes: [boeken], dislikes: [sokken], personIsUser: true });
-            const opgeslagen = vi.fn().mockName('extraInfoSaved');
-            component.extraInfoSaved.subscribe(opgeslagen);
+        it('bewaren stuurt beide lijsten (lege link als null) en geeft het profiel door', async () => {
+            const bijgewerkt = { id: 'ria' } as PersonProfile;
+            people.updatePreferences.mockReturnValue(of(bijgewerkt));
+            await toon({ likes: [boeken], dislikes: [sokken], canEdit: true });
+            const opgeslagen = vi.fn().mockName('saved');
+            fixture.componentInstance.saved.subscribe(opgeslagen);
             await bewerk();
-            await typ(rijen('likes')[0][0], 'Puzzels');
+            await typ(rijen('likes')[0][0], ' Puzzels ');
             bewaarKnop().click();
             await fixture.whenStable();
 
-            expect(people.updateExtraInfo).toHaveBeenCalledWith('ria', [{ text: 'Puzzels', url: '' }], [{ text: 'Sokken', url: null }]);
-            expect(opgeslagen).toHaveBeenCalledWith({ likes: [{ text: 'Puzzels', url: '' }], dislikes: [sokken] });
-            expect(component.editMode).toBe(false);
+            expect(people.updatePreferences).toHaveBeenCalledWith('ria', { likes: [{ text: 'Puzzels', url: null }], dislikes: [sokken] });
+            expect(opgeslagen).toHaveBeenCalledWith(bijgewerkt);
+            expect(el().querySelector('gimmi-extra-info-edit')).toBeNull();
+        });
+
+        it('een fout van de server wordt gemeld en laat het formulier open', async () => {
+            const problem = new ApiProblem({ status: 403, code: 'forbidden' as never });
+            people.updatePreferences.mockReturnValue(throwError(() => problem));
+            await toon({ likes: [boeken], canEdit: true });
+            await bewerk();
+            bewaarKnop().click();
+            await fixture.whenStable();
+            expect(problems.show).toHaveBeenCalledWith(problem);
+            expect(el().querySelector('gimmi-extra-info-edit')).not.toBeNull();
         });
 
         it('annuleren sluit het formulier zonder te bewaren; opnieuw openen begint van de bestaande items', async () => {
-            await toon({ likes: [boeken], dislikes: [], personIsUser: true });
+            await toon({ likes: [boeken], canEdit: true });
             await bewerk();
             await typ(rijen('likes')[0][0], 'Iets anders');
-            el().querySelector('button[type="button"].btn-link').dispatchEvent(new Event('click'));
+            el().querySelector<HTMLElement>('button[aria-label="Wijzigingen annuleren"]').click();
             await fixture.whenStable();
-            expect(component.editMode).toBe(false);
-            expect(people.updateExtraInfo).not.toHaveBeenCalled();
+            expect(el().querySelector('gimmi-extra-info-edit')).toBeNull();
+            expect(people.updatePreferences).not.toHaveBeenCalled();
 
             await bewerk();
             expect(rijen('likes').map(r => r[0].value)).toEqual(['Boeken']);

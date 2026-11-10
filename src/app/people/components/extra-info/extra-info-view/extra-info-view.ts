@@ -1,7 +1,6 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
-import { ILike } from 'src/app/people/models/person.model';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { PersonPreference } from '../../../service/people';
 import { itemTypes } from '../extra-info';
-
 
 @Component({
     selector: 'gimmi-extra-info-view',
@@ -10,14 +9,8 @@ import { itemTypes } from '../extra-info';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: []
 })
-export class ExtraInfoView implements OnInit {
+export class ExtraInfoView {
   readonly firstName = input<string>(undefined);
-  @Input() items: ILike[] = [];
+  readonly items = input<PersonPreference[]>([]);
   readonly itemType = input<itemTypes>(undefined);
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
-
 }
