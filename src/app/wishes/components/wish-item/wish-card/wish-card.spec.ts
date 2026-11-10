@@ -9,6 +9,7 @@ import { of } from 'rxjs';
 
 import { ImageService } from 'src/app/images/services/image.service';
 import { Person } from 'src/app/people/models/person.model';
+import { viewWishAs } from '../../../models/wish-from-api.testing';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { AuthStore } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
@@ -61,7 +62,7 @@ describe('WishCard', () => {
         w.status = opties.status;
         if (opties.reservedBy)
             w.reservation = { reservedBy: opties.reservedBy, amount: 1, reservationDate: null, reason: null };
-        w.setUserIsFlags(testUser({ id: opties.viewer }));
+        viewWishAs(w, opties.viewer);
         return w;
     }
 

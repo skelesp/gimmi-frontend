@@ -63,15 +63,8 @@ describe('wishFromApi', () => {
 
     it('rollen en rechten komen van de server, niet van id-vergelijking', () => {
         const w = wishFromApi(apiWish({ viewer: { roles: ['receiver', 'creator'], can: { update: true, delete: true, copy: false, reserve: false, unreserve: false, fulfill: true, unfulfill: false } } }));
-        expect([w.userIsReceiver, w.userIsCreator, w.userIsReservator]).toEqual([true, true, false]);
+        expect([w.hasRole('receiver'), w.hasRole('creator'), w.hasRole('giver')]).toEqual([true, true, false]);
         expect(w.viewer.can.update).toBe(true);
-        expect(wishFromApi(apiWish({ viewer: { roles: ['giver'] } })).userIsReservator).toBe(true);
-    });
-
-    it('scenario volgt de status voor de kijker: een gereserveerde wens ziet de ontvanger als open', () => {
-        const forReceiver = wishFromApi(apiWish({ status: 'open', viewer: { roles: ['receiver', 'creator'] } }));
-        expect(forReceiver.scenario).toBe('OPEN_WISH');
-        const forGiver = wishFromApi(apiWish({ status: 'reserved', viewer: { roles: ['giver'] } }));
-        expect(forGiver.scenario).toBe('RESERVED_BY_USER');
+        expect(wishFromApi(apiWish({ viewer: { roles: ['giver'] } })).hasRole('giver')).toBe(true);
     });
 });
