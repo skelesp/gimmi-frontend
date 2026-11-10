@@ -256,17 +256,16 @@ test.describe('wensbeheer en navigatie', () => {
   test('wachtwoord vergeten: aanvraag met het ingevulde adres', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
     // De echte aanvraag zou een resetmail sturen; hier wordt enkel nagekeken wat de app verstuurt.
-    let body: { email?: string; resetPasswordRoute?: string } = {};
-    await context.route(/\/api\/people\/account\/local$/, async route => {
+    let body: { email?: string } = {};
+    await context.route(/\/api\/v2\/password-resets$/, async route => {
       body = route.request().postDataJSON();
-      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+      await route.fulfill({ status: 202 });
     });
     await page.goto(`/users/forgotpassword?e=${encodeURIComponent(owner.email)}`);
     await expect(input(page, 'Emailadres van uw account')).toHaveValue(owner.email);
     await page.getByRole('button', { name: 'Vraag nieuw wachtwoord aan' }).click();
     await expect(page.locator('ngb-alert')).toContainText('Uw paswoord reset werd aangevraagd');
     expect(body.email).toBe(owner.email);
-    expect(body.resetPasswordRoute).toMatch(/\/users\/resetpassword$/);
     await context.close();
   });
 });
