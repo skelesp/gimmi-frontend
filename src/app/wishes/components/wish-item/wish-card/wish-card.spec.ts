@@ -9,8 +9,6 @@ import { of } from 'rxjs';
 
 import { ImageService } from 'src/app/images/services/image.service';
 import { Person } from 'src/app/people/models/person.model';
-import { PeopleService } from 'src/app/people/service/people.service';
-import { CommunicationService } from 'src/app/shared/services/communication.service';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { AuthStore } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
@@ -46,8 +44,6 @@ describe('WishCard', () => {
     let modal: Record<string, any>;
     let wishService: Record<string, any>;
     let images: Record<string, any>;
-    let people: Record<string, any>;
-    let communication: Record<string, any>;
     let notifications: Record<string, any>;
     let popup: {
         componentInstance: any;
@@ -99,20 +95,13 @@ describe('WishCard', () => {
         };
         modal.open.mockImplementation(() => popup as any);
         wishService = {
-            addGiftFeedback: vi.fn().mockName("WishService.addGiftFeedback"),
-            close: vi.fn().mockName("WishService.close"),
+            fulfill: vi.fn().mockName("WishService.fulfill"),
             update: vi.fn().mockName("WishService.update"),
             create: vi.fn().mockName("WishService.create")
         };
         images = {
             uploadImage: vi.fn().mockName("ImageService.uploadImage"),
             heeftBeeld: vi.fn().mockName("ImageService.heeftBeeld")
-        };
-        people = {
-            getEmailById: vi.fn().mockName("PeopleService.getEmailById")
-        };
-        communication = {
-            sendMail: vi.fn().mockName("CommunicationService.sendMail")
         };
         notifications = {
             showNotification: vi.fn().mockName("NotificationService.showNotification")
@@ -127,9 +116,7 @@ describe('WishCard', () => {
         { provide: WishService, useValue: wishService },
         { provide: NotificationService, useValue: notifications },
         { provide: AuthStore, useValue: fakeAuthStore(testUser({ id: 'rob', firstName: 'Rob', lastName: 'Reservator', fullName: 'Rob Reservator', email: 'rob@gimmi.be' })) },
-        { provide: ImageService, useValue: images },
-        { provide: PeopleService, useValue: people },
-        { provide: CommunicationService, useValue: communication }
+        { provide: ImageService, useValue: images }
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA] // gimmi-image-view
 }).compileComponents();
@@ -265,39 +252,25 @@ describe('WishCard', () => {
             expect(images.uploadImage).not.toHaveBeenCalled();
         });
 
-        it('feedback: slaat feedback op, sluit de wens en mailt de gever de boodschap', async () => {
+        it('feedback: bevestigt het cadeau in één oproep; de server mailt de gever en zet de wens terug op de lijst', async () => {
             const wens = maakWens({ status: 'Received', reservedBy: rob, viewer: 'ria' });
-            const feedback = { satisfaction: '5', receivedOn: null as Date, message: 'Merci!', putBackOnList: false };
+            const feedback = { satisfaction: 5, receivedOn: '2026-12-25', message: 'Merci!', putBackOnList: true };
             popup.result = Promise.resolve(feedback);
-            const gesloten = maakWens({ status: 'Fulfilled', reservedBy: rob, viewer: 'ria' });
-            gesloten.giftFeedback = feedback;
-            wishService.addGiftFeedback.mockReturnValue(of(wens));
-            wishService.close.mockReturnValue(of(gesloten));
-            people.getEmailById.mockReturnValue(of('rob@gimmi.be'));
+            wishService.fulfill.mockReturnValue(of(wens));
             await toon(wens);
             cta().click();
             await vi.advanceTimersByTimeAsync(0);
             expect(modal.open).toHaveBeenCalledWith(GiftFeedback);
-            expect(wishService.addGiftFeedback).toHaveBeenCalledWith(wens, feedback);
-            expect(wishService.close).toHaveBeenCalledWith(wens);
-            const mail = vi.mocked(communication.sendMail).mock.lastCall[0];
-            expect(mail.to).toBe('rob@gimmi.be');
-            expect(mail.subject).toBe('[GIMMI] Ria Receiver bedankt je voor je cadeau!!');
-            expect(mail.html).toContain('Merci!');
+            expect(wishService.fulfill).toHaveBeenCalledWith(wens, feedback);
         });
 
-        it('feedback zonder boodschap: geen mail', async () => {
+        it('feedback-popup weggeklikt: niets bevestigd', async () => {
             const wens = maakWens({ status: 'Received', reservedBy: rob, viewer: 'ria' });
-            const feedback = { satisfaction: '4', receivedOn: null as Date, message: '', putBackOnList: false };
-            popup.result = Promise.resolve(feedback);
-            const gesloten = maakWens({ status: 'Fulfilled', reservedBy: rob, viewer: 'ria' });
-            gesloten.giftFeedback = feedback;
-            wishService.addGiftFeedback.mockReturnValue(of(wens));
-            wishService.close.mockReturnValue(of(gesloten));
+            popup.result = Promise.reject('Cancel');
             await toon(wens);
             cta().click();
             await vi.advanceTimersByTimeAsync(0);
-            expect(communication.sendMail).not.toHaveBeenCalled();
+            expect(wishService.fulfill).not.toHaveBeenCalled();
         });
     });
 });

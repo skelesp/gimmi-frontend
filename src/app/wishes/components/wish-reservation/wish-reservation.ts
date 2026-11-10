@@ -1,10 +1,9 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { Person } from 'src/app/people/models/person.model';
 import { NotificationService } from 'src/app/shared/services/notification.service';
-import { AuthStore } from 'src/app/core/auth/auth-store';
-import { IReservation, Wish } from '../../models/wish.model';
+import type { Schema } from 'src/app/core/api/api-types';
+import { Wish } from '../../models/wish.model';
 import { WishService } from '../../services/wish.service';
 import { CursorPointer } from '../../../shared/directives/cursor-pointer';
 
@@ -18,47 +17,48 @@ import { CursorPointer } from '../../../shared/directives/cursor-pointer';
 })
 export class WishReservation implements OnInit {
   activeModal = inject(NgbActiveModal);
-  private auth = inject(AuthStore);
   private wishService = inject(WishService);
   private notificationService = inject(NotificationService);
 
   @Input() wish: Wish;
   reservationForm: FormGroup<{
     handoverDate: FormControl<string>;
-    reason: FormControl<string | null>;
+    reason: FormControl<Schema<'Occasion'> | null>;
   }>;
-  readonly reasonOptions: string[] = ['Verjaardag', 'Sinterklaas', 'Kerstmis', 'Nieuwjaar', 'Housewarming', 'Geboorte', 'Huwelijk', 'Afscheid collega', 'Afscheid', 'Communie / Lentefeest', 'Vader/moederdag', 'Andere reden']
+  /** The occasions of the contract with their label; an unknown value from the server counts as `other`. */
+  readonly reasonOptions: { value: Schema<'Occasion'>; label: string }[] = [
+    { value: 'birthday', label: 'Verjaardag' },
+    { value: 'saint-nicholas', label: 'Sinterklaas' },
+    { value: 'christmas', label: 'Kerstmis' },
+    { value: 'new-year', label: 'Nieuwjaar' },
+    { value: 'housewarming', label: 'Housewarming' },
+    { value: 'birth', label: 'Geboorte' },
+    { value: 'wedding', label: 'Huwelijk' },
+    { value: 'farewell-colleague', label: 'Afscheid collega' },
+    { value: 'farewell', label: 'Afscheid' },
+    { value: 'communion', label: 'Communie / Lentefeest' },
+    { value: 'parents-day', label: 'Vader/moederdag' },
+    { value: 'other', label: 'Andere reden' }
+  ];
 
   ngOnInit(): void {
     this.reservationForm = new FormGroup({
       'handoverDate': new FormControl(new Date().toISOString().substring(0, 10), { nonNullable: true, validators: Validators.required }), //https://stackoverflow.com/questions/45330319/angular2-setting-date-field-on-reactive-form
-      'reason': new FormControl<string | null>(null, Validators.required)
+      'reason': new FormControl<Schema<'Occasion'> | null>(null, Validators.required)
     })
   }
 
   saveReservation() {
-    const reservation: IReservation = { 
-      reason: this.reservationForm.value.reason,
-      handoverDate: new Date(this.reservationForm.value.handoverDate),
-      amount: 1,
-      reservedBy: new Person(
-        this.auth.user().id, 
-        this.auth.user().firstName, 
-        this.auth.user().lastName
-        ),
-      reservationDate: new Date()
-    }
-
-    this.wishService.addReservation(
-      this.wish,
-      reservation
-    ).subscribe( wish => this.notificationService.showNotification(
+    this.wishService.addReservation(this.wish, {
+      handoverDate: this.reservationForm.getRawValue().handoverDate,
+      occasion: this.reservationForm.getRawValue().reason
+    }).subscribe( wish => this.notificationService.showNotification(
     `Wens ${wish.title} is gereserveerd. U hoeft dit perfecte cadeau enkel nog te kopen en af te geven!`,
       'success',
       'Gereserveerd'
     ));
 
-    this.activeModal.close(reservation);
+    this.activeModal.close();
   }
 
 }

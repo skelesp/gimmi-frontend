@@ -7,8 +7,6 @@ import { BehaviorSubject } from 'rxjs';
 
 import { ImageService } from 'src/app/images/services/image.service';
 import { Person } from 'src/app/people/models/person.model';
-import { PeopleService } from 'src/app/people/service/people.service';
-import { CommunicationService } from 'src/app/shared/services/communication.service';
 import { NotificationService } from 'src/app/shared/services/notification.service';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { AuthStore } from 'src/app/core/auth/auth-store';
@@ -77,8 +75,6 @@ describe('WishPage', () => {
         { provide: NotificationService, useValue: {} },
         { provide: AuthStore, useValue: fakeAuthStore() },
         { provide: ImageService, useValue: {} },
-        { provide: PeopleService, useValue: {} },
-        { provide: CommunicationService, useValue: {} },
         { provide: ActivatedRoute, useValue: {} }
     ],
     schemas: [NO_ERRORS_SCHEMA]

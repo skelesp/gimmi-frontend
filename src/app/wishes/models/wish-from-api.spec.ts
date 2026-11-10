@@ -56,7 +56,7 @@ describe('wishFromApi', () => {
             status: 'fulfilled',
             fulfillment: { receivedOn: '2026-10-05', givenBy: null, satisfaction: 5, message: 'super', relistedWishId: 'nieuw', fulfilledAt: '2026-10-06T09:00:00Z' }
         }));
-        expect(w.giftFeedback).toEqual({ satisfaction: '5', receivedOn: new Date('2026-10-05'), message: 'super', putBackOnList: true });
+        expect(w.giftFeedback).toEqual({ satisfaction: '5', receivedOn: new Date('2026-10-05'), message: 'super', putBackOnList: true, relistedWishId: 'nieuw' });
         expect(w.closure.closedOn).toEqual(new Date('2026-10-06T09:00:00Z'));
         expect(w.closure.closedBy.id).toBe('ria');
     });

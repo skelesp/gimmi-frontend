@@ -6,8 +6,6 @@ import { problemInterceptor } from 'src/app/core/api/problem-interceptor';
 import { environment } from 'src/environments/environment';
 import type { Schema } from 'src/app/core/api/api-types';
 import { Person } from 'src/app/people/models/person.model';
-import { AuthStore } from 'src/app/core/auth/auth-store';
-import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { Wish } from '../models/wish.model';
 import { apiWish } from '../models/wish-from-api.testing';
 import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
@@ -15,8 +13,8 @@ import { WishService } from './wish.service';
 
 // Legt vast hoe de app met de wish- en wishlist-API praat (sc-2979). Lezen, aanmaken, wijzigen, verwijderen
 // en kopiëren gaan via API v2 (sc-3288, sc-3289): wens aanmaken (sc-1977), verwijderen (sc-1981), kopieën (sc-2348).
-// Reserveren (sc-1979), reservatie verwijderen (sc-2515), feedback (sc-1980) en sluiten (sc-2442) gaan nog via v1
-// met daarna een lees van de wens.
+// Reserveren (sc-1979), reservatie verwijderen (sc-2515) en het cadeau bevestigen met feedback (sc-1980, sc-2442) gaan
+// sinds sc-3291 ook via API v2.
 describe('WishService', () => {
     const v1 = environment.apiUrl;
     const v2 = environment.apiV2Url;
@@ -35,7 +33,6 @@ describe('WishService', () => {
         TestBed.configureTestingModule({
             providers: [
                 { provide: ProblemNotifier, useValue: problems },
-                { provide: AuthStore, useValue: fakeAuthStore(testUser({ id: 'rob', firstName: 'Rob', lastName: 'Reservator', fullName: 'Rob Reservator', email: 'rob@gimmi.be' })) },
                 provideHttpClient(withXhr(), withInterceptors([problemInterceptor])),
                 provideHttpClientTesting()
             ]
@@ -105,57 +102,111 @@ describe('WishService', () => {
         });
     });
 
-    describe('reservatie (v1, daarna lees v2)', () => {
-        it('addReservation: stuurt de id van de reservator en werkt de wens in de lijst bij', () => {
+    describe('reservatie', () => {
+        it('addReservation: PUT /wishes/{id}/reservation met datum en gelegenheid; de wens in de lijst volgt het antwoord', () => {
             const [wens] = laadLijst('w1');
             let bijgewerkt: Wish;
-            service.addReservation(wens, { reservedBy: new Person('rob', 'Rob', 'Reservator'), amount: 1, reason: 'verjaardag', reservationDate: null })
-                .subscribe(w => bijgewerkt = w);
-            const req = http.expectOne(`${v1}wish/w1/reservation`);
-            expect(req.request.method).toBe('POST');
-            expect(req.request.body.reservedBy).toBe('rob');
-            req.flush({});
-            http.expectOne(`${v2}wishes/w1`).flush(apiWish({ id: 'w1', status: 'reserved', reservation: { reservedBy: { id: 'rob', firstName: 'Rob', lastName: 'Reservator' } } }));
+            service.addReservation(wens, { handoverDate: '2026-12-24', occasion: 'birthday' }).subscribe(w => bijgewerkt = w);
+            const req = http.expectOne(`${v2}wishes/w1/reservation`);
+            expect(req.request.method).toBe('PUT');
+            expect(req.request.body).toEqual({ handoverDate: '2026-12-24', occasion: 'birthday' });
+            req.flush(apiWish({ id: 'w1', status: 'reserved', reservation: { reservedBy: { id: 'rob', firstName: 'Rob', lastName: 'Reservator' } } }));
             expect(bijgewerkt.status).toBe('Reserved');
             expect(huidigeLijst()[0].status).toBe('Reserved');
         });
 
-        it('deleteReservation: DELETE en de wens staat weer open', () => {
+        it('addReservation: een tweede gever komt te laat (409): melding, geen waarde, de wens wordt opnieuw gelezen', () => {
+            const [wens] = laadLijst('w1');
+            const waarde = vi.fn();
+            service.addReservation(wens, { handoverDate: '2026-12-24', occasion: 'other' }).subscribe(waarde);
+            flushProblem(`${v2}wishes/w1/reservation`, 409, 'wish-already-reserved');
+            expect(problems.show).toHaveBeenCalledTimes(1);
+            http.expectOne(`${v2}wishes/w1`).flush(apiWish({ id: 'w1', status: 'reserved' }));
+            expect(waarde).not.toHaveBeenCalled();
+            expect(huidigeLijst()[0].status).toBe('Reserved');
+        });
+
+        it('addReservation: een andere fout (422): melding en geen nieuwe lees', () => {
+            const [wens] = laadLijst('w1');
+            service.addReservation(wens, { handoverDate: '2026-12-24', occasion: 'other' }).subscribe();
+            flushProblem(`${v2}wishes/w1/reservation`, 422, 'date-in-future');
+            expect(problems.show).toHaveBeenCalledTimes(1);
+        });
+
+        it('deleteReservation: DELETE /wishes/{id}/reservation (204), daarna een lees: de wens staat weer open', () => {
             const [wens] = laadLijst('w1');
             let bijgewerkt: Wish;
             service.deleteReservation(wens).subscribe(w => bijgewerkt = w);
-            const req = http.expectOne(`${v1}wish/w1/reservation`);
+            const req = http.expectOne(`${v2}wishes/w1/reservation`);
             expect(req.request.method).toBe('DELETE');
-            req.flush({});
+            req.flush(null, { status: 204, statusText: 'No Content' });
             http.expectOne(`${v2}wishes/w1`).flush(apiWish({ id: 'w1', status: 'open' }));
             expect(bijgewerkt.reservation).toBeUndefined();
             expect(bijgewerkt.status).toBe('Open');
         });
+
+        it('deleteReservation: een fout (403) wordt gemeld', () => {
+            const [wens] = laadLijst('w1');
+            service.deleteReservation(wens).subscribe();
+            flushProblem(`${v2}wishes/w1/reservation`, 403, 'forbidden');
+            expect(problems.show).toHaveBeenCalledTimes(1);
+        });
     });
 
-    it('addGiftFeedback: post de feedback naar /feedback en leest de wens opnieuw', () => {
-        const [wens] = laadLijst('w1');
-        const feedback = { satisfaction: 'blij', receivedOn: null as Date, message: 'dank je', putBackOnList: false };
-        let bijgewerkt: Wish;
-        service.addGiftFeedback(wens, feedback).subscribe(w => bijgewerkt = w);
-        const req = http.expectOne(`${v1}wish/w1/feedback`);
-        expect(req.request.body).toEqual(feedback);
-        req.flush({});
-        http.expectOne(`${v2}wishes/w1`).flush(apiWish({
+    describe('fulfill', () => {
+        const feedback = { receivedOn: '2026-10-05', satisfaction: 4, message: 'dank je', putBackOnList: false };
+        const vervuld = (fulfillment: Record<string, unknown> = {}) => apiWish({
             id: 'w1', status: 'fulfilled',
-            fulfillment: { receivedOn: '2026-10-05', givenBy: null, satisfaction: 4, message: 'dank je', fulfilledAt: '2026-10-05T10:00:00Z' }
-        }));
-        expect(bijgewerkt.giftFeedback.message).toBe('dank je');
-    });
+            fulfillment: { receivedOn: '2026-10-05', givenBy: null, satisfaction: 4, message: 'dank je', fulfilledAt: '2026-10-05T10:00:00Z', ...fulfillment }
+        });
 
-    it('close: sluit af door de ingelogde gebruiker met reden "Cadeau ontvangen"', () => {
-        const [wens] = laadLijst('w1');
-        service.close(wens).subscribe();
-        const req = http.expectOne(`${v1}wish/w1/closure`);
-        expect(req.request.body.closedBy).toBe('rob');
-        expect(req.request.body.reason).toBe('Cadeau ontvangen');
-        req.flush({});
-        http.expectOne(`${v2}wishes/w1`).flush(apiWish({ id: 'w1', status: 'fulfilled' }));
+        it('PUT /wishes/{id}/fulfillment met alles in één oproep; de wens in de lijst volgt het antwoord', () => {
+            const [wens] = laadLijst('w1');
+            let bijgewerkt: Wish;
+            service.fulfill(wens, feedback).subscribe(w => bijgewerkt = w);
+            const req = http.expectOne(`${v2}wishes/w1/fulfillment`);
+            expect(req.request.method).toBe('PUT');
+            expect(req.request.body).toEqual(feedback);
+            req.flush(vervuld());
+            expect(bijgewerkt.giftFeedback.message).toBe('dank je');
+            expect(huidigeLijst()[0].status).toBe('Fulfilled');
+        });
+
+        it('een lege boodschap gaat als null', () => {
+            const [wens] = laadLijst('w1');
+            service.fulfill(wens, { ...feedback, message: '  ' }).subscribe();
+            const req = http.expectOne(`${v2}wishes/w1/fulfillment`);
+            expect(req.request.body.message).toBeNull();
+            req.flush(vervuld());
+        });
+
+        it('putBackOnList: de wens die de server terugzette komt bovenaan de lijst, zonder eigen kopie', () => {
+            const [wens] = laadLijst('w1');
+            let bijgewerkt: Wish;
+            service.fulfill(wens, { ...feedback, putBackOnList: true }).subscribe(w => bijgewerkt = w);
+            http.expectOne(`${v2}wishes/w1/fulfillment`).flush(vervuld({ relistedWishId: 'w9' }));
+            http.expectOne(`${v2}wishes/w9`).flush(apiWish({ id: 'w9', status: 'open' }));
+            expect(huidigeLijst().map(w => w.id)).toEqual(['w9', 'w1']);
+            expect(bijgewerkt.id).toBe('w1');
+        });
+
+        it('putBackOnList: lukt het lezen van de nieuwe wens niet, dan blijft het bevestigen gelukt', () => {
+            const [wens] = laadLijst('w1');
+            let bijgewerkt: Wish;
+            service.fulfill(wens, { ...feedback, putBackOnList: true }).subscribe(w => bijgewerkt = w);
+            http.expectOne(`${v2}wishes/w1/fulfillment`).flush(vervuld({ relistedWishId: 'w9' }));
+            http.expectOne(`${v2}wishes/w9`).flush({}, { status: 500, statusText: 'Error' });
+            expect(bijgewerkt.id).toBe('w1');
+        });
+
+        it('een fout (date-in-future) wordt gemeld en geeft geen waarde', () => {
+            const [wens] = laadLijst('w1');
+            const waarde = vi.fn();
+            service.fulfill(wens, feedback).subscribe(waarde);
+            flushProblem(`${v2}wishes/w1/fulfillment`, 422, 'date-in-future');
+            expect(problems.show).toHaveBeenCalledTimes(1);
+            expect(waarde).not.toHaveBeenCalled();
+        });
     });
 
     describe('delete', () => {

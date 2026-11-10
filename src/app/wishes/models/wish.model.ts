@@ -25,6 +25,8 @@ export interface IGiftFeedback {
     receivedOn: Date;
     message: string;
     putBackOnList: boolean;
+    /** The wish the server put back on the receiver's list, if asked. */
+    relistedWishId?: string;
 }
 
 export interface IClosure {

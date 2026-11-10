@@ -20,9 +20,8 @@
         <!-- https://stackoverflow.com/questions/38725365/how-to-show-placeholder-empty-option-in-select-control-in-angular-2 -->
         <select class="form-control" id="reservationReason" formControlName="reason">
           <option value="null" disabled selected hidden>Kies een reden</option>
-          <option [ngValue]="" [disabled]="true" [hidden]="true" [selected]="true">Choose your city</option>
-          @for (option of reasonOptions; track option) {
-            <option [ngValue]="option">{{option}}</option>
+          @for (option of reasonOptions; track option.value) {
+            <option [ngValue]="option.value">{{option.label}}</option>
           }
         </select>
       </div>

@@ -2,9 +2,9 @@ import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angu
 import { faBan, faGift, faStar, faLightbulb, faCartArrowDown, faThumbsUp, faTrashAlt, faGlobeEurope } from '@fortawesome/free-solid-svg-icons';
 import { faClone, faComment, faEdit } from '@fortawesome/free-regular-svg-icons';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { switchMap } from 'rxjs/operators';
 
-import { IGiftFeedback, Wish, WishScenario } from '../../models/wish.model';
+import type { Schema } from 'src/app/core/api/api-types';
+import { Wish, WishScenario } from '../../models/wish.model';
 import { WishReservation } from '../wish-reservation/wish-reservation';
 import { ChangeWishReservation } from '../wish-reservation/change-wish-reservation/change-wish-reservation';
 import { GiftFeedback } from '../gift-feedback/gift-feedback';
@@ -18,8 +18,6 @@ import { NotificationService } from 'src/app/shared/services/notification.servic
 import { Person } from 'src/app/people/models/person.model';
 import { AuthStore } from 'src/app/core/auth/auth-store';
 import { ImageService } from 'src/app/images/services/image.service';
-import { CommunicationService } from 'src/app/shared/services/communication.service';
-import { PeopleService } from 'src/app/people/service/people.service';
 
 @Component({
     template: '',
@@ -32,8 +30,6 @@ export class WishItem implements OnInit {
   protected notificationService = inject(NotificationService);
   protected auth = inject(AuthStore);
   protected imageService = inject(ImageService);
-  protected peopleService = inject(PeopleService);
-  protected communicationService = inject(CommunicationService);
 
   @Input() wish: Wish;
   wishActionItems : ActionListItemConfig[] = [];
@@ -135,27 +131,10 @@ export class WishItem implements OnInit {
     const giftFeedbackPopup = this.modalService.open(GiftFeedback);
     giftFeedbackPopup.componentInstance.wish = this.wish;
 
-    (giftFeedbackPopup.result as Promise<IGiftFeedback>).then( giftFeedback => {
-      this.wishService.addGiftFeedback(this.wish, giftFeedback)
-        .pipe(switchMap(wish => this.wishService.close(wish)))
-        .subscribe(wish => {
-          if (wish.giftFeedback.putBackOnList) this.copy();
-          if (wish.giftFeedback.message) {
-            this.peopleService.getEmailById(wish.reservation.reservedBy.id).subscribe(email => {
-              this.communicationService.sendMail({
-                to: email,
-                subject: `[GIMMI] ${wish.receiver.fullName} bedankt je voor je cadeau!!`,
-                html: `${wish.reservation.reservedBy.firstName} <br/><br/>
-                      Je hebt onlangs op Gimmi het cadeau '${wish.title}' gereserveerd voor ${wish.receiver.fullName}. <br/>
-                      Onlangs heb je dit cadeau afgegeven. Daarnet heeft ${wish.receiver.firstName} je een dankboodschap nagelaten:<br/><br/>
-                      <em>${wish.giftFeedback.message}</em><br/><br/><br/>
-                      Bedankt om Gimmi te gebruiken en hopelijk tot snel voor een nieuwe succesvolle cadeauzoektocht!`
-              });
-            })
-          }
-        }
-        );
-    });
+    // The server puts the wish back on the list and mails the thank-you message to the giver.
+    (giftFeedbackPopup.result as Promise<Schema<'FulfillmentRequest'>>).then(giftFeedback => {
+      this.wishService.fulfill(this.wish, giftFeedback).subscribe();
+    }).catch(err => console.warn('popup closed:', err));
   }
   
   edit () {

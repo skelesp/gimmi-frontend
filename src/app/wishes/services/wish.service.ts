@@ -1,47 +1,25 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { EMPTY, Observable, of, BehaviorSubject } from 'rxjs';
 import { catchError, expand, map, reduce, switchMap, tap } from 'rxjs/operators';
 
-import { environment } from 'src/environments/environment';
 import { ApiClient } from 'src/app/core/api/api-client';
 import { ApiProblem } from 'src/app/core/api/api-problem';
 import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
 import { validateUrl } from 'src/app/_utility/url_utility';
 import type { Schema } from 'src/app/core/api/api-types';
 import { Person } from 'src/app/people/models/person.model';
-import { AuthStore } from 'src/app/core/auth/auth-store';
-import { IGiftFeedback, IReservation, Wish } from '../models/wish.model';
+import { Wish } from '../models/wish.model';
 import { wishFromApi } from '../models/wish-from-api';
-
-interface IReservationRequest {
-  reservedBy: string;
-  amount: number;
-  reason: string;
-  reservationDate: Date;
-  handoverDate?: Date;
-}
-
-interface IClosureRequest {
-  closedBy: string;
-  reason: string;
-  closedOn: Date;
-}
 
 // A page holds at most 100 wishes; a list is read to the end (there is no "load more" yet).
 const pageSize = 100;
 
-/**
- * Reads and the wish itself (create, change, delete, copy) go to API v2. Reserving and the feedback still go
- * to API v1 and are followed by a read of the wish, until sc-3291 moves them too.
- */
+/** Everything about wishes goes to API v2: reading, the wish itself, reserving and confirming a gift. */
 @Injectable({
   providedIn: 'root'
 })
 export class WishService {
-  private http$ = inject(HttpClient);
   private api = inject(ApiClient);
-  private auth = inject(AuthStore);
   private problems = inject(ProblemNotifier);
 
   private _wishes$: BehaviorSubject<Wish[]> = new BehaviorSubject<Wish[]>([]);
@@ -65,22 +43,19 @@ export class WishService {
     );
   }
 
-  public addReservation(wish: Wish, reservation: IReservation) : Observable<Wish>{
-    const reservationRequestData: IReservationRequest = { ...reservation, reservedBy: reservation.reservedBy.id };
-
-    return this.http$.post(
-      environment.apiUrl + 'wish/' + wish.id + '/reservation',
-      reservationRequestData
-    ).pipe(
-      switchMap(() => this.reloadWish(wish))
-    )
+  /** Reserves the wish for the viewer, or changes the viewer's own reservation. The giver comes from the token. */
+  public addReservation(wish: Wish, reservation: { handoverDate: string; occasion: Schema<'Occasion'> }) : Observable<Wish> {
+    return this.api.put('/wishes/{wishId}/reservation', { path: { wishId: wish.id }, body: reservation }).pipe(
+      map(wishFromApi),
+      tap(reserved => this.updateWishInWishlist(reserved)),
+      this.showProblem(() => this.reloadWish(wish))
+    );
   }
 
-  public deleteReservation(wish: Wish) : Observable<Wish>{
-    return this.http$.delete(
-      environment.apiUrl + 'wish/' + wish.id + '/reservation'
-    ).pipe(
-      switchMap(() => this.reloadWish(wish))
+  public deleteReservation(wish: Wish) : Observable<Wish> {
+    return this.api.delete('/wishes/{wishId}/reservation', { path: { wishId: wish.id } }).pipe(
+      switchMap(() => this.reloadWish(wish)),
+      this.showProblem()
     );
   }
 
@@ -93,13 +68,31 @@ export class WishService {
     );
   }
 
-  public addGiftFeedback (wish: Wish, giftFeedback: IGiftFeedback) : Observable<Wish> {
-    return this.http$.post(
-      environment.apiUrl + 'wish/' + wish.id + "/feedback",
-      giftFeedback
-    ).pipe(
-      switchMap(() => this.reloadWish(wish))
-    )
+  /**
+   * The receiver confirms the gift with feedback (one call). With `putBackOnList` the server creates the new wish
+   * on the list and mails the thank-you message to the giver; the client does neither.
+   */
+  public fulfill (wish: Wish, feedback: Schema<'FulfillmentRequest'>) : Observable<Wish> {
+    return this.api.put('/wishes/{wishId}/fulfillment', {
+      path: { wishId: wish.id },
+      body: { ...feedback, message: blankToNull(feedback.message) }
+    }).pipe(
+      map(wishFromApi),
+      tap(fulfilled => this.updateWishInWishlist(fulfilled)),
+      switchMap(fulfilled => this.addRelistedWish(fulfilled)),
+      this.showProblem()
+    );
+  }
+
+  /** Adds the wish that the server put back on the list to the list on screen; gives back the fulfilled wish. */
+  private addRelistedWish (fulfilled: Wish) : Observable<Wish> {
+    const relistedId = fulfilled.giftFeedback?.relistedWishId;
+    if (!relistedId) return of(fulfilled);
+    return this.fetchWish(relistedId).pipe(
+      tap(relisted => this.addWishToWishlist(relisted)),
+      map(() => fulfilled),
+      catchError(() => of(fulfilled))
+    );
   }
 
   /** Adds the wish to the list of `newWish.receiver`; with `copyOf` it is a copy of that wish on the list of the viewer. */
@@ -127,20 +120,6 @@ export class WishService {
       tap(updated => this.updateWishInWishlist(updated)),
       this.showProblem()
     );
-  }
-
-  public close (wish: Wish) : Observable<Wish>{
-    const closure: IClosureRequest = {
-      closedBy: this.auth.user().id,
-      closedOn: new Date(),
-      reason: "Cadeau ontvangen"
-    }
-    return this.http$.post(
-      environment.apiUrl + 'wish/' + wish.id + "/closure",
-      closure
-    ).pipe(
-      switchMap(() => this.reloadWish(wish))
-    )
   }
 
   public getWishById ( wishID: string ) : Observable<Wish> {
@@ -177,11 +156,12 @@ export class WishService {
   }
 
   /** Shows an `ApiProblem` as a toast and ends the stream without a value, so the "it worked" messages stay away. */
-  private showProblem<T>() {
+  private showProblem<T>(afterwards?: () => Observable<unknown>) {
     return catchError<T, Observable<never>>(error => {
       if (!(error instanceof ApiProblem)) throw error;
       this.problems.show(error);
-      return EMPTY;
+      // E.g. a second giver was too late: read the wish again so the screen shows who reserved it.
+      return afterwards && error.status === 409 ? afterwards().pipe(switchMap(() => EMPTY)) : EMPTY;
     });
   }
 
