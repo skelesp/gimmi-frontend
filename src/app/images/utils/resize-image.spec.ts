@@ -58,4 +58,11 @@ describe('resize-image', () => {
     it('laadAfbeelding: een bestand dat geen afbeelding is, wordt geweigerd', async () => {
         await expect(laadAfbeelding(new Blob(['geen afbeelding'], { type: 'image/png' }))).rejects.toThrowError('Geen leesbare afbeelding');
     });
+
+    it('verkleinAfbeelding: geeft de browser geen Blob terug, dan is de afbeelding onleesbaar', async () => {
+        const png = await maakPng(20, 10);
+        vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation(callback => callback(null));
+        await expect(verkleinAfbeelding(png, 20)).rejects.toThrowError('Geen leesbare afbeelding');
+        vi.restoreAllMocks();
+    });
 });
