@@ -56,12 +56,9 @@ export class WishPopup implements OnInit {
 
     this.currentUser = this.auth.user();
 
-    if (this.mode === 'copy') {
-      this.wishService.getCopiesOnListOf(this.wish.receiver).subscribe(receiversCopies => {
-        if ( receiversCopies.find( w => w.copyOf === this.wish.copyOf ) ) {
-          this.showWarningExistingCopy.set(true);
-        }
-      })
+    // The server says whether the viewer already has a copy of this wish on their own list.
+    if (this.mode === 'copy' && this.wish.viewer?.ownCopyId) {
+      this.showWarningExistingCopy.set(true);
     }
   }
 

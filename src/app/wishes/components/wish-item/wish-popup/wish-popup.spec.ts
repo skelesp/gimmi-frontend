@@ -52,10 +52,7 @@ describe('WishPopup', () => {
             close: vi.fn().mockName("NgbActiveModal.close"),
             dismiss: vi.fn().mockName("NgbActiveModal.dismiss")
         };
-        wishService = {
-            getCopiesOnListOf: vi.fn().mockName("WishService.getCopiesOnListOf")
-        };
-        wishService.getCopiesOnListOf.mockReturnValue(of([]));
+        wishService = {};
         TestBed.overrideComponent(WishPopup, { remove: { imports: [ImageUpload, ImageView] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
     imports: [ReactiveFormsModule, NgbAlertModule, WishPopup],
@@ -155,21 +152,18 @@ describe('WishPopup', () => {
         expect(activeModal.close).not.toHaveBeenCalled();
     });
 
-    it('kopiëren: waarschuwing als er al een kopie van deze wens op de lijst staat', async () => {
-        const kopie = { ...bestaandeWens(), id: undefined, copyOf: 'origineel' } as Wish;
-        wishService.getCopiesOnListOf.mockReturnValue(of([{ copyOf: 'origineel' } as Wish]));
+    it('kopiëren: waarschuwing als de server zegt dat er al een kopie van deze wens op de lijst staat', async () => {
+        const kopie = { ...bestaandeWens(), id: undefined, copyOf: 'origineel', viewer: { ownCopyId: 'k1' } } as unknown as Wish;
         await open('copy', kopie);
-        expect(wishService.getCopiesOnListOf).toHaveBeenCalledWith(ria);
         expect(fixture.nativeElement.querySelector('ngb-alert').textContent).toContain('er staat al een kopie van deze wens op je lijst');
     });
 
-    it('kopiëren zonder eerdere kopie: geen waarschuwing; buiten kopiëren wordt niets opgevraagd', async () => {
-        await open('copy', { ...bestaandeWens(), copyOf: 'origineel' } as Wish);
+    it('kopiëren zonder eerdere kopie, of een andere modus: geen waarschuwing', async () => {
+        await open('copy', { ...bestaandeWens(), copyOf: 'origineel', viewer: { ownCopyId: null } } as unknown as Wish);
         expect(fixture.nativeElement.querySelector('ngb-alert')).toBeNull();
         fixture.destroy();
-        wishService.getCopiesOnListOf.mockClear();
-        await open('edit', bestaandeWens());
-        expect(wishService.getCopiesOnListOf).not.toHaveBeenCalled();
+        await open('edit', { ...bestaandeWens(), viewer: { ownCopyId: 'k1' } } as unknown as Wish);
+        expect(fixture.nativeElement.querySelector('ngb-alert')).toBeNull();
     });
 
     it('aanpassen met een nieuwe afbeelding: de nieuwe sleutel gaat mee in de bewaarde wens', async () => {
