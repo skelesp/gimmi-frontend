@@ -1,11 +1,11 @@
 
-import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal, NgbAlertModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { of, Subject, throwError } from 'rxjs';
 
+import { ApiProblem, ProblemCode } from 'src/app/core/api/api-problem';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { ImageService } from '../../services/image.service';
 import { IImageSearchResult, ImageSearchService } from '../../services/image-search.service';
@@ -22,10 +22,10 @@ describe('ImagePicker', () => {
     let modal: Record<string, any>;
 
     const resultaat = (n: number): IImageSearchResult => ({
-        url: `https://winkel.be/${n}.jpg`, thumbnail: `https://imgs.search.brave.com/${n}`,
-        width: 100, height: 100, title: `Fiets ${n}`, source: 'winkel.be', page: null
+        url: `https://winkel.be/${n}.jpg`, thumbnailUrl: `https://imgs.search.brave.com/${n}`,
+        width: 100, height: 100, title: `Fiets ${n}`, source: 'winkel.be', pageUrl: null
     });
-    const fout = (status: number, reason?: string) => new HttpErrorResponse({ status, error: reason ? { error: 'x', reason } : null });
+    const fout = (status: number, code: ProblemCode) => new ApiProblem({ status, code, title: 'x' });
 
     async function maak(opties: {
         zoekterm?: string;
@@ -151,10 +151,10 @@ describe('ImagePicker', () => {
             expect(tekst()).toContain('Geen afbeeldingen gevonden');
         });
 
-        it('zoeken faalt: begrijpelijke melding met de reden van de backend', async () => {
-            zoekService.search.mockReturnValue(throwError(fout(503, 'zoeken-niet-beschikbaar')));
+        it('zoeken faalt: de melding bij de foutcode van de backend', async () => {
+            zoekService.search.mockReturnValue(throwError(fout(503, 'image-search-unavailable')));
             await maak({ zoekterm: 'fiets' });
-            expect(el('ngb-alert').textContent).toContain('Zoeken lukt nu even niet. Je kunt wel een foto of bestand opladen.');
+            expect(el('ngb-alert').textContent).toContain('Afbeeldingen zoeken lukt nu niet. Probeer het straks opnieuw.');
             expect(alle('.resultaat').length).toBe(0);
         });
 
@@ -194,11 +194,11 @@ describe('ImagePicker', () => {
         });
 
         it('de bronsite weigert (sc-2960): melding, resultaat uitgegrijsd, een ander kiezen kan', async () => {
-            beelden.uploadImage.mockReturnValueOnce(throwError(fout(422, 'bron-weigert'))).mockReturnValueOnce(of({ key: 'wishes/p.jpg', url: 'u' }));
+            beelden.uploadImage.mockReturnValueOnce(throwError(fout(422, 'image-source-refused'))).mockReturnValueOnce(of({ key: 'wishes/p.jpg', url: 'u' }));
             await maak({ zoekterm: 'fiets' });
             alle('.resultaat')[0].click();
             await fixture.whenStable();
-            expect(el('ngb-alert').textContent).toContain('Deze website laat niet toe dat we de afbeelding overnemen. Kies een andere.');
+            expect(el('ngb-alert').textContent).toContain('De website weigert de afbeelding te delen.');
             const [eerste, tweede] = alle('.resultaat') as HTMLButtonElement[];
             expect(eerste.classList).toContain('mislukt');
             expect(eerste.disabled).toBe(true);
@@ -209,7 +209,7 @@ describe('ImagePicker', () => {
         });
 
         it('een mislukt resultaat opnieuw kiezen doet niets', async () => {
-            beelden.uploadImage.mockReturnValue(throwError(fout(422, 'niet-gevonden')));
+            beelden.uploadImage.mockReturnValue(throwError(fout(422, 'image-gone')));
             await maak({ zoekterm: 'fiets' });
             component.kies(resultaat(1));
             component.kies(resultaat(1));
@@ -267,13 +267,14 @@ describe('ImagePicker', () => {
             expect(el('input[capture]').getAttribute('capture')).toBe('environment');
         });
 
-        it('verkleint het bestand, laadt de JPEG op als data-URI en sluit met de afbeelding en die data-URI als voorvertoning', async () => {
+        it('verkleint het bestand, laadt de JPEG op als Blob en sluit met de afbeelding en een blob-URL als voorvertoning', async () => {
             beelden.uploadImage.mockReturnValue(of({ key: 'wishes/f.jpg', url: 'u' }));
             await openBestandTab();
             await kiesBestand(await pngBestand());
             const [image] = vi.mocked(beelden.uploadImage).mock.lastCall;
-            expect(image.startsWith('data:image/jpeg;base64,')).toBe(true);
-            expect(modal.close).toHaveBeenCalledWith({ afbeelding: { key: 'wishes/f.jpg', url: 'u' }, voorvertoning: image });
+            expect(image).toBeInstanceOf(Blob);
+            expect(image.type).toBe('image/jpeg');
+            expect(modal.close).toHaveBeenCalledWith({ afbeelding: { key: 'wishes/f.jpg', url: 'u' }, voorvertoning: expect.stringMatching(/^blob:/) });
         });
 
         it('tijdens het opladen: "Bezig met opladen…"', async () => {
@@ -285,11 +286,11 @@ describe('ImagePicker', () => {
         });
 
         it('opladen faalt: melding, popup blijft open', async () => {
-            beelden.uploadImage.mockReturnValue(throwError(fout(413)));
+            beelden.uploadImage.mockReturnValue(throwError(fout(413, 'payload-too-large')));
             await openBestandTab();
             await kiesBestand(await pngBestand());
             await fixture.whenStable();
-            expect(el('ngb-alert').textContent).toContain('Deze afbeelding is te groot.');
+            expect(el('ngb-alert').textContent).toContain('Het bestand of de gegevens zijn te groot.');
             expect(component.bezigMet()).toBeNull();
             expect(modal.close).not.toHaveBeenCalled();
         });
@@ -345,16 +346,17 @@ describe('ImagePicker', () => {
     });
 
     describe('boodschapVoor', () => {
-        it('kent elke reden van de backend', async () => {
-            for (const reason of ['bron-weigert', 'niet-gevonden', 'geen-afbeelding', 'ongeldige-url', 'ongeldige-afbeelding',
-                'te-groot', 'onbereikbaar', 'rate-limit', 'zoeken-niet-beschikbaar']) {
-                expect(boodschapVoor(fout(422, reason))).not.toBe('Er ging iets mis. Probeer het opnieuw.');
-            }
+        it('een foutcode van API v2: de Nederlandse tekst bij die code', () => {
+            expect(boodschapVoor(fout(422, 'image-unreachable'))).toBe('De website met de afbeelding antwoordt niet.');
+            expect(boodschapVoor(fout(429, 'rate-limited'))).toBe('Je doet dit te vaak. Wacht even en probeer opnieuw.');
+            expect(boodschapVoor(fout(415, 'not-an-image'))).toBe('Dit is geen afbeelding van een ondersteund type.');
         });
-        it('onbekende reden, geen reden of netwerkfout: algemene melding', async () => {
-            expect(boodschapVoor(fout(422, 'iets-nieuws'))).toBe('Er ging iets mis. Probeer het opnieuw.');
-            expect(boodschapVoor(fout(500))).toBe('Er ging iets mis. Probeer het opnieuw.');
-            expect(boodschapVoor(fout(0))).toBe('Er ging iets mis. Probeer het opnieuw.');
+        it('een onbekende code: de algemene tekst bij de status', () => {
+            expect(boodschapVoor(fout(422, 'iets-nieuws' as ProblemCode))).toBe('Dit kan niet met de gegevens die je opgaf.');
+        });
+        it('een netwerkfout of ander object: algemene melding', () => {
+            expect(boodschapVoor(new Error('offline'))).toBe('Er ging iets mis. Probeer het opnieuw.');
+            expect(boodschapVoor(null)).toBe('Er ging iets mis. Probeer het opnieuw.');
         });
     });
 });
