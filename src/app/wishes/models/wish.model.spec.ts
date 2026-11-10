@@ -112,3 +112,29 @@ describe('Wish', () => {
         });
     });
 });
+
+describe('Wish.can', () => {
+    const receiver = new Person('receiver', 'Ria', 'Receiver');
+    const make = () => new Wish('w1', 'Titel', 10, null, receiver, receiver, null, null, null, 1);
+    const viewer = (can: Partial<Record<'update' | 'delete' | 'copy', boolean>>) => ({
+        roles: ['other' as const],
+        can: { update: false, delete: false, copy: false, reserve: false, unreserve: false, fulfill: false, unfulfill: false, ...can },
+        ownCopyId: null as string | null
+    });
+
+    it('met rechten van de server: die beslissen, ook over een vervulde wens', () => {
+        const w = make();
+        w.setViewer(viewer({ copy: true }));
+        expect([w.can('update'), w.can('delete'), w.can('copy')]).toEqual([false, false, true]);
+        w.setViewer(viewer({ update: true, delete: true }));
+        expect([w.can('update'), w.can('delete'), w.can('copy')]).toEqual([true, true, false]);
+    });
+
+    it('zonder rechten van de server: de rollen beslissen (ontvanger en maker mogen aanpassen, de ontvanger kopieert niet)', () => {
+        const w = make();
+        w.setUserIsFlags(testUser({ id: 'receiver' }));
+        expect([w.can('update'), w.can('delete'), w.can('copy')]).toEqual([true, true, false]);
+        w.setUserIsFlags(testUser({ id: 'iemand' }));
+        expect([w.can('update'), w.can('delete'), w.can('copy')]).toEqual([false, false, true]);
+    });
+});

@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient, withXhr } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
+import { problemInterceptor } from 'src/app/core/api/problem-interceptor';
 
 import { environment } from 'src/environments/environment';
 import type { Schema } from 'src/app/core/api/api-types';
@@ -9,11 +10,13 @@ import { AuthStore } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { Wish } from '../models/wish.model';
 import { apiWish } from '../models/wish-from-api.testing';
-import { imageVoorApi, WishService } from './wish.service';
+import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
+import { WishService } from './wish.service';
 
-// Legt vast hoe de app met de wish- en wishlist-API praat (sc-2979). Lezen gaat via API v2 (sc-3288),
-// schrijven nog via v1 met daarna een lees van de wens: wens aanmaken (sc-1977), reserveren (sc-1979),
-// reservatie verwijderen (sc-2515), feedback (sc-1980), verwijderen (sc-1981), kopieën (sc-2348), sluiten (sc-2442).
+// Legt vast hoe de app met de wish- en wishlist-API praat (sc-2979). Lezen, aanmaken, wijzigen, verwijderen
+// en kopiëren gaan via API v2 (sc-3288, sc-3289): wens aanmaken (sc-1977), verwijderen (sc-1981), kopieën (sc-2348).
+// Reserveren (sc-1979), reservatie verwijderen (sc-2515), feedback (sc-1980) en sluiten (sc-2442) gaan nog via v1
+// met daarna een lees van de wens.
 describe('WishService', () => {
     const v1 = environment.apiUrl;
     const v2 = environment.apiV2Url;
@@ -21,16 +24,19 @@ describe('WishService', () => {
     let http: HttpTestingController;
 
     const ria = new Person('ria', 'Ria', 'Receiver');
+    let problems: { show: ReturnType<typeof vi.fn> };
 
     function nieuweWens(): Wish {
         return new Wish('w1', 'Boek', 20, 'boek.be', ria, ria, null, null, null, 1);
     }
 
     beforeEach(() => {
+        problems = { show: vi.fn().mockName('ProblemNotifier.show') };
         TestBed.configureTestingModule({
             providers: [
+                { provide: ProblemNotifier, useValue: problems },
                 { provide: AuthStore, useValue: fakeAuthStore(testUser({ id: 'rob', firstName: 'Rob', lastName: 'Reservator', fullName: 'Rob Reservator', email: 'rob@gimmi.be' })) },
-                provideHttpClient(withXhr()),
+                provideHttpClient(withXhr(), withInterceptors([problemInterceptor])),
                 provideHttpClientTesting()
             ]
         });
@@ -39,6 +45,11 @@ describe('WishService', () => {
     });
 
     afterEach(() => http.verify());
+
+    /** Answers the request with an `application/problem+json` error, as API v2 does. */
+    function flushProblem(url: string, status: number, code: string) {
+        http.expectOne(url).flush({ status, code, title: 'Problem' }, { status, statusText: 'Error', headers: { 'Content-Type': 'application/problem+json' } });
+    }
 
     function page(items: Schema<'Wish'>[], nextCursor: string | null = null) {
         return { items, nextCursor, counts: { open: items.length, reserved: 0, received: 0, fulfilled: 0 } };
@@ -147,89 +158,182 @@ describe('WishService', () => {
         http.expectOne(`${v2}wishes/w1`).flush(apiWish({ id: 'w1', status: 'fulfilled' }));
     });
 
-    it('delete: verwijdert de wens uit de lijst; de afbeelding ruimt de backend op (sc-3052)', () => {
-        const [wens] = laadLijst('w1', 'w2');
-        service.delete(wens).subscribe();
-        const req = http.expectOne(`${v1}wish/w1`);
-        expect(req.request.method).toBe('DELETE');
-        req.flush({});
-        expect(huidigeLijst().map(w => w.id)).toEqual(['w2']);
+    describe('delete', () => {
+        it('DELETE /wishes/{id} en haalt de wens uit de lijst; de afbeelding ruimt de server op (sc-3052)', () => {
+            const [wens] = laadLijst('w1', 'w2');
+            let verwijderd: Wish;
+            service.delete(wens).subscribe(w => verwijderd = w);
+            const req = http.expectOne(`${v2}wishes/w1`);
+            expect(req.request.method).toBe('DELETE');
+            req.flush(null, { status: 204, statusText: 'No Content' });
+            expect(verwijderd).toBe(wens);
+            expect(huidigeLijst().map(w => w.id)).toEqual(['w2']);
+        });
+
+        it('een fout van de server wordt gemeld en laat de lijst staan', () => {
+            const [wens] = laadLijst('w1');
+            const gelukt = vi.fn();
+            service.delete(wens).subscribe(gelukt);
+            flushProblem(`${v2}wishes/w1`, 403, 'forbidden');
+            expect(gelukt).not.toHaveBeenCalled();
+            expect(problems.show).toHaveBeenCalledTimes(1);
+            expect(huidigeLijst().map(w => w.id)).toEqual(['w1']);
+        });
     });
 
     describe('create', () => {
-        it('post de nieuwe wens met de sleutel van de afbeelding, leest hem en zet hem bovenaan de lijst', () => {
+        it('POST /people/{ontvanger}/wishes met bedragen in centen en links als lijst, en zet de wens bovenaan', () => {
             laadLijst('w0');
             const wens = nieuweWens();
-            wens.copyOf = 'origineel';
             wens.image = { key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' };
+            wens.price = 12.34;
             let aangemaakt: Wish;
             service.create(wens).subscribe(w => aangemaakt = w);
 
-            const post = http.expectOne(`${v1}wish`);
+            const post = http.expectOne(`${v2}people/ria/wishes`);
+            expect(post.request.method).toBe('POST');
             expect(post.request.body).toEqual({
-                title: 'Boek', price: 20, url: 'http://boek.be', color: null, size: null, description: null,
-                receiver: 'ria', createdBy: 'ria', amountWanted: 1,
-                image: { key: 'wishes/a.jpg' }, copyOf: 'origineel'
+                title: 'Boek', description: null, price: { amount: 1234, currency: 'EUR' }, links: [{ url: 'http://boek.be' }],
+                image: { key: 'wishes/a.jpg' }, color: null, size: null
             });
-            post.flush({ _id: 'w1' });
-            http.expectOne(`${v2}wishes/w1`).flush(apiWish({ id: 'w1', image: { key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' } }));
+            post.flush(apiWish({ id: 'w1', image: { key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' } }), { status: 201, statusText: 'Created' });
             expect(huidigeLijst().map(w => w.id)).toEqual(['w1', 'w0']);
             expect(aangemaakt.id).toBe('w1');
             expect(aangemaakt.image).toEqual({ key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' });
         });
 
-        it('zonder afbeelding: geen image-veld in de POST', () => {
+        it('zonder prijs, link en afbeelding: null, een lege lijst en geen sleutel', () => {
             laadLijst();
-            service.create(nieuweWens()).subscribe();
-            const post = http.expectOne(`${v1}wish`);
-            expect('image' in post.request.body).toBe(false);
-            post.flush({ _id: 'w1' });
-            http.expectOne(`${v2}wishes/w1`).flush(apiWish({ id: 'w1' }));
+            const wens = nieuweWens();
+            wens.price = null;
+            wens.url = '';
+            service.create(wens).subscribe();
+            const post = http.expectOne(`${v2}people/ria/wishes`);
+            expect(post.request.body).toMatchObject({ price: null, links: [], image: null });
+            post.flush(apiWish({ id: 'w1' }), { status: 201, statusText: 'Created' });
         });
 
         it('geeft een nieuwe array door, zodat een signal op de lijst de wijziging ziet (sc-3323)', () => {
             laadLijst('w0');
             const eerste = huidigeLijst();
             service.create(nieuweWens()).subscribe();
-            http.expectOne(`${v1}wish`).flush({ _id: 'w1' });
-            http.expectOne(`${v2}wishes/w1`).flush(apiWish({ id: 'w1' }));
+            http.expectOne(`${v2}people/ria/wishes`).flush(apiWish({ id: 'w1' }), { status: 201, statusText: 'Created' });
             expect(huidigeLijst()).not.toBe(eerste);
         });
 
-        it('een kopie: de originele wens op de pagina weet nu dat er een eigen kopie is', () => {
+        it('een fout van de server (bijv. afbeelding niet gevonden) wordt gemeld, zonder een wens toe te voegen', () => {
+            laadLijst('w0');
+            const gelukt = vi.fn();
+            service.create(nieuweWens()).subscribe(gelukt);
+            flushProblem(`${v2}people/ria/wishes`, 422, 'image-not-found');
+            expect(gelukt).not.toHaveBeenCalled();
+            expect(problems.show).toHaveBeenCalledTimes(1);
+            expect(huidigeLijst().map(w => w.id)).toEqual(['w0']);
+        });
+    });
+
+    describe('copy (create met copyOf)', () => {
+        function kopieVan(origineel: Wish): Wish {
+            const kopie = nieuweWens();
+            kopie.id = undefined;
+            kopie.copyOf = origineel.id;
+            kopie.description = '';
+            kopie.image = origineel.image;
+            return kopie;
+        }
+
+        it('POST /wishes/{origineel}/copies, de afbeelding wordt gedeeld (niet meegestuurd) en de originele weet van de kopie', () => {
             const [origineel] = laadLijst('origineel');
             expect(origineel.viewer.ownCopyId).toBeNull();
-            const kopie = nieuweWens();
-            kopie.copyOf = 'origineel';
-            service.create(kopie).subscribe();
-            http.expectOne(`${v1}wish`).flush({ _id: 'k1' });
-            http.expectOne(`${v2}wishes/k1`).flush(apiWish({ id: 'k1', copyOf: 'origineel' }));
+            let kopie: Wish;
+            service.create(kopieVan(origineel)).subscribe(w => kopie = w);
+            const post = http.expectOne(`${v2}wishes/origineel/copies`);
+            expect(post.request.body).toEqual({
+                title: 'Boek', description: null, price: { amount: 2000, currency: 'EUR' }, links: [{ url: 'http://boek.be' }], color: null, size: null
+            });
+            post.flush(apiWish({ id: 'k1', copyOf: 'origineel' }), { status: 201, statusText: 'Created' });
+            expect(kopie.copyOf).toBe('origineel');
             expect(origineel.viewer.ownCopyId).toBe('k1');
+        });
+
+        it('een andere afbeelding in de popup gaat wel mee, en weghalen als null', () => {
+            const [origineel] = laadLijst('origineel');
+            origineel.image = { key: 'wishes/a.jpg', url: 'u' };
+            const andere = kopieVan(origineel);
+            andere.image = { key: 'wishes/b.jpg', url: 'u' };
+            service.create(andere).subscribe();
+            const eerste = http.expectOne(`${v2}wishes/origineel/copies`);
+            expect(eerste.request.body.image).toEqual({ key: 'wishes/b.jpg' });
+            eerste.flush(apiWish({ id: 'k1' }), { status: 201, statusText: 'Created' });
+
+            const zonder = kopieVan(origineel);
+            zonder.image = null;
+            service.create(zonder).subscribe();
+            const tweede = http.expectOne(`${v2}wishes/origineel/copies`);
+            expect(tweede.request.body.image).toBeNull();
+            tweede.flush(apiWish({ id: 'k2' }), { status: 201, statusText: 'Created' });
         });
     });
 
     describe('update', () => {
-        it('PUT met de wens, het afbeeldingsveld in de vorm van de API, en werkt de lijst bij', () => {
+        it('PATCH met alleen wat verandert (JSON Merge Patch) en werkt de lijst bij', () => {
             const [wens] = laadLijst('w1', 'w2');
-            wens.title = 'Nieuw boek';
-            wens.image = { key: 'wishes/b.jpg', url: 'https://img.gimmi.be/wishes/b.jpg' };
-            service.update(wens).subscribe();
-            const put = http.expectOne(`${v1}wish/w1`);
-            expect(put.request.method).toBe('PUT');
-            expect(put.request.body._id).toBe('w1');
-            expect(put.request.body.title).toBe('Nieuw boek');
-            expect(put.request.body.image).toEqual({ key: 'wishes/b.jpg' });
-            put.flush({});
-            http.expectOne(`${v2}wishes/w1`).flush(apiWish({ id: 'w1', title: 'Nieuw boek', image: { key: 'wishes/b.jpg', url: 'https://img.gimmi.be/wishes/b.jpg' } }));
+            const aangepast = Object.assign(new Wish(wens.id, 'Nieuw boek', 20, wens.url, wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links });
+            aangepast.image = { key: 'wishes/b.jpg', url: 'https://img.gimmi.be/wishes/b.jpg' };
+            service.update(aangepast).subscribe();
+            const patch = http.expectOne(`${v2}wishes/w1`);
+            expect(patch.request.method).toBe('PATCH');
+            expect(patch.request.headers.get('Content-Type')).toBe('application/merge-patch+json');
+            expect(patch.request.body).toEqual({ title: 'Nieuw boek', image: { key: 'wishes/b.jpg' } });
+            patch.flush(apiWish({ id: 'w1', title: 'Nieuw boek', image: { key: 'wishes/b.jpg', url: 'https://img.gimmi.be/wishes/b.jpg' } }));
             expect(huidigeLijst()[0].title).toBe('Nieuw boek');
             expect(huidigeLijst()[0].image.key).toBe('wishes/b.jpg');
         });
-    });
 
-    it('imageVoorApi: R2 of niets', () => {
-        expect(imageVoorApi({ key: 'wishes/a.jpg', url: 'u' })).toEqual({ key: 'wishes/a.jpg' });
-        expect(imageVoorApi({})).toBeUndefined();
-        expect(imageVoorApi(null)).toBeUndefined();
+        it('leeg maken stuurt null; de prijs gaat in centen', () => {
+            const [wens] = laadLijst('w1');
+            const aangepast = Object.assign(new Wish(wens.id, wens.title, 5.5, wens.url, wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links });
+            service.update(aangepast).subscribe();
+            const patch = http.expectOne(`${v2}wishes/w1`);
+            expect(patch.request.body).toEqual({ price: { amount: 550, currency: 'EUR' } });
+            patch.flush(apiWish({ id: 'w1' }));
+
+            const zonderLink = Object.assign(new Wish(wens.id, wens.title, wens.price, '', wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links });
+            zonderLink.url = '';
+            service.update(zonderLink).subscribe();
+            const tweede = http.expectOne(`${v2}wishes/w1`);
+            expect(tweede.request.body).toEqual({ links: [] });
+            tweede.flush(apiWish({ id: 'w1', links: [] }));
+        });
+
+        it('de links die het formulier niet toont blijven bewaard', () => {
+            service.getWishlist(ria).subscribe();
+            http.expectOne(`${v2}people/ria/wishes?limit=100`).flush(page([apiWish({ id: 'w1', links: [{ url: 'https://een.be' }, { url: 'https://twee.be' }] })]));
+            const wens = huidigeLijst()[0];
+            const aangepast = Object.assign(new Wish(wens.id, wens.title, wens.price, 'https://nieuw.be', wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links });
+            service.update(aangepast).subscribe();
+            const patch = http.expectOne(`${v2}wishes/w1`);
+            expect(patch.request.body).toEqual({ links: [{ url: 'https://nieuw.be' }, { url: 'https://twee.be' }] });
+            patch.flush(apiWish({ id: 'w1' }));
+        });
+
+        it('niets gewijzigd: geen request', () => {
+            const [wens] = laadLijst('w1');
+            let uitkomst: Wish;
+            service.update(Object.assign(new Wish(wens.id, wens.title, wens.price, wens.url, wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links })).subscribe(w => uitkomst = w);
+            expect(uitkomst).toBe(wens);
+        });
+
+        it('wish-fulfilled (409) wordt gemeld en de lijst blijft staan', () => {
+            const [wens] = laadLijst('w1');
+            const aangepast = Object.assign(new Wish(wens.id, 'Anders', wens.price, wens.url, wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links });
+            const gelukt = vi.fn();
+            service.update(aangepast).subscribe(gelukt);
+            flushProblem(`${v2}wishes/w1`, 409, 'wish-fulfilled');
+            expect(gelukt).not.toHaveBeenCalled();
+            expect(problems.show).toHaveBeenCalledTimes(1);
+            expect(huidigeLijst()[0].title).toBe('Boek');
+        });
     });
 
     describe('getWishById', () => {

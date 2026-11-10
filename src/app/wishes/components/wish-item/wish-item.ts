@@ -108,11 +108,9 @@ export class WishItem implements OnInit {
   }
 
   private defineWishActions(): void {
-    if (!this.wish.userIsReceiver) this.wishActionItems.push(this.actionListItemConfigs.copy);
-    if (this.wish.userIsReceiver || this.wish.userIsCreator) {
-      this.wishActionItems.unshift(this.actionListItemConfigs.edit);
-      this.wishActionItems.push(this.actionListItemConfigs.delete);
-    }
+    if (this.wish.can('copy')) this.wishActionItems.push(this.actionListItemConfigs.copy);
+    if (this.wish.can('update')) this.wishActionItems.unshift(this.actionListItemConfigs.edit);
+    if (this.wish.can('delete')) this.wishActionItems.push(this.actionListItemConfigs.delete);
     if (this.wish.url) {
       this.actionListItemConfigs.externalSite.url = this.wish.url;
       this.wishActionItems.unshift(this.actionListItemConfigs.externalSite);
