@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { NotificationService } from '../../shared/services/notification.service';
+import { Notifications } from '../notifications';
 import { ApiProblem, ProblemCode } from './api-problem';
 import { errorMessages } from './error-messages';
 import { ProblemNotifier } from './problem-notifier';
@@ -11,7 +11,7 @@ describe('ProblemNotifier', () => {
 
   beforeEach(() => {
     notifications = { showNotification: vi.fn() };
-    TestBed.configureTestingModule({ providers: [{ provide: NotificationService, useValue: notifications }] });
+    TestBed.configureTestingModule({ providers: [{ provide: Notifications, useValue: notifications }] });
     notifier = TestBed.inject(ProblemNotifier);
   });
 

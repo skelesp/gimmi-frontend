@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
-import { Toaster } from '../../services/toaster.service';
+import { Toaster } from '../../../core/toaster';
 
 import { CustomToast } from '../custom-toast/custom-toast';
 

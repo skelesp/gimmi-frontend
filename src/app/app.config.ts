@@ -6,8 +6,8 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { AuthStore } from './core/auth/auth-store';
 import { problemInterceptor } from './core/api/problem-interceptor';
-import { authErrorInterceptor } from './users/interceptors/auth-error-interceptor';
-import { jwtInterceptor } from './users/interceptors/jwt-interceptor';
+import { authErrorInterceptor } from './features/users/interceptors/auth-error-interceptor';
+import { jwtInterceptor } from './features/users/interceptors/jwt-interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
