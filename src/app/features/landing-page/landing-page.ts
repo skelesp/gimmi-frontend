@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { LandingPageBanner } from './landing-page-banner/landing-page-banner';
 import { HowToUse } from './how-to-use/how-to-use';
 
@@ -9,10 +9,7 @@ import { HowToUse } from './how-to-use/how-to-use';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [LandingPageBanner, HowToUse]
 })
-export class LandingPage implements OnInit {
-  constructor() { }
+export class LandingPage {
 
-  ngOnInit(): void {
-  }
 
 }

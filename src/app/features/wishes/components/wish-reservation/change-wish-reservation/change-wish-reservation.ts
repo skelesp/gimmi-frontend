@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Notifications } from 'src/app/core/notifications';
 import { Wish } from 'src/app/features/wishes/models/wish.model';
@@ -12,15 +12,13 @@ import { CursorPointer } from '../../../../../shared/directives/cursor-pointer';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CursorPointer]
 })
-export class ChangeWishReservation implements OnInit {
+export class ChangeWishReservation {
   activeModal = inject(NgbActiveModal);
   private wishService = inject(WishesData);
   private notificationService = inject(Notifications);
 
   @Input() wish: Wish;
 
-  ngOnInit(): void {
-  }
 
   cancelReservation () {
     this.wishService.deleteReservation(this.wish).subscribe(wish =>

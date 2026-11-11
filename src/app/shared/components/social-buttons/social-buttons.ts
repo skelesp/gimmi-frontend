@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { faTwitterSquare, faFacebookSquare, faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
@@ -9,14 +9,11 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FaIconComponent]
 })
-export class SocialButtons implements OnInit {
+export class SocialButtons {
   facebookIcon = faFacebookSquare;
   twitterIcon = faTwitterSquare;
   linkedInIcon = faLinkedin;
 
-  constructor() { }
 
-  ngOnInit(): void {
-  }
 
 }
