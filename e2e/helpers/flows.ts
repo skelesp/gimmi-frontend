@@ -17,9 +17,6 @@ export async function newUserPage(browser: Browser): Promise<{ context: BrowserC
   const context = await browser.newContext();
   // De iubenda-cookiebanner ligt over de pagina en onderschept klikken; hij hoort niet bij deze flows.
   await context.route(/iubenda\.com/, route => route.abort());
-  // Geen echte mails: de smoke-adressen @gimmi.be komen sinds 11-10-2026 via de catch-all van
-  // Cloudflare Email Routing in een echte Gmail terecht. Het versturen zelf valt buiten deze tests.
-  await context.route(/\/api\/email$/, route => route.fulfill({ status: 200, contentType: 'application/json', body: '"ok"' }));
   return { context, page: await context.newPage() };
 }
 
