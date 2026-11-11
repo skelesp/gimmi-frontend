@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
     selector: 'gimmi-privacy-policy',
@@ -6,11 +6,8 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
     styleUrls: ['./privacy-policy.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PrivacyPolicy implements OnInit {
+export class PrivacyPolicy {
 
-  constructor() { }
 
-  ngOnInit(): void {
-  }
 
 }

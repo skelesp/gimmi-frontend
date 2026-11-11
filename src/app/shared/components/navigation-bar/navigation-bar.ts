@@ -1,12 +1,12 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { AuthStore } from 'src/app/core/auth/auth-store';
 import { BrandLogo } from '../brand-logo/brand-logo';
-import { PeopleSearch } from '../../../people/components/people-search/people-search';
+import { PeopleSearch } from '../../../features/people/components/people-search/people-search';
 
 import { CursorPointer } from '../../directives/cursor-pointer';
-import { UserMenu } from '../../../users/components/user-menu/user-menu';
+import { UserMenu } from '../../../features/users/components/user-menu/user-menu';
 import { NgbCollapse } from '@ng-bootstrap/ng-bootstrap/collapse';
-import { UnknownUserMenu } from '../../../users/components/unknown-user-menu/unknown-user-menu';
+import { UnknownUserMenu } from '../../../features/users/components/unknown-user-menu/unknown-user-menu';
 
 @Component({
     selector: 'gimmi-navigation-bar',

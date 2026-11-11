@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CustomToast } from '../custom-toast/custom-toast';
-import { Toaster } from '../../services/toaster.service';
+import { Toaster } from '../../../core/toaster';
 import { ToastContainer } from './toast-container';
 
 describe('ToastContainer', () => {
