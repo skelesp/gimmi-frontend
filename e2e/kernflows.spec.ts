@@ -97,7 +97,7 @@ test.describe('kernflows', () => {
     await card.getByRole('button', { name: 'Geef feedback' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.locator('ngb-rating fa-icon').nth(3).click();
-    await dialog.locator('input[formcontrolname="receivedOn"]').fill(new Date().toISOString().substring(0, 10));
+    await dialog.locator('#receivedOn').fill(new Date().toISOString().substring(0, 10));
     await dialog.locator('#message').fill('Bedankt voor het cadeau!');
     await dialog.getByRole('button', { name: 'Feedback opslaan' }).click();
     await expect(dialog).toBeHidden();

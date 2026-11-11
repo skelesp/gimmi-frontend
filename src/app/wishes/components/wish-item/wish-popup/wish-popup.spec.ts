@@ -1,7 +1,6 @@
 
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal, NgbAlertModule } from '@ng-bootstrap/ng-bootstrap';
 import { of } from 'rxjs';
 
@@ -55,7 +54,7 @@ describe('WishPopup', () => {
         wishService = {};
         TestBed.overrideComponent(WishPopup, { remove: { imports: [ImageUpload, ImageView] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, NgbAlertModule, WishPopup],
+    imports: [NgbAlertModule, WishPopup],
     providers: [
         { provide: NgbActiveModal, useValue: activeModal },
         { provide: AuthStore, useValue: fakeAuthStore(testUser({ id: 'ria', firstName: 'Ria', lastName: 'Receiver', fullName: 'Ria Receiver', email: 'ria@gimmi.be' })) },
@@ -113,6 +112,7 @@ describe('WishPopup', () => {
         veld('wishTitle').dispatchEvent(new Event('input'));
         await fixture.whenStable();
         opslaan().click();
+        await fixture.whenStable();
 
         const resultaat = vi.mocked(activeModal.close).mock.lastCall[0];
         expect(resultaat.id).toBe('w1');
@@ -125,7 +125,7 @@ describe('WishPopup', () => {
         await open('create');
         const nieuw = { key: 'wishes/a.jpg', url: 'u' };
         fixture.debugElement.query(el => el.name === 'gimmi-image-upload').triggerEventHandler('imageUploaded', nieuw);
-        expect(component.wishForm.get('image').value).toBe(nieuw);
+        expect(component.image()).toBe(nieuw);
     });
 
     it('de voorvertoning van een net gekozen afbeelding gaat meteen naar de preview (sc-3028)', async () => {
@@ -169,7 +169,7 @@ describe('WishPopup', () => {
     it('aanpassen met een nieuwe afbeelding: de nieuwe sleutel gaat mee in de bewaarde wens', async () => {
         await open('edit', bestaandeWens());
         component.updateWishImage({ key: 'wishes/b.jpg', url: 'u' });
-        component.saveWish();
+        await component.saveWish();
         expect(vi.mocked(activeModal.close).mock.lastCall[0].image).toEqual({ key: 'wishes/b.jpg', url: 'u' });
     });
 });

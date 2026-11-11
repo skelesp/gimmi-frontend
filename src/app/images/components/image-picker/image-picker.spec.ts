@@ -1,6 +1,5 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormsModule } from '@angular/forms';
 import { NgbActiveModal, NgbAlertModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { of, Subject, throwError } from 'rxjs';
@@ -65,7 +64,7 @@ describe('ImagePicker', () => {
             dismiss: vi.fn().mockName("NgbActiveModal.dismiss")
         };
         await TestBed.configureTestingModule({
-    imports: [FormsModule, NgbNavModule, NgbAlertModule, ImagePicker],
+    imports: [NgbNavModule, NgbAlertModule, ImagePicker],
     providers: [
         { provide: ImageService, useValue: beelden },
         { provide: ImageSearchService, useValue: zoekService },
@@ -97,7 +96,7 @@ describe('ImagePicker', () => {
             await maak({ zoekterm: '  Rode fiets ' });
             expect(zoekService.search).toHaveBeenCalledTimes(1);
             expect(zoekService.search).toHaveBeenCalledWith('Rode fiets');
-            await fixture.whenStable(); // ngModel schrijft het veld asynchroon
+            await fixture.whenStable(); // het veld schrijft asynchroon
             expect((el('input[type=search]') as HTMLInputElement).value).toBe('Rode fiets');
             const beelden = alle('.resultaat img') as HTMLImageElement[];
             expect(beelden.map(i => i.src)).toEqual(['https://imgs.search.brave.com/1', 'https://imgs.search.brave.com/2']);
@@ -138,6 +137,13 @@ describe('ImagePicker', () => {
             component.zoekterm = 'bal';
             await klik('Zoek');
             expect(zoekService.search).toHaveBeenCalledWith('bal');
+        });
+
+        it('een zoekterm van meer dan 200 tekens zoekt niet', async () => {
+            await maak();
+            component.zoekterm = 'x'.repeat(201);
+            await klik('Zoek');
+            expect(zoekService.search).not.toHaveBeenCalled();
         });
 
         it('tijdens het zoeken: draaiend wieltje en de knop staat uit', async () => {

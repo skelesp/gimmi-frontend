@@ -8,7 +8,7 @@ import { IWishImage } from 'src/app/wishes/models/wish.model';
 import { ImageService } from '../../services/image.service';
 import { IImageSearchResult, ImageSearchService } from '../../services/image-search.service';
 import { verkleinAfbeelding } from '../../utils/resize-image';
-import { FormsModule } from '@angular/forms';
+import { FormField, form, maxLength } from '@angular/forms/signals';
 
 
 export type KiezerTab = 'zoeken' | 'bestand';
@@ -52,7 +52,7 @@ export function boodschapVoor(err: unknown): string {
     templateUrl: './image-picker.html',
     styleUrls: ['./image-picker.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, NgbNavContent, FormsModule, NgbAlert, NgbNavOutlet]
+    imports: [NgbNav, NgbNavItem, NgbNavItemRole, NgbNavLink, NgbNavLinkBase, NgbNavContent, FormField, NgbAlert, NgbNavOutlet]
 })
 export class ImagePicker implements OnInit, OnDestroy {
   activeModal = inject(NgbActiveModal);
@@ -63,7 +63,10 @@ export class ImagePicker implements OnInit, OnDestroy {
   @Input() searchTerm = "";
 
   tab: KiezerTab = 'zoeken';
-  zoekterm = '';
+  protected readonly zoekModel = signal({ term: '' });
+  protected readonly zoekForm = form(this.zoekModel, path => maxLength(path.term, 200));
+  get zoekterm(): string { return this.zoekModel().term; }
+  set zoekterm(term: string) { this.zoekModel.set({ term }); }
   readonly resultaten = signal<IImageSearchResult[]>(null);   // null = nog niet gezocht
   readonly zoeken = signal(false);
   readonly zoekFout = signal<string>(null);
@@ -92,7 +95,7 @@ export class ImagePicker implements OnInit, OnDestroy {
 
   zoek(): void {
     const q = (this.zoekterm || '').trim();
-    if (!q) return;
+    if (!q || this.zoekForm().invalid()) return;
     this.zoekSub?.unsubscribe();
     this.zoeken.set(true);
     this.zoekFout.set(null);

@@ -10,8 +10,8 @@
       <ng-template ngbNavContent>
         <div class="input-group input-group-sm mb-3" role="search">
           <input type="search" class="form-control form-control-sm" placeholder="Zoek een afbeelding"
-            aria-label="Zoekterm voor afbeeldingen" maxlength="200" ngbAutofocus
-            [(ngModel)]="zoekterm" (keydown.enter)="zoekMetEnter($event)" />
+            aria-label="Zoekterm voor afbeeldingen" ngbAutofocus
+            [formField]="zoekForm.term" (keydown.enter)="zoekMetEnter($event)" />
             <button class="btn btn-danger" type="button" (click)="zoek()" [disabled]="zoeken()">
               <i class="fa fa-search" aria-hidden="true"></i> Zoek
             </button>

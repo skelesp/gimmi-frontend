@@ -1,31 +1,32 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, signal } from '@angular/core';
+import { FormField, form } from '@angular/forms/signals';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { PersonToShare } from 'src/app/people/models/person.model';
 import { CursorPointer } from '../../../../shared/directives/cursor-pointer';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { NgbCollapse } from '@ng-bootstrap/ng-bootstrap/collapse';
-import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'gimmi-mail-to-button',
     templateUrl: './mail-to-button.html',
     styleUrls: ['./mail-to-button.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CursorPointer, FaIconComponent, NgbCollapse, FormsModule]
+    imports: [CursorPointer, FaIconComponent, NgbCollapse, FormField]
 })
 export class MailToButton {
   @Input() url: string;
   @Input() person: PersonToShare;
   mailIcon: IconDefinition = faEnvelope;
   hideMailInfo = true;
-  mailAddresses: string;
+  protected readonly mail = signal({ addresses: '' });
+  protected readonly mailForm = form(this.mail);
 
   /** Opens the mail app of the visitor with the invitation filled in: API v2 has no general mail endpoint. */
   send () {
     this.hideMailInfo = true;
 
-    const recipients = (this.mailAddresses ?? '').split(',').map(email => email.trim()).filter(email => email);
+    const recipients = this.mail().addresses.split(',').map(email => email.trim()).filter(email => email);
     if (!recipients.length) return;
 
     const subject = `[GIMMI] ${this.person.fullName} nodigt je uit.`;

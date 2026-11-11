@@ -4,7 +4,7 @@
 <div #collapse="ngbCollapse" [(ngbCollapse)]="hideMailInfo">
     <div class="card border-light bg-light mt-1">
         <div class="card-body">
-            <textarea [(ngModel)]="mailAddresses" type="text" class="form-control" id="mailAddresses"
+            <textarea [formField]="mailForm.addresses" class="form-control" id="mailAddresses"
                 aria-describedby="Emailadresses" placeholder="Voeg hier de emailadressen toe die je wilt uitnodigen."></textarea>
             <small id="emailHelp" class="form-text text-muted">Meerdere emailadressen scheiden door een komma (",")</small>
             <button class="btn btn-sm btn-outline-danger float-end mt-3" type="button" (click)="send()">Verzend de mail</button>

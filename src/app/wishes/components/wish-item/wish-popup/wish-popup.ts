@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormField, form, required, submit, validate } from '@angular/forms/signals';
 import { NgbActiveModal, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { CurrentUser } from 'src/app/core/auth/auth-store';
 import { AuthStore } from 'src/app/core/auth/auth-store';
@@ -15,7 +15,7 @@ import { ImageView } from '../../../../images/components/image-view/image-view';
     templateUrl: './wish-popup.html',
     styleUrls: ['./wish-popup.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CursorPointer, NgbAlert, FormsModule, ReactiveFormsModule, ImageUpload, ImageView]
+    imports: [CursorPointer, NgbAlert, FormField, ImageUpload, ImageView]
 })
 export class WishPopup implements OnInit {
   activeModal = inject(NgbActiveModal);
@@ -24,15 +24,15 @@ export class WishPopup implements OnInit {
 
   @Input() wish: Wish = new Wish(null, null, null, null, null, null, null, null, null, 1);
   @Input() mode: 'edit' | 'create' | 'copy';
-  wishForm: FormGroup<{
-    title: FormControl<string | null>;
-    price: FormControl<number | null>;
-    image: FormControl<IWishImage | null>;
-    url: FormControl<string | null>;
-    color: FormControl<string | null>;
-    size: FormControl<string | null>;
-    description: FormControl<string | null>;
-  }>;
+  /** What the visitor types; the price stays text until saving, so an empty price is not `0`. */
+  protected readonly wishFields = signal({ title: '', price: '', url: '', color: '', size: '', description: '' });
+  protected readonly wishForm = form(this.wishFields, path => {
+    required(path.title, { message: 'Titel is een verplicht veld' });
+    validate(path.price, ({ value }) =>
+      value().trim() && !(parsePrice(value()) >= 0) ? { kind: 'price', message: 'Geef een geldige prijs in (bv. 25 of 25,50).' } : undefined);
+  });
+  /** The chosen image is not typed in a field: the image upload hands it over. */
+  readonly image = signal<IWishImage | undefined>(undefined);
   actionButtonText: string;
   popupTitle: string;
   saving = false;
@@ -42,16 +42,16 @@ export class WishPopup implements OnInit {
   imagePreview: string = null;
 
   ngOnInit(): void {
-    this.wishForm = new FormGroup({
-      'title': new FormControl<string | null>(this.wish?.title, [Validators.required]),
-      'price': new FormControl<number | null>(this.wish?.price),
-      'image': new FormControl<IWishImage | null>(this.wish?.image),
-      'url': new FormControl<string | null>(this.wish?.url),
-      'color': new FormControl<string | null>(this.wish?.color),
-      'size': new FormControl<string | null>(this.wish?.size),
-      'description': new FormControl<string | null>(this.wish?.description)
+    this.wishFields.set({
+      title: this.wish?.title ?? '',
+      price: this.wish?.price == null ? '' : String(this.wish.price),
+      url: this.wish?.url ?? '',
+      color: this.wish?.color ?? '',
+      size: this.wish?.size ?? '',
+      description: this.wish?.description ?? ''
     });
-    
+    this.image.set(this.wish?.image ?? undefined);
+
     this.setSaveButtonText();
 
     this.currentUser = this.auth.user();
@@ -84,17 +84,26 @@ export class WishPopup implements OnInit {
   }
 
   updateWishImage(newImage: IWishImage) {
-    this.wishForm.get("image").setValue(newImage);
+    this.image.set(newImage);
   }
 
-  saveWish () {
-    this.saving = true;
-    const returnedWish = { ...this.wish, ...this.wishForm.value } as Wish;
-    this.activeModal.close(returnedWish);    
+  saveWish (event?: Event): Promise<boolean> {
+    event?.preventDefault();
+    return submit(this.wishForm, async () => {
+      this.saving = true;
+      const { price, ...fields } = this.wishFields();
+      const returnedWish = { ...this.wish, ...fields, price: price.trim() ? parsePrice(price) : null, image: this.image() } as Wish;
+      this.activeModal.close(returnedWish);
+    });
   }
 
   cancel () {
     this.activeModal.dismiss('Cancel');
   }
 
+}
+
+/** A price as typed, with a comma or a point as decimal separator; `NaN` when it is not a number. */
+function parsePrice(text: string): number {
+  return /^\d+([.,]\d{1,2})?$/.test(text.trim()) ? Number(text.trim().replace(',', '.')) : NaN;
 }
