@@ -4,7 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { Router } from '@angular/router';
 
 import { environment } from 'src/environments/environment';
-import { NotificationService } from 'src/app/shared/services/notification.service';
+import { Notifications } from 'src/app/core/notifications';
 import { ApiProblem } from '../api/api-problem';
 import { problemInterceptor } from '../api/problem-interceptor';
 import { AuthStore } from './auth-store';
@@ -41,7 +41,7 @@ describe('AuthStore', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: Router, useValue: router },
-        { provide: NotificationService, useValue: notifications },
+        { provide: Notifications, useValue: notifications },
         provideHttpClient(withXhr(), withInterceptors([problemInterceptor])),
         provideHttpClientTesting()
       ]

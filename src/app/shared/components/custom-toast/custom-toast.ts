@@ -1,5 +1,5 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
-import { Toast } from '../../services/toaster.service';
+import { Toast } from '../../../core/toaster';
 import { CursorPointer } from '../../directives/cursor-pointer';
 
 @Component({
