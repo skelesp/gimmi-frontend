@@ -1,0 +1,40 @@
+<div class="row my-2">
+  <div class="col">
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <button type="button" class="nav-link text-secondary" [class.active]="activeTab() === 'Open'"
+          [attr.aria-current]="activeTab() === 'Open' ? 'true' : null" (click)="setWishlistFilter('Open')">Wensenlijst</button>
+      </li>
+      <li class="nav-item">
+        <button type="button" class="nav-link text-secondary" [class.active]="activeTab() === 'Received'"
+          [attr.aria-current]="activeTab() === 'Received' ? 'true' : null" (click)="setWishlistFilter('Received')">Ontvangen cadeaus</button>
+      </li>
+    </ul>
+  </div>
+</div>
+@if (wishes()?.length === 0 && !loading()) {
+  <div>
+    <ngb-alert type="info">
+      <p>Er staan nog geen wensen op deze lijst. Vraag {{receiver.firstName}} om wensen op de lijst toe te voegen,
+      zodat jij het perfect cadeau kan kopen...</p>
+    </ngb-alert>
+  </div>
+}
+
+@if (loading()) {
+  <div class="spinner-border text-danger" role="status">
+    <span class="visually-hidden">Laden...</span>
+  </div>
+}
+@if (wishes() && !loading()) {
+  <div class="card-columns">
+    <gimmi-wish-create-card
+      [receiver]="receiver"
+    ></gimmi-wish-create-card>
+    @for (wish of wishes() | filterOnState:wishlistFilter(); track wish) {
+      <gimmi-wish-card
+        [wish]="wish">
+      </gimmi-wish-card>
+    }
+  </div>
+}

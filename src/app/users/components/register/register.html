@@ -1,0 +1,37 @@
+<div class="container">
+  <div class="row align-items-center justify-content-center">
+    <div class="col-lg-9">
+      @if (!infoAlertClosed()) {
+        <ngb-alert type="info" (closed)="infoAlertClosed.set(true)">
+          <h1 class="h5">Welkom op Gimmi, dé hulp in je cadeauzoektocht!</h1>
+          <ol>
+            <li>Op Gimmi kan je een wensenlijst aanmaken met je favoriete cadeaus, zodat je met anderen kan delen wat je
+            graag zou krijgen.</li>
+            <li>Deze personen kunnen een cadeau dan reserveren, zodat jij zeker bent dat je elk cadeau maar 1 keer krijgt!
+            </li>
+          </ol>
+          <p>
+            <strong>Om toegang te krijgen tot wenslijsten, moet je wel eerst even registreren hieronder.</strong><br>
+            <em>Na je registratie maken we automatisch een lijst voor jou aan, dus vul deze maar meteen aan met de leukste
+            cadeaus!</em>
+          </p>
+        </ngb-alert>
+      }
+      <h2 class="h3">Registreer je op Gimmi...</h2>
+      <h3 class="h5">Met je e-mailadres</h3>
+      @if (sentTo(); as address) {
+        <div id="registrationSent" class="alert alert-success">
+          <strong>Controleer je mail.</strong> We stuurden een e-mail naar <strong>{{address}}</strong> met een link om je
+          registratie af te ronden. De link werkt 24 uur. Vind je de mail niet, kijk dan ook in je spam.
+        </div>
+      } @else {
+        <form class="form" (submit)="register($event)" novalidate>
+          <gimmi-email-field [field]="registerForm.email" label="Email" />
+          <div>
+            <button type="submit" class="btn btn-danger mt-3" [disabled]="registerForm().invalid()">Registreer</button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>

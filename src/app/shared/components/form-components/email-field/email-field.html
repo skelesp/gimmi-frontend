@@ -1,0 +1,23 @@
+<div class="mb-3">
+  @if (label()) {
+    <label [for]="inputId()">{{ label() }}</label>
+  }
+  <div class="input-group">
+    <span class="input-group-text">
+      <fa-icon [icon]="mailIcon"></fa-icon>
+    </span>
+    <input
+      [id]="inputId()"
+      [formField]="field()"
+      type="text"
+      class="form-control"
+      [placeholder]="placeholder()">
+  </div>
+  @if (field()().touched() && field()().invalid()) {
+    <div id="emailError" class="form-text text-danger">
+      @for (error of field()().errors(); track error.kind) {
+        <small>{{ error.message }}</small>
+      }
+    </div>
+  }
+</div>

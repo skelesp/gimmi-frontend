@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   title: "[DEV] Gimmi",
-  apiUrl: 'http://localhost:5000/api/',
+  apiV2Url: 'http://localhost:5000/api/v2/',
   rootSiteUrl: 'https://localhost:4200',
 };
 

@@ -1,0 +1,6 @@
+@if (CTAconfig.text) {
+  <button
+    class="btn btn-outline-danger w-100 btn-wish-card-cta border-1 shadow-sm"
+    (click)="CTAconfig.onClick()">
+    <fa-icon [icon]="CTAconfig.icon" [size]="'lg'" class="me-1"></fa-icon> {{CTAconfig.text}}</button>
+  }

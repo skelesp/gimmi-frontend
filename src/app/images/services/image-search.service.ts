@@ -1,37 +1,25 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from 'src/environments/environment';
+import { ApiClient } from 'src/app/core/api/api-client';
+import type { Schema } from 'src/app/core/api/api-types';
 
-/** Eén zoekresultaat zoals de backend het teruggeeft (GET /api/images/search, sc-3028). */
-export interface IImageSearchResult {
-  url: string;          // de afbeelding zelf: die geef je aan ImageService.uploadImage
-  thumbnail: string;    // kleine versie via de proxy van Brave
-  width: number | null;
-  height: number | null;
-  title: string;
-  source: string;
-  page: string | null;
-}
+/** Eén zoekresultaat van API v2 (GET /image-search-results, sc-3290). */
+export type IImageSearchResult = Schema<'ImageSearchResult'>;
 
 /**
- * Afbeeldingen zoeken via de backend, die Brave Search aanroept.
+ * Afbeeldingen zoeken via de backend, die Brave Search aanroept (sc-3028).
  * Vervangt het zoeken met Google in de Cloudinary-widget (die API stopt op 1-1-2027).
  */
 @Injectable({
   providedIn: 'root'
 })
 export class ImageSearchService {
-
-  constructor(private http$: HttpClient) { }
+  private api = inject(ApiClient);
 
   public search(query: string): Observable<IImageSearchResult[]> {
-    return this.http$.get<{ results: IImageSearchResult[] }>(
-      environment.apiUrl + 'images/search',
-      { params: new HttpParams().set('q', query) }
-    ).pipe(
-      map(antwoord => antwoord.results || [])
+    return this.api.get('/image-search-results', { query: { q: query } }).pipe(
+      map(page => page.items)
     );
   }
 }

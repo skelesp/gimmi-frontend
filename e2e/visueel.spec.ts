@@ -1,6 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
-import { deleteAccount, smokePassword } from './helpers/api';
-import { Account, createWish, input, login, newUserPage, register, wishCard } from './helpers/flows';
+import { clearWishes, smokeAccounts } from './helpers/api';
+import { Account, createWish, input, login, newUserPage, wishCard } from './helpers/flows';
 
 // Visuele baseline vóór de Angular-klim en Bootstrap 4 → 5 (sc-3277): screenshots van de kernschermen,
 // op desktop en mobiel. De beelden zijn alleen vergelijkbaar op dezelfde renderer, dus draaien ze in CI
@@ -10,8 +10,8 @@ import { Account, createWish, input, login, newUserPage, register, wishCard } fr
 test.skip(!process.env.CI && !process.env.E2E_VISUAL, 'Visuele baseline draait alleen in CI of met E2E_VISUAL=1');
 
 const runId = `${Date.now().toString(36)}v`;
-const owner: Account = { firstName: 'Smoke', lastName: 'Eigenaar', email: `smoke+owner-${runId}@gimmi.be`, password: smokePassword };
-const giver: Account = { firstName: 'Smoke', lastName: 'Gever', email: `smoke+giver-${runId}@gimmi.be`, password: smokePassword };
+const owner: Account = { ...smokeAccounts.owner };
+const giver: Account = { ...smokeAccounts.giver };
 const wensA = 'Baseline fiets';
 const wensB = 'Baseline boek';
 
@@ -29,12 +29,17 @@ async function shot(page: Page, naam: string, mask: ReturnType<Page['locator']>[
 test.describe.configure({ mode: 'serial' });
 
 test.describe('visuele baseline', () => {
+  test.beforeAll(async () => {
+    // Vaste accounts (sc-3283): begin met lege lijsten, ook na een afgebroken run.
+    await clearWishes(owner);
+    await clearWishes(giver);
+  });
+
   test.afterAll(async () => {
     const fouten: string[] = [];
     for (const account of [giver, owner]) {
-      if (!account.id) continue;
       try {
-        await deleteAccount(account.id, account.email, account.password);
+        await clearWishes(account);
       } catch (err) {
         fouten.push(`${account.email}: ${(err as Error).message}`);
       }
@@ -45,7 +50,7 @@ test.describe('visuele baseline', () => {
   test('voorbereiding: eigenaar met twee wensen, gever', async ({ browser }) => {
     for (const [account, wensen] of [[owner, [wensA, wensB]], [giver, []]] as [Account, string[]][]) {
       const { context, page } = await newUserPage(browser);
-      await register(page, account);
+      await login(page, account);
       for (const wens of wensen) await createWish(page, wens);
       await context.close();
     }

@@ -6,10 +6,12 @@
     "start": "ng serve",
     "build": "ng build",
     "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage",
+    "test:ci": "ng test --watch=false --coverage",
     "lint": "ng lint",
+    "api:types": "node tools/types/generate.mjs",
     "e2e": "playwright test",
-    "e2e:cleanup": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON e2e/cleanup-smoke-users.ts"
+    "e2e:cleanup": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON e2e/cleanup-smoke-users.ts",
+    "e2e:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON e2e/seed-smoke-users.ts"
   },
   "private": true,
   "dependencies": {
@@ -22,7 +24,6 @@
     "@angular/platform-browser": "^22.2.5",
     "@angular/platform-browser-dynamic": "^22.2.5",
     "@angular/router": "^22.2.5",
-    "@auth0/angular-jwt": "^5.0.2",
     "@fortawesome/angular-fontawesome": "^5.1.0",
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
     "@fortawesome/free-brands-svg-icons": "^7.3.1",
@@ -31,31 +32,28 @@
     "@ng-bootstrap/ng-bootstrap": "^21.0.0",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.8",
-    "jwt-decode": "^3.1.2",
     "ngx-clipboard": "^16.0.0",
     "ngx-device-detector": "^12.0.0",
     "rxjs": "^7.8.2",
-    "tslib": "^2.3.1",
-    "zone.js": "~0.15.1"
+    "tslib": "^2.3.1"
   },
   "devDependencies": {
     "@angular/build": "^22.2.6",
+    "@angular/cdk": "~22.2.0",
     "@angular/cli": "^22.2.6",
     "@angular/compiler-cli": "^22.2.5",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",
-    "@types/jasmine": "^5.1.15",
     "@types/node": "^22.20.5",
+    "@vitest/browser-playwright": "^5.1.0",
+    "@vitest/coverage-v8": "^5.1.0",
     "angular-eslint": "22.6.0",
     "eslint": "^10.12.0",
     "istanbul-lib-instrument": "^6.0.3",
-    "jasmine-core": "~5.13",
-    "karma": "~6.4",
-    "karma-chrome-launcher": "~3.2",
-    "karma-coverage-istanbul-reporter": "~3.0",
-    "karma-jasmine": "~5.1",
-    "karma-jasmine-html-reporter": "~2.1",
+    "jsdom": "^31.0.0",
+    "mongodb": "^7.8.0",
     "typescript": "~6.0.3",
-    "typescript-eslint": "8.71.0"
+    "typescript-eslint": "8.71.0",
+    "vitest": "^5.1.0"
   }
 }

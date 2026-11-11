@@ -1,0 +1,43 @@
+@if (!profile()) {
+  <div class="container">
+    <ngb-alert>Sorry, geen lijst gevonden.</ngb-alert>
+  </div>
+}
+
+@if (profile(); as person) {
+  <div>
+    <div class="row mb-2">
+      <div class="col-auto">
+        <h1>{{person.firstName}} {{person.lastName}}</h1>
+      </div>
+      <div class="col col-sm-4 float-start">
+        <gimmi-share [personToShare]="receiver()"></gimmi-share>
+        @if (currentUser(); as user) {
+          <a  class="badge rounded-pill text-bg-secondary float-end"
+            [hidden]='personIsUser()'
+            [routerLink]='["/people", user.id]'
+            >
+            Ga naar mijn lijst
+          </a>
+        }
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <gimmi-extra-info
+          [personId]="person.id"
+          [firstName]="person.firstName"
+          [likes]="person.likes"
+          [dislikes]="person.dislikes"
+          [canEdit]="canEdit()"
+          (saved)="updateProfile($event)">
+        </gimmi-extra-info>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <gimmi-wish-list [receiver]='receiver()'></gimmi-wish-list>
+      </div>
+    </div>
+  </div>
+}

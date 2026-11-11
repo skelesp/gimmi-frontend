@@ -17,23 +17,17 @@ export async function newUserPage(browser: Browser): Promise<{ context: BrowserC
   const context = await browser.newContext();
   // De iubenda-cookiebanner ligt over de pagina en onderschept klikken; hij hoort niet bij deze flows.
   await context.route(/iubenda\.com/, route => route.abort());
-  // Geen echte mails: de smoke-adressen @gimmi.be komen sinds 11-10-2026 via de catch-all van
-  // Cloudflare Email Routing in een echte Gmail terecht. Het versturen zelf valt buiten deze tests.
-  await context.route(/\/api\/email$/, route => route.fulfill({ status: 200, contentType: 'application/json', body: '"ok"' }));
   return { context, page: await context.newPage() };
 }
 
-export async function register(page: Page, account: Account): Promise<void> {
+// Registreren, stap 1 van 2 (sc-3285): het adres opgeven en de melding "controleer je mail" zien. Stap 2 vraagt het token uit
+// de mail, en dat kan CI niet lezen; het verzoek wordt beantwoord zonder het te versturen, zodat er ook geen echte mail vertrekt.
+export async function requestRegistration(page: Page, email: string): Promise<void> {
+  await page.route(/\/api\/v2\/registrations$/, route => route.fulfill({ status: 202 }));
   await page.goto('/users/register');
-  await page.locator('input[formcontrolname="firstName"]').fill(account.firstName);
-  await page.locator('input[formcontrolname="lastName"]').fill(account.lastName);
-  await page.locator('input[formcontrolname="birthday"]').fill('1990-05-17');
-  await input(page, 'Email (login)').fill(account.email);
-  await input(page, 'Wachtwoord').fill(account.password);
-  await input(page, 'Geef wachtwoord nogmaals in').fill(account.password);
+  await input(page, 'Email (login)').fill(email);
   await page.getByRole('button', { name: 'Registreer' }).click();
-  await expect(page).toHaveURL(/\/people\/[0-9a-f]{24}$/);
-  account.id = page.url().split('/').pop();
+  await expect(page.locator('#registrationSent')).toContainText(email);
 }
 
 export async function login(page: Page, account: Account): Promise<void> {
@@ -54,6 +48,8 @@ export async function submitLogin(page: Page, account: Account): Promise<void> {
 export async function createWish(page: Page, title: string, price = '25'): Promise<void> {
   await page.getByText('Voeg wens toe').click();
   const dialog = page.getByRole('dialog');
+  // Zonder zone.js bestaat het veld al vóór de eerste weergave en maakt die het weer leeg: eerst de titel van de popup afwachten.
+  await expect(dialog.getByRole('heading', { name: 'Voeg een wens toe' })).toBeVisible();
   await dialog.locator('#wishTitle').fill(title);
   await dialog.locator('#WishPrice').fill(price);
   await dialog.locator('button[type="submit"]').click();

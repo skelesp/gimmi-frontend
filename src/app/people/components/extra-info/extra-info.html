@@ -1,0 +1,40 @@
+<!-- Extra info over de persoon -->
+<!-- Read only mode -->
+@if (!editing()) {
+  <div class="row">
+    <div class="col-7 col-md-auto font-sm"
+      [hidden]="!canEdit() || (likes().length || dislikes().length)">
+      Voeg extra info over jezelf toe...
+    </div>
+    <gimmi-extra-info-view class="col-10 col-md-auto"
+    [firstName]="firstName()" [items]="likes()" itemType="likes"></gimmi-extra-info-view>
+    <div class="col-2 col-md-auto order-md-3" [hidden]="!canEdit()">
+      <button type="button" class="icon-button" aria-label="Extra info aanpassen" (click)="edit()">
+        <fa-icon [icon]="pencilIcon"></fa-icon>
+      </button>
+    </div>
+    <gimmi-extra-info-view class="col-10 col-md-auto" [firstName]="firstName()" [items]="dislikes()" itemType="dislikes">
+    </gimmi-extra-info-view>
+  </div>
+} @else {
+  <form class="row" (submit)="save($event)" novalidate>
+    <gimmi-extra-info-edit class="col-10 col-md-auto"
+    [rows]="preferencesForm.likes" itemType="likes"></gimmi-extra-info-edit>
+    <!-- Save/cancel part -->
+    <div class="col-2 col-md-auto order-md-3">
+      <button type="submit"
+        class="btn btn-link btn-sm"
+        aria-label="Extra info opslaan"
+        [disabled]="preferencesForm().invalid()">
+        <fa-icon [icon]="checkIcon" class="text-success me-2"></fa-icon>
+      </button>
+      <button type="button"
+        class="btn btn-link btn-sm"
+        aria-label="Wijzigingen annuleren"
+        (click)="cancel()">
+        <fa-icon [icon]="cancelIcon" class="text-danger"></fa-icon>
+      </button>
+    </div>
+    <gimmi-extra-info-edit class="col-10 col-md-auto" [rows]="preferencesForm.dislikes" itemType="dislikes"></gimmi-extra-info-edit>
+  </form>
+}

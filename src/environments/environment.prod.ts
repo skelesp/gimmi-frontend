@@ -1,7 +1,7 @@
 export const environment = {
   title: "Gimmi",
   production: true,
-  apiUrl: 'https://api.gimmi.be/api/',
+  apiV2Url: 'https://api.gimmi.be/api/v2/',
   rootSiteUrl: 'https://www.gimmi.be',
 };
 

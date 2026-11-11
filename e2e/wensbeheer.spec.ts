@@ -1,18 +1,18 @@
 import { test, expect } from '@playwright/test';
-import { deleteAccount, smokePassword } from './helpers/api';
-import { Account, createWish, input, login, newUserPage, register, submitLogin, wishAction, wishCard } from './helpers/flows';
+import { clearWishes, smokeAccounts } from './helpers/api';
+import { Account, createWish, input, login, newUserPage, submitLogin, wishAction, wishCard } from './helpers/flows';
 
 // Flows rond het beheren van wensen en navigeren, naast de zes kernflows (sc-2979):
 // personen zoeken (sc-1988, sc-2033), reservatie verwijderen (sc-2515), wens kopiëren
 // naar de eigen lijst (sc-2348), wens verwijderen (sc-1981), uitloggen (sc-1987),
 // wachtwoord vergeten (sc-2004), paginatitel en footer (sc-2027, sc-2575), afbeelding
 // zoeken en een eigen foto opladen (sc-3028).
-// Serieel, met eigen gebruikers die afterAll weer opruimt (zelfde naamregels als e2e:cleanup).
+// Serieel, met eigen gebruikers die als vaste accounts in de testdatabase staan (sc-3283, `npm run e2e:seed`) en die afterAll weer opruimt
+// (zelfde naamregels als e2e:cleanup).
 
 const runId = `${Date.now().toString(36)}w`;
-const password = smokePassword;
-const owner: Account = { firstName: 'Smoke', lastName: 'Eigenaar', email: `smoke+owner-${runId}@gimmi.be`, password };
-const giver: Account = { firstName: 'Smoke', lastName: 'Gever', email: `smoke+giver-${runId}@gimmi.be`, password };
+const owner: Account = { ...smokeAccounts.owner };
+const giver: Account = { ...smokeAccounts.giver };
 const wensA = `Smoke reserveer ${runId}`;
 const wensB = `Smoke kopie ${runId}`;
 
@@ -32,12 +32,17 @@ function overEenWeek(): string {
 test.describe.configure({ mode: 'serial' });
 
 test.describe('wensbeheer en navigatie', () => {
+  test.beforeAll(async () => {
+    // Vaste accounts (sc-3283): begin met lege lijsten, ook na een afgebroken run.
+    await clearWishes(owner);
+    await clearWishes(giver);
+  });
+
   test.afterAll(async () => {
     const fouten: string[] = [];
     for (const account of [giver, owner]) {
-      if (!account.id) continue;
       try {
-        await deleteAccount(account.id, account.email, account.password);
+        await clearWishes(account);
       } catch (err) {
         fouten.push(`${account.email}: ${(err as Error).message}`);
       }
@@ -47,7 +52,7 @@ test.describe('wensbeheer en navigatie', () => {
 
   test('voorbereiding: eigenaar met twee wensen', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
-    await register(page, owner);
+    await login(page, owner);
     await createWish(page, wensA);
     await createWish(page, wensB);
     await context.close();
@@ -67,6 +72,7 @@ test.describe('wensbeheer en navigatie', () => {
   // Afbeeldingskiezer (sc-3028). Vaste titel: de backend bewaart zoekresultaten een dag per
   // zoekterm, dus Brave rekent hooguit één zoekopdracht per dag voor deze test.
   test('afbeelding zoeken en toevoegen aan een nieuwe wens', async ({ browser }) => {
+    test.setTimeout(150_000);   // tot zes pogingen van elk maximaal 20 s als bronsites weigeren
     const { context, page } = await newUserPage(browser);
     await login(page, owner);
     await page.getByText('Voeg wens toe').click();
@@ -84,7 +90,14 @@ test.describe('wensbeheer en navigatie', () => {
     let gelukt = false;
     for (let i = 0; i < Math.min(await resultaten.count(), 6) && !gelukt; i++) {
       await resultaten.nth(i).click();
-      await expect.poll(async () => await kiezer.count() === 0 || await kiezer.getByRole('alert').isVisible(),
+      // Eerst de weergave van de klik afwachten (de aangeklikte knop is uitgeschakeld), want daarvoor staat de oude melding er nog.
+      await expect.poll(async () => await kiezer.count() === 0 || await resultaten.nth(i).isDisabled({ timeout: 1_000 }).catch(() => true),
+        { timeout: 10_000 }).toBe(true);
+      // Klaar = de kiezer is weg, of er staat een melding én een ander resultaat is weer aanklikbaar. Alleen op de melding
+      // wachten kan niet: die van een vorige poging blijft staan tot de weergave ververst, en tijdens het opladen en
+      // het sluiten van de kiezer zijn alle resultaten uitgeschakeld of nog aanklikbaar zonder melding.
+      await expect.poll(async () => await kiezer.count() === 0 || (await kiezer.getByRole('alert').isVisible()
+        && await resultaten.evaluateAll((knoppen, index) => knoppen.some((knop, k) => k !== index && !(knop as HTMLButtonElement).disabled), i)),
         { timeout: 20_000 }).toBe(true);
       gelukt = await kiezer.count() === 0;
     }
@@ -116,7 +129,7 @@ test.describe('wensbeheer en navigatie', () => {
     });
     await expect(kiezer).toHaveCount(0, { timeout: 20_000 });
     // Meteen de voorvertoning (de verkleinde foto), niet eerst de oude afbeelding.
-    await expect(wens.locator('gimmi-image-view img')).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await expect(wens.locator('gimmi-image-view img')).toHaveAttribute('src', /^blob:/);
     await wens.locator('button[type="submit"]').click();
     await expect(wens).toBeHidden();
     await expect(wishCard(page, 'Smoke foto').locator('img').first()).toHaveAttribute('src', R2_BEELD);
@@ -155,7 +168,7 @@ test.describe('wensbeheer en navigatie', () => {
 
   test('personen zoeken: gevonden en niet gevonden', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
-    await register(page, giver);
+    await login(page, giver);
     const zoek = page.locator('#typeahead-basic');
 
     await zoek.fill('geen-persoon-met-deze-naam');
@@ -243,17 +256,16 @@ test.describe('wensbeheer en navigatie', () => {
   test('wachtwoord vergeten: aanvraag met het ingevulde adres', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
     // De echte aanvraag zou een resetmail sturen; hier wordt enkel nagekeken wat de app verstuurt.
-    let body: { email?: string; resetPasswordRoute?: string } = {};
-    await context.route(/\/api\/people\/account\/local$/, async route => {
+    let body: { email?: string } = {};
+    await context.route(/\/api\/v2\/password-resets$/, async route => {
       body = route.request().postDataJSON();
-      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+      await route.fulfill({ status: 202 });
     });
     await page.goto(`/users/forgotpassword?e=${encodeURIComponent(owner.email)}`);
     await expect(input(page, 'Emailadres van uw account')).toHaveValue(owner.email);
     await page.getByRole('button', { name: 'Vraag nieuw wachtwoord aan' }).click();
     await expect(page.locator('ngb-alert')).toContainText('Uw paswoord reset werd aangevraagd');
     expect(body.email).toBe(owner.email);
-    expect(body.resetPasswordRoute).toMatch(/\/users\/resetpassword$/);
     await context.close();
   });
 });

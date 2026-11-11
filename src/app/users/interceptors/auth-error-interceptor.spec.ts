@@ -1,0 +1,111 @@
+import { TestBed } from '@angular/core/testing';
+import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Router } from '@angular/router';
+
+import { environment } from 'src/environments/environment';
+import { NotificationService } from 'src/app/shared/services/notification.service';
+import { AuthStore } from '../../core/auth/auth-store';
+import { fakeAuthStore, testUser } from '../../core/auth/auth-store.testing';
+import { authErrorInterceptor } from './auth-error-interceptor';
+
+// Reactie op 401 en 403 van de API. Het geval "401 terwijl iemand ingelogd is" roept logout()
+// aan, en dat herlaadt de pagina; dat pad staat hier dus niet in.
+describe('authErrorInterceptor', () => {
+    let http: HttpClient;
+    let backend: HttpTestingController;
+    let router: Record<string, any> & {
+        url: string;
+    };
+    let notifications: Record<string, any>;
+    let users: ReturnType<typeof fakeAuthStore>;
+
+    function vraag(url: string, status: number): any {
+        let fout: any;
+        http.get(url).subscribe({ error: e => fout = e });
+        backend.expectOne(url).flush({ message: 'x' }, { status, statusText: 'Fout' });
+        return fout;
+    }
+
+    beforeEach(() => {
+        router = Object.assign({
+            navigate: vi.fn().mockName("Router.navigate")
+        }, { url: '/people/p9' });
+        notifications = {
+            showNotification: vi.fn().mockName("NotificationService.showNotification")
+        };
+        users = fakeAuthStore();
+        TestBed.configureTestingModule({
+            imports: [],
+            providers: [
+                { provide: Router, useValue: router },
+                { provide: NotificationService, useValue: notifications },
+                { provide: AuthStore, useValue: users },
+                provideHttpClient(withXhr(), withInterceptors([authErrorInterceptor])),
+                provideHttpClientTesting()
+            ]
+        });
+        http = TestBed.inject(HttpClient);
+        backend = TestBed.inject(HttpTestingController);
+    });
+
+    afterEach(() => backend.verify());
+
+    it('401: melding "Login vereist", naar login en de huidige pagina onthouden', () => {
+        const fout = vraag('/api/wish/w1', 401);
+        expect(fout.status).toBe(401);
+        expect(notifications.showNotification).toHaveBeenCalledWith(expect.any(String), 'error', 'Login vereist');
+        expect(users.attemptedUrl).toBe('/people/p9');
+        expect(router.navigate).toHaveBeenCalledWith(['users/login'], { queryParams: {} });
+        expect(users.logout).not.toHaveBeenCalled();
+    });
+
+    it('401 op de loginaanroep zelf (auth/token): geen melding, geen navigatie, loginpagina niet onthouden', () => {
+        // Anders stuurt de volgende geslaagde login je terug naar het loginscherm.
+        router.url = '/users/login';
+        const fout = vraag(environment.apiV2Url + 'auth/token', 401);
+        expect(fout.status).toBe(401);
+        expect(notifications.showNotification).not.toHaveBeenCalled();
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(users.attemptedUrl).toBeNull();
+    });
+
+    it('401 op een andere v2-aanroep: naar login', () => {
+        vraag(environment.apiV2Url + 'me', 401);
+        expect(router.navigate).toHaveBeenCalledWith(['users/login'], { queryParams: {} });
+    });
+
+    it('403 op v2: geen melding, de aanroeper beslist', () => {
+        const fout = vraag(environment.apiV2Url + 'me/password', 403);
+        expect(fout.status).toBe(403);
+        expect(notifications.showNotification).not.toHaveBeenCalled();
+    });
+
+    it('401 vanop een /users/-pagina: die pagina niet als terugkeer-URL onthouden', () => {
+        router.url = '/users/register';
+        vraag('/api/people', 401);
+        expect(users.attemptedUrl).toBeNull();
+        expect(router.navigate).toHaveBeenCalledWith(['users/login'], { queryParams: {} });
+    });
+
+    it('401 voor een ingelogde gebruiker: uitloggen en het e-mailadres meegeven aan de login', () => {
+        users.user.set(testUser());
+        vraag('/api/wish/w1', 401);
+        expect(users.logout).toHaveBeenCalledWith('401_RESPONSE');
+        expect(router.navigate).toHaveBeenCalledWith(['users/login'], { queryParams: { e: 'ilse@gimmi.be' } });
+    });
+
+    it('403: melding over ontbrekende rechten, geen navigatie', () => {
+        const fout = vraag('/api/people/p2', 403);
+        expect(fout.status).toBe(403);
+        expect(notifications.showNotification).toHaveBeenCalledWith(expect.stringMatching('niet gemachtigd'), 'error');
+        expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('andere fouten: ongewijzigd doorgegeven, geen melding', () => {
+        const fout = vraag('/api/wish/w1', 500);
+        expect(fout.status).toBe(500);
+        expect(notifications.showNotification).not.toHaveBeenCalled();
+        expect(router.navigate).not.toHaveBeenCalled();
+    });
+});

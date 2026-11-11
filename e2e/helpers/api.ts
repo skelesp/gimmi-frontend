@@ -1,18 +1,29 @@
-// Rechtstreekse API-aanroepen voor de opruiming van testdata. De tests zelf gaan via de UI.
+// Rechtstreekse aanroepen van API v2 voor de testdata van de smoketests. De tests zelf gaan via de UI.
 
-// Gedeelde testomgeving; overschrijfbaar als E2E_BASE_URL naar een andere omgeving wijst.
-export const apiUrl = (process.env.E2E_API_URL || 'https://api-test.gimmi.be/api/').replace(/\/?$/, '/');
+// Gedeelde testomgeving; overschrijfbaar met E2E_API_URL (basis van v2, met /api/v2/).
+export const apiUrl = (process.env.E2E_API_URL || 'https://api-test.gimmi.be/api/v2/').replace(/\/?$/, '/');
 
 export const smokePassword = 'Smoke-test-1!';
 
-// Alleen accounts met dit adres en deze naam mogen door de opruiming verwijderd worden.
+// Alleen accounts met dit adres en deze naam mogen door de scripts aangeraakt worden.
 export const smokeEmail = /^smoke\+[a-z]+-[a-z0-9]+@gimmi\.be$/;
-export const smokeLastNames = ['Eigenaar', 'Gever', 'Opruimer'];
 
-async function call(method: string, path: string, token?: string, body?: unknown): Promise<any> {
+export interface SmokeAccount { firstName: string; lastName: string; email: string; password: string; id: string; }
+
+// Vaste accounts (sc-3283): eenmalig in de testdatabase gezet met `npm run e2e:seed`. De specs loggen erin
+// en ruimen alleen de wensen op. Wachtwoord en id's staan in de repo en gelden alleen op test.
+export const smokeAccounts: Record<'owner' | 'giver', SmokeAccount> = {
+  owner: { firstName: 'Smoke', lastName: 'Eigenaar', email: 'smoke+owner-vast@gimmi.be', password: smokePassword, id: '5e2e00000000000000000001' },
+  giver: { firstName: 'Smoke', lastName: 'Gever', email: 'smoke+giver-vast@gimmi.be', password: smokePassword, id: '5e2e00000000000000000002' }
+};
+
+// Het account dat test 1 van kernflows in de UI registreert; het wordt voor en na de run verwijderd.
+export const newcomerEmail = 'smoke+newcomer-vast@gimmi.be';
+
+export async function call(method: string, path: string, token?: string, body?: unknown): Promise<any> {
   const res = await fetch(apiUrl + path, {
     method,
-    headers: { 'content-type': 'application/json', ...(token ? { authorization: token } : {}) },
+    headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
     body: body === undefined ? undefined : JSON.stringify(body)
   });
   const text = await res.text();
@@ -21,23 +32,32 @@ async function call(method: string, path: string, token?: string, body?: unknown
 }
 
 export async function login(email: string, password: string): Promise<string> {
-  return (await call('POST', 'authenticate', undefined, { account: 'local', email, password })).token;
+  return (await call('POST', 'auth/token', undefined, { email, password })).token;
 }
 
-/** Verwijdert het account (en de wensen ervan) via de API, ingelogd als die gebruiker zelf. */
-export async function deleteAccount(id: string, email: string, password: string): Promise<{ deletedWishes: number; removedReservations: number }> {
-  return call('DELETE', `people/${id}`, await login(email, password));
+/** Verwijdert alle wensen van het account (ook de reserveringen en ideeën van anderen erop). Geeft het aantal terug. */
+export async function clearWishes(account: SmokeAccount): Promise<number> {
+  const token = await login(account.email, account.password);
+  const ids: string[] = [];
+  let cursor: string | null = null;
+  do {
+    const query: string = new URLSearchParams({ limit: '100', ...(cursor ? { cursor } : {}) }).toString();
+    const page: { items: { id: string }[]; nextCursor: string | null } = await call('GET', `people/${account.id}/wishes?${query}`, token);
+    ids.push(...page.items.map(wish => wish.id));
+    cursor = page.nextCursor;
+  } while (cursor);
+  for (const id of ids) await call('DELETE', `wishes/${id}`, token);
+  return ids.length;
 }
 
-export async function register(firstName: string, lastName: string, email: string, password: string): Promise<{ id: string; token: string }> {
-  const res = await call('POST', 'people', undefined, { firstname: firstName, lastname: lastName, email, password });
-  return { id: JSON.parse(Buffer.from(res.token.split('.')[1], 'base64url').toString())._id, token: res.token };
-}
-
-export async function listPeople(): Promise<{ _id: string; firstName: string; lastName: string }[]> {
-  return call('GET', 'people');
-}
-
-export async function emailOf(id: string, token: string): Promise<string> {
-  return call('GET', `people/${id}/email`, token);
+/** Verwijdert een wegwerpaccount (met zijn wensen) via `DELETE /me`; bestaat het niet, dan gebeurt er niets. */
+export async function removeAccount(email: string, password = smokePassword): Promise<void> {
+  let token: string;
+  try {
+    token = await login(email, password);
+  } catch (err) {
+    if (/ 401 /.test((err as Error).message)) return;
+    throw err;
+  }
+  await call('DELETE', 'me', token);
 }

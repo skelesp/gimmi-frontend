@@ -112,23 +112,28 @@ test.describe('wachtwoord resetten met de link uit de mail (sc-2004)', () => {
     await context.close();
   });
 
-  test('geldige link: nieuw wachtwoord kiezen en naar login met het e-mailadres ingevuld', async ({ browser }) => {
+  test('geldige link: nieuw wachtwoord kiezen en meteen ingelogd', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
     // Het token uit de mail is alleen in de mail (of de database) te vinden. De API-antwoorden
     // voor dat token worden daarom nagebootst; de echte resetflow zit in de backendtests.
     const token = 'e2e-token-' + Date.now().toString(36);
+    const api = '/api/v2/';
     let nieuwWachtwoord: string;
-    await context.route(new RegExp(`/api/people/account/local/${token}$`), async route => {
+    await context.route(new RegExp(api + 'password-resets/' + token + '$'), async route => {
       if (route.request().method() === 'GET') {
         return route.fulfill({ status: 200, contentType: 'application/json',
-          body: JSON.stringify({ firstName: 'Smoke', token, expiresOn: new Date(Date.now() + 3600_000) }) });
+          body: JSON.stringify({ firstName: 'Smoke', expiresAt: new Date(Date.now() + 3600_000).toISOString() }) });
       }
-      nieuwWachtwoord = route.request().postDataJSON().pw;
+      nieuwWachtwoord = route.request().postDataJSON().password;
       return route.fulfill({ status: 200, contentType: 'application/json',
-        body: JSON.stringify({ email: 'smoke+reset@gimmi.be', usedToken: token }) });
+        body: JSON.stringify({ token: 'e2e-session', tokenType: 'Bearer', expiresAt: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() }) });
     });
+    await context.route(new RegExp(api + 'me$'), route => route.fulfill({ status: 200, contentType: 'application/json',
+      body: JSON.stringify({ id: '5e2e00000000000000000009', email: 'smoke+reset@gimmi.be', firstName: 'Smoke', lastName: 'Reset', createdAt: '2026-01-01T00:00:00Z' }) }));
+    // De lijst van de nieuwe sessie hoeft niet echt te bestaan; het gaat om de doorverwijzing.
+    await context.route(new RegExp(api + 'people/5e2e00000000000000000009'),route => route.fulfill({ status: 404, body: '{}' }));
 
-    await page.goto(`/users/resetpassword/${token}`);
+    await page.goto('/users/resetpassword/' + token);
     await expect(page.getByRole('heading', { name: 'Vervang je vergeten paswoord' })).toBeVisible();
     const knop = page.getByRole('button', { name: 'Wijzig wachtwoord' });
     await input(page, 'Wachtwoord').fill('Nieuw-geheim-1');
@@ -139,9 +144,8 @@ test.describe('wachtwoord resetten met de link uit de mail (sc-2004)', () => {
     await input(page, 'Geef wachtwoord nogmaals in').blur();
     await knop.click();
 
-    await expect(page).toHaveURL(/\/users\/login\?e=smoke%2Breset(@|%40)gimmi\.be$/);
-    await expect(input(page, 'Email (login)')).toHaveValue('smoke+reset@gimmi.be');
     await expect(page.getByText('Wachtwoord aangepast')).toBeVisible();
+    await expect(page).toHaveURL(/\/people\/5e2e00000000000000000009$/);
     expect(nieuwWachtwoord).toBe('Nieuw-geheim-1');
     await context.close();
   });

@@ -1,5 +1,5 @@
 /**
- * Verkleint een gekozen foto in de browser en geeft hem terug als JPEG-data-URI (sc-3028).
+ * Verkleint een gekozen foto in de browser en geeft hem terug als JPEG-Blob (sc-3028, sc-3290).
  *
  * Een foto van een gsm is al snel 4-10 MB; verkleind tot 1600 px aan de langste kant
  * blijft daar enkele honderden kB van over. Dat past ruim binnen de limiet van de
@@ -26,7 +26,7 @@ export function laadAfbeelding(bestand: Blob): Promise<HTMLImageElement> {
   });
 }
 
-export async function verkleinAfbeelding(bestand: Blob, max: number = MAX_ZIJDE): Promise<string> {
+export async function verkleinAfbeelding(bestand: Blob, max: number = MAX_ZIJDE): Promise<Blob> {
   const img = await laadAfbeelding(bestand);
   const { breedte, hoogte } = berekenAfmetingen(img.naturalWidth, img.naturalHeight, max);
 
@@ -38,5 +38,6 @@ export async function verkleinAfbeelding(bestand: Blob, max: number = MAX_ZIJDE)
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, breedte, hoogte);
   ctx.drawImage(img, 0, 0, breedte, hoogte);
-  return canvas.toDataURL('image/jpeg', JPEG_KWALITEIT);
+  return new Promise((resolve, reject) =>
+    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Geen leesbare afbeelding')), 'image/jpeg', JPEG_KWALITEIT));
 }

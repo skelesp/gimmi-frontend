@@ -1,9 +1,8 @@
 export const environment = {
   title: "[TEST] Gimmi",
   production: true,
-  // Railway-testomgeving (service gimmi-backend-test, branch develop) onder een eigen adres, sinds 08-11-2026
-  // in plaats van test-gimmi.herokuapp.com.
-  apiUrl: 'https://api-test.gimmi.be/api/',
+  // Railway-testomgeving (service gimmi-backend-test, branch develop) onder een eigen adres.
+  apiV2Url: 'https://api-test.gimmi.be/api/v2/',
   rootSiteUrl: 'https://test.gimmi.be',
 };
 

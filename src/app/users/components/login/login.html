@@ -1,0 +1,51 @@
+<div class="container">
+  <div class="row align-items-center justify-content-center">
+    <div class="col-lg-7">
+      <h1 class="h5">Login met je email en wachtwoord</h1>
+      <div class="alert alert-info">
+        Inloggen met Facebook kan niet meer. Had je alleen Facebook? Stel dan een wachtwoord in via
+        <a class="alert-link fw-normal text-decoration-underline" [routerLink]="['/users', 'forgotpassword']">Wachtwoord vergeten</a>, met het e-mailadres van je Facebook-account.
+      </div>
+      @if (loggedInUser(); as user) {
+        <div class="alert alert-info">
+          Je bent al ingelogd momenteel als <strong>{{user.firstName}} {{user.lastName}}</strong>.
+          <ul>
+            <li>Als je verder wilt met de huidige account: <a [routerLink]="['/']">ga naar homepagina</a>.</li>
+            <li>Als je toch met een andere account wilt inloggen, kan je dat hier doen. Je wordt dan automatisch uitgelogd voor je
+            huidige account.</li>
+          </ul>
+        </div>
+      }
+      @if (redirectUrl) {
+        <div class="alert alert-info">
+          Je probeerde {{redirectUrl}} te bereiken, maar hiervoor moet je ingelogd zijn. <br/>
+          Na een succesvolle login zullen we je meteen naar deze pagina brengen.
+        </div>
+      }
+      @if (authenticationError()) {
+        <div class="alert alert-danger">
+          De combinatie emailadres / wachtwoord is niet correct. <br />
+          <gimmi-forgot-password-link
+            [attemptedEmail]="credentials().email"
+            linkText="Wachtwoord vergeten?">
+          </gimmi-forgot-password-link>
+        </div>
+      }
+
+      <form (submit)="login($event)" novalidate>
+        <gimmi-email-field [field]="loginForm.email" />
+        <gimmi-password-field [field]="loginForm.password" />
+        <small id="forgottenPassword" class="form-text text-muted my-2 float-end">
+          <gimmi-forgot-password-link
+            [attemptedEmail]="credentials().email"
+            linkText="Wachtwoord vergeten?">
+          </gimmi-forgot-password-link>
+        </small>
+        <div>
+          <button type="submit" class="btn btn-danger my-3" [disabled]="loginForm().invalid()">Login</button>
+        </div>
+        Als dit je eerste bezoek is: <a [routerLink]="['/users/register']" [queryParams]="{e: credentials().email}">klik hier om te registreren</a>
+      </form>
+    </div>
+  </div>
+</div>

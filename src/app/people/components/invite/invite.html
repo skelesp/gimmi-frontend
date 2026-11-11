@@ -1,0 +1,24 @@
+<div class="container">
+    <div class="row align-items-center justify-content-center">
+        <div class="col-lg-7">
+
+            <div class="alert alert-primary" role="alert">
+                We vonden nog geen lijst voor de persoon die je zocht. Vraag deze persoon om een lijst aan te maken via onderstaande
+                mogelijkheden.
+            </div>
+            <form (submit)="invite($event)" novalidate>
+                <div class="mb-3">
+                    <gimmi-email-field
+                        [field]="invitationForm.email"
+                        inputId="invite-email"
+                        label="Verstuur een uitnodiging naar de persoon die je zocht"
+                        placeholder="Emailadres (verplicht in te vullen)" />
+                    <small id="emailHelp" class="form-text text-muted">Het emailadres wordt enkel gebruikt om de persoon uit te
+                        nodigen.</small>
+                </div>
+                <button type="submit" class="btn btn-primary" [disabled]="invitationForm().invalid()">Verstuur</button>
+            </form>
+
+        </div>
+    </div>
+</div>

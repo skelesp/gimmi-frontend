@@ -1,0 +1,9 @@
+@if (bannerConfig?.text) {
+  <span
+        class="w-75 badge fw-normal text-wrap text-center badge-multiline disabled badge-wish-card-banner"
+        [class.text-bg-warning]="bannerConfig.backgroundColor === 'warning'"
+        [class.text-bg-danger]="bannerConfig.backgroundColor === 'danger'"
+        [class.text-bg-success]="bannerConfig.backgroundColor === 'success'"
+    ><fa-icon [icon]="bannerConfig.bannerIcon"></fa-icon> {{bannerConfig.text}}
+  </span>
+}

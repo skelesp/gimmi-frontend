@@ -1,0 +1,11 @@
+<div ngbDropdown class="float-end me-1" [container]="'body'">
+  <button type="button" ngbDropdownToggle class="icon-button" aria-label="Acties voor deze wens">
+    <fa-icon [icon]="actionListIcon" size="2x" class="px-1"></fa-icon>
+    <!-- Vertical ellipsis because this is more compact on mobile designs -->
+  </button>
+  <div ngbDropdownMenu class="mt-3">
+    @for (item of actionListItems(); track item) {
+      <gimmi-action-list-item [itemConfig]="item"></gimmi-action-list-item>
+    }
+  </div>
+</div>

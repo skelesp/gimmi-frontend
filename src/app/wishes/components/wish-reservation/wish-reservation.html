@@ -1,0 +1,39 @@
+<div class="modal-header" style="color:#000000">
+  <h3 class="modal-title" id="modal-title">
+    Reserveer {{wish.title}}
+  </h3>
+  <button type="button" class="btn-close" aria-label="Sluiten" (click)="activeModal.dismiss('Cross click')"></button>
+</div>
+
+<form class="form" (ngSubmit)="saveReservation()" [formGroup]="reservationForm">
+  <div class="modal-body" id="modal-body" style="color:#000000">
+    <div class="mb-3">
+      <label for="handoverDate" class="form-control-label">Wanneer geef je het cadeau aan {{wish.receiver.firstName}}?</label>
+      <input  type="date" class="form-control" id="handoverDate" name="handoverDate"
+        ngbAutofocus
+        formControlName="handoverDate">
+        <small id="handoverDateHelp" class="form-text text-muted">Je reservatie blijft onzichtbaar voor
+        {{wish.receiver.firstName}} tot na deze datum. Zo blijft het een verrassing!</small>
+      </div>
+      <div class="mb-3">
+        <label for="reservationReason" class="form-control-label">Voor welke gelegenheid wil je deze cadeau geven?</label>
+        <!-- https://stackoverflow.com/questions/38725365/how-to-show-placeholder-empty-option-in-select-control-in-angular-2 -->
+        <select class="form-control" id="reservationReason" formControlName="reason">
+          <option value="null" disabled selected hidden>Kies een reden</option>
+          @for (option of reasonOptions; track option.value) {
+            <option [ngValue]="option.value">{{option.label}}</option>
+          }
+        </select>
+      </div>
+      @if (reservationForm.get('reason').invalid && reservationForm.get('reason').touched) {
+        <small class="text-danger">
+          De gelegenheid is een verplicht veld.
+        </small>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-danger" type="submit" [disabled]="reservationForm.invalid">Reserveer</button>
+      <button class="btn btn-outline-danger" type="button" (click)="activeModal.dismiss('Cancel')">Annuleer</button>
+    </div>
+  </form>

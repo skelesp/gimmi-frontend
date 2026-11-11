@@ -1,28 +1,34 @@
 import { test, expect } from '@playwright/test';
-import { deleteAccount, smokePassword } from './helpers/api';
-import { Account, login, newUserPage, register, submitLogin, wishCard } from './helpers/flows';
+import { clearWishes, newcomerEmail, smokeAccounts, smokePassword } from './helpers/api';
+import { Account, login, newUserPage, requestRegistration, submitLogin, wishCard } from './helpers/flows';
 
 // Smoketests voor de zes kernflows. De tests bouwen op elkaar (de wens die in
 // test 3 wordt aangemaakt, wordt in test 4 gereserveerd), dus ze draaien serieel
-// en delen de gebruikers hieronder. Na afloop verwijdert afterAll de gebruikers en hun
-// wensen weer via de API. Blijft er toch iets staan (run afgebroken): npm run e2e:cleanup.
+// en delen de gebruikers hieronder. Eigenaar en gever zijn vaste accounts in de testdatabase (sc-3283, `npm run e2e:seed`);
+// test 1 doorloopt stap 1 van de registratie in de UI (het verzoek wordt niet echt verstuurd, zie `requestRegistration`).
+// Na afloop wist afterAll de wensen van beide accounts. Blijft er toch iets staan (run afgebroken): npm run e2e:cleanup.
 
 const runId = Date.now().toString(36);
 const password = smokePassword;
-const owner: Account = { firstName: 'Smoke', lastName: 'Eigenaar', email: `smoke+owner-${runId}@gimmi.be`, password };
-const giver: Account = { firstName: 'Smoke', lastName: 'Gever', email: `smoke+giver-${runId}@gimmi.be`, password };
+const owner: Account = { ...smokeAccounts.owner };
+const giver: Account = { ...smokeAccounts.giver };
 const wishTitle = `Smoke wens ${runId}`;
 
 test.describe.configure({ mode: 'serial' });
 
 test.describe('kernflows', () => {
+  test.beforeAll(async () => {
+    // Vaste accounts (sc-3283): begin met lege lijsten, ook na een afgebroken run.
+    await clearWishes(owner);
+    await clearWishes(giver);
+  });
+
   test.afterAll(async () => {
     // Ook opruimen als een test halverwege faalde. Wie nooit geregistreerd werd (geen id), slaan we over.
     const fouten: string[] = [];
     for (const account of [giver, owner]) {
-      if (!account.id) continue;
       try {
-        await deleteAccount(account.id, account.email, account.password);
+        await clearWishes(account);
       } catch (err) {
         fouten.push(`${account.email}: ${(err as Error).message}`);
       }
@@ -30,10 +36,9 @@ test.describe('kernflows', () => {
     if (fouten.length) throw new Error(['Opruimen mislukt, draai npm run e2e:cleanup:', ...fouten].join('\n'));
   });
 
-  test('1. registreren', async ({ browser }) => {
+  test('1. registreren: het adres opgeven en de bevestigingsmail afwachten', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
-    await register(page, owner);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(`${owner.firstName} ${owner.lastName}`);
+    await requestRegistration(page, newcomerEmail);
     await context.close();
   });
 
@@ -71,7 +76,7 @@ test.describe('kernflows', () => {
 
   test('4. reserveren', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
-    await register(page, giver);
+    await login(page, giver);
     await page.goto(`/people/${owner.id}`);
     const card = wishCard(page, wishTitle);
     await card.getByRole('button', { name: 'Reserveer' }).click();

@@ -1,8 +1,7 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { IWishImage } from 'src/app/wishes/models/wish.model';
-import { environment } from 'src/environments/environment';
+import { ApiClient } from 'src/app/core/api/api-client';
 
 /** Standaardafbeelding van een wens zonder eigen beeld; vroeger wish_images/default op Cloudinary. */
 export const STANDAARD_AFBEELDING = 'assets/standaard-wens.jpg';
@@ -19,14 +18,19 @@ export const BREEDTES = [160, 320, 480, 640, 960];
   providedIn: 'root'
 })
 export class ImageService {
-  constructor(private http$: HttpClient) { }
+  private api = inject(ApiClient);
+
 
   /**
-   * Laadt een afbeelding op naar R2. `image` is een http(s)-URL (de backend haalt ze op)
-   * of een data-URI van een verkleinde foto. Geeft {key, url} terug.
+   * Laadt een afbeelding op naar R2 (POST /images, sc-3290): een verkleinde foto als Blob
+   * (het Content-Type van de Blob gaat mee) of een http(s)-URL als string, die de backend zelf ophaalt.
+   * Geeft {key, url} terug.
    */
-  public uploadImage(image: string): Observable<IWishImage> {
-    return image ? this.http$.post<IWishImage>(environment.apiUrl + 'images', { image }) : of(null);
+  public uploadImage(image: Blob | string): Observable<IWishImage> {
+    if (!image) return of(null);
+    // Het contract typeert de ruwe bytes als string; HttpClient stuurt een Blob zoals hij is.
+    const body = typeof image === 'string' ? { sourceUrl: image } : image as unknown as string;
+    return this.api.post('/images', { body });
   }
 
   /** Heeft de wens een eigen beeld? */
