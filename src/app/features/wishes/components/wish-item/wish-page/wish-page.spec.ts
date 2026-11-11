@@ -1,9 +1,8 @@
 import { provideRouter } from '@angular/router';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { NO_ERRORS_SCHEMA, WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { BehaviorSubject } from 'rxjs';
 
 import { ImagesData } from 'src/app/features/images/images-data';
 import { Person } from 'src/app/features/people/models/person.model';
@@ -29,7 +28,7 @@ describe('WishPage', () => {
 
     let fixture: ComponentFixture<WishPage>;
     let component: WishPage;
-    let selectedWish$: BehaviorSubject<Wish>;
+    let selectedWish: WritableSignal<Wish | null>;
 
     function maakWens(opties: {
         status?: wishStatus;
@@ -49,7 +48,7 @@ describe('WishPage', () => {
     }
 
     async function toon(wens: Wish) {
-        selectedWish$.next(wens);
+        selectedWish.set(wens);
         fixture = TestBed.createComponent(WishPage);
         component = fixture.componentInstance;
         await fixture.whenStable();
@@ -63,13 +62,13 @@ describe('WishPage', () => {
     }
 
     beforeEach(async () => {
-        selectedWish$ = new BehaviorSubject<Wish>(null);
+        selectedWish = signal<Wish | null>(null);
         TestBed.overrideComponent(WishPage, { remove: { imports: [FaIconComponent, ActionList, WishBanner, ImageView, WishCallToActionButton] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
     imports: [WishPage],
     providers: [
         provideRouter([]),
-        { provide: WishesData, useValue: { selectedWish: selectedWish$.asObservable() } },
+        { provide: WishesData, useValue: { selectedWish: selectedWish.asReadonly() } },
         { provide: NgbModal, useValue: {
                 open: vi.fn().mockName("NgbModal.open")
             } },
@@ -142,7 +141,7 @@ describe('WishPage', () => {
     it('volgt de geselecteerde wens: een wijziging (bv. een reservatie) is meteen zichtbaar', async () => {
         await toon(maakWens({ viewer: 'rob' }));
         const gewijzigd = maakWens({ viewer: 'rob', extra: { title: 'Fiets met mand' } });
-        selectedWish$.next(gewijzigd);
+        selectedWish.set(gewijzigd);
         await fixture.whenStable();
         expect(component.wish).toBe(gewijzigd);
         expect(fixture.nativeElement.querySelector('h2').textContent).toBe('Fiets met mand');

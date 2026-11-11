@@ -60,18 +60,14 @@ describe('WishesData', () => {
     }
 
     function huidigeLijst(): Wish[] {
-        let wensen: Wish[];
-        service.wishes.subscribe(w => wensen = w).unsubscribe();
-        return wensen;
+        return service.wishes();
     }
 
     describe('getWishlist', () => {
         it('één request per pagina; zet de ontvanger en zet elke wens om', () => {
-            let ontvanger: Person;
-            service.currentReceiver.subscribe(p => ontvanger = p);
             const wensen = laadLijst('w1', 'w2');
             expect(wensen.map(w => w.id)).toEqual(['w1', 'w2']);
-            expect(ontvanger).toBe(ria);
+            expect(service.currentReceiver()).toBe(ria);
             expect(huidigeLijst()).toEqual(wensen);
         });
 

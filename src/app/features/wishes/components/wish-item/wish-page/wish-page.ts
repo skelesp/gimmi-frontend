@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, effect, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faCalendarPlus, faCheck, faComment, faExpand, faExternalLinkAlt, faGift, faListAlt, faPaintBrush, faUser } from '@fortawesome/free-solid-svg-icons';
@@ -34,12 +34,18 @@ export class WishPage extends WishItem implements OnInit {
   textIcon: IconDefinition = faComment;
   doneIcon: IconDefinition = faCheck;
 
-  ngOnInit(): void {
-    this.wishService.selectedWish.subscribe(selectedWish => {
-      this.wish = selectedWish;
-      // WishItem erft een gewone @Input() wish: deze subscribe moet de weergave zelf verversen.
+  constructor() {
+    super();
+    // WishItem inherits a plain `@Input() wish`: this bridge copies the selected wish into it and refreshes the view.
+    effect(() => {
+      this.wish = this.wishService.selectedWish();
       this.changeDetector.markForCheck();
     });
+  }
+
+  ngOnInit(): void {
+    // The action items are built from the wish, so it must be there before the first render.
+    this.wish = this.wishService.selectedWish();
     super.ngOnInit();
   }
 

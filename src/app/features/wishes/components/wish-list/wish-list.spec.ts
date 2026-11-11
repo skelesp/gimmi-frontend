@@ -1,8 +1,8 @@
 import type { Mock } from "vitest";
-import { NO_ERRORS_SCHEMA, SimpleChange } from '@angular/core';
+import { NO_ERRORS_SCHEMA, SimpleChange, WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbAlertModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 
 import { Person } from 'src/app/features/people/models/person.model';
 import { Wish, wishStatus } from '../../models/wish.model';
@@ -19,7 +19,7 @@ describe('WishList', () => {
     const ria = new Person('ria', 'Ria', 'Receiver');
     let fixture: ComponentFixture<WishList>;
     let component: WishList;
-    let wishes$: BehaviorSubject<Wish[]>;
+    let wishes: WritableSignal<Wish[]>;
     let antwoord$: Subject<Wish[]>;
     let problems: { show: Mock };
     let wishService: {
@@ -37,7 +37,7 @@ describe('WishList', () => {
         component.receiver = ria;
         component.ngOnChanges({ receiver: new SimpleChange(null, ria, true) });
         await fixture.whenStable();
-        wishes$.next(lijst);
+        wishes.set(lijst);
         antwoord$.next(lijst);
         await fixture.whenStable();
     }
@@ -54,10 +54,10 @@ describe('WishList', () => {
     }
 
     beforeEach(async () => {
-        wishes$ = new BehaviorSubject<Wish[]>([]);
+        wishes = signal<Wish[]>([]);
         antwoord$ = new Subject<Wish[]>();
         problems = { show: vi.fn().mockName('ProblemNotifier.show') };
-        wishService = { wishes: wishes$.asObservable(), getWishlist: vi.fn().mockName('getWishlist').mockReturnValue(antwoord$) };
+        wishService = { wishes: wishes.asReadonly(), getWishlist: vi.fn().mockName('getWishlist').mockReturnValue(antwoord$) };
         TestBed.overrideComponent(WishList, { remove: { imports: [WishCreateCard, WishCard] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
     imports: [NgbNavModule, NgbAlertModule, WishList, FilterOnStatePipe],

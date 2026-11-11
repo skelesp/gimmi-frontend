@@ -1,5 +1,4 @@
 import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { ApiProblem } from 'src/app/core/api/api-problem';
 import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
 import { Person } from 'src/app/features/people/models/person.model';
@@ -23,7 +22,7 @@ export class WishList implements OnChanges {
   private problems = inject(ProblemNotifier);
 
   @Input() receiver : Person;
-  readonly wishes = toSignal(this.wishService.wishes);
+  readonly wishes = this.wishService.wishes;
   readonly wishlistFilter = signal<wishStatus[]>(undefined);
   readonly loading = signal(false);
   readonly activeTab = signal("Open");
