@@ -16,7 +16,6 @@ import { WishService } from './wish.service';
 // Reserveren (sc-1979), reservatie verwijderen (sc-2515) en het cadeau bevestigen met feedback (sc-1980, sc-2442) gaan
 // sinds sc-3291 ook via API v2.
 describe('WishService', () => {
-    const v1 = environment.apiUrl;
     const v2 = environment.apiV2Url;
     let service: WishService;
     let http: HttpTestingController;
