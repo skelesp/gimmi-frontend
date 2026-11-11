@@ -1,27 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CommunicationService } from 'src/app/shared/services/communication.service';
-import { NotificationService } from 'src/app/shared/services/notification.service';
 import { Person } from '../../../models/person.model';
 import { MailToButton } from './mail-to-button';
 
-// Uitnodigen per mail vanuit de deelpopup.
+// Uitnodigen per mail vanuit de deelpopup: de mailapp van de bezoeker opent met de uitnodiging ingevuld.
 describe('MailToButton', () => {
     let fixture: ComponentFixture<MailToButton>;
-    let communication: Record<string, any>;
+    let open: ReturnType<typeof vi.fn>;
 
     beforeEach(async () => {
-        communication = { sendMail: vi.fn() };
-        await TestBed.configureTestingModule({
-            imports: [MailToButton],
-            providers: [
-                { provide: CommunicationService, useValue: communication },
-                { provide: NotificationService, useValue: { showNotification: vi.fn() } }
-            ]
-        }).compileComponents();
+        await TestBed.configureTestingModule({ imports: [MailToButton] }).compileComponents();
         fixture = TestBed.createComponent(MailToButton);
         fixture.componentInstance.url = 'https://www.gimmi.be/people/ria';
         fixture.componentInstance.person = new Person('ria', 'Ria', 'Receiver');
+        open = vi.fn();
+        (fixture.componentInstance as unknown as { open: typeof open }).open = open;
         await fixture.whenStable();
     });
 
@@ -31,16 +24,24 @@ describe('MailToButton', () => {
         expect(fixture.componentInstance.hideMailInfo).toBe(false);
     });
 
-    it('verstuurt per emailadres een uitnodiging met de link en het adres', () => {
+    it('opent de mailapp met alle adressen in bcc, het onderwerp en de link', () => {
         fixture.componentInstance.hideMailInfo = false;
-        fixture.componentInstance.mailAddresses = 'a@gimmi.be,b@gimmi.be';
+        fixture.componentInstance.mailAddresses = 'a@gimmi.be, b@gimmi.be';
         fixture.componentInstance.send();
         expect(fixture.componentInstance.hideMailInfo).toBe(true);
-        expect(communication.sendMail).toHaveBeenCalledTimes(2);
-        const mail = communication.sendMail.mock.calls[0][0];
-        expect(mail.to).toBe('a@gimmi.be');
-        expect(mail.subject).toBe('[GIMMI] Ria Receiver nodigt je uit.');
-        expect(mail.html).toContain('https://www.gimmi.be/people/ria?e=a%40gimmi.be');
-        expect(communication.sendMail.mock.calls[1][0].to).toBe('b@gimmi.be');
+        expect(open).toHaveBeenCalledTimes(1);
+        const mailto = new URL(open.mock.calls[0][0]);
+        expect(mailto.protocol).toBe('mailto:');
+        expect(mailto.searchParams.get('bcc')).toBe('a@gimmi.be,b@gimmi.be');
+        expect(mailto.searchParams.get('subject')).toBe('[GIMMI] Ria Receiver nodigt je uit.');
+        expect(mailto.searchParams.get('body')).toContain('https://www.gimmi.be/people/ria');
+    });
+
+    it('zonder adres opent er niets', () => {
+        fixture.componentInstance.mailAddresses = ' , ';
+        fixture.componentInstance.send();
+        fixture.componentInstance.mailAddresses = undefined;
+        fixture.componentInstance.send();
+        expect(open).not.toHaveBeenCalled();
     });
 });

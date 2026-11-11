@@ -37,12 +37,7 @@ describe('jwtInterceptor', () => {
 
   afterEach(() => backend.verify());
 
-  it('ingelogd, naar de API: het token als Authorization-header', () => {
-    token.set('jwt-123');
-    expect(header(environment.apiUrl + 'wish/w1')).toBe('jwt-123');
-  });
-
-  it('ingelogd, naar API v2: het token als Bearer', () => {
+  it('ingelogd, naar de API: het token als Bearer', () => {
     token.set('jwt-123');
     expect(header(environment.apiV2Url + 'me')).toBe('Bearer jwt-123');
   });
@@ -53,8 +48,8 @@ describe('jwtInterceptor', () => {
   });
 
   it('niet ingelogd of zonder token: geen header', () => {
-    expect(header(environment.apiUrl + 'people')).toBeNull();
+    expect(header(environment.apiV2Url + 'people')).toBeNull();
     token.set('');
-    expect(header(environment.apiUrl + 'people')).toBeNull();
+    expect(header(environment.apiV2Url + 'people')).toBeNull();
   });
 });
