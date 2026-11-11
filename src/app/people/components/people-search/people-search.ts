@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, Subject, merge, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap } from "rxjs/operators";
@@ -10,7 +10,6 @@ import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { NgbHighlight, NgbTypeahead as NgbTypeahead_1 } from '@ng-bootstrap/ng-bootstrap/typeahead';
-import { FormsModule } from '@angular/forms';
 
 /** A search result as the typeahead shows it. */
 export type PersonResult = PersonRef & { fullName: string };
@@ -23,7 +22,7 @@ const minSearchLength = 2;
     templateUrl: './people-search.html',
     styleUrls: ['./people-search.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FaIconComponent, NgbHighlight, FormsModule, NgbTypeahead_1]
+    imports: [FaIconComponent, NgbHighlight, NgbTypeahead_1]
 })
 export class PeopleSearch {
   private people = inject(People);
@@ -32,12 +31,12 @@ export class PeopleSearch {
 
   // Ngbtypeahead variables
   readonly instance = viewChild<NgbTypeahead>('instance');
+  readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
   focus$ = new Subject<string>();
   click$ = new Subject<string>();
   // Icons variables
   userIcon = faUserCircle;
   searchIcon = faSearch;
-  selectedPerson: PersonResult | null = null;
 
   search = (text$: Observable<string>) : Observable<(PersonResult | null)[]> => {
     const debouncedText$ = text$.pipe(
@@ -78,6 +77,8 @@ export class PeopleSearch {
     } else {
       this.router.navigate(['/people/invite']);
     }
-    this.selectedPerson = null;
+    // `preventDefault` keeps the typeahead from writing the person in the field: empty it for the next search.
+    const input = this.searchInput();
+    if (input) input.nativeElement.value = '';
   }
 }

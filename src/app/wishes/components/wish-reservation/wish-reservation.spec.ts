@@ -1,6 +1,5 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { of } from 'rxjs';
 
@@ -27,6 +26,7 @@ describe('WishReservation', () => {
     async function kies(optie: string) {
         const select = reden();
         select.value = Array.from(select.options).find(o => o.textContent.trim() === optie).value;
+        select.dispatchEvent(new Event('input'));
         select.dispatchEvent(new Event('change'));
         await fixture.whenStable();
     }
@@ -43,7 +43,7 @@ describe('WishReservation', () => {
             showNotification: vi.fn().mockName("NotificationService.showNotification")
         };
         await TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, WishReservation],
+    imports: [WishReservation],
     providers: [
         { provide: NgbActiveModal, useValue: activeModal },
         { provide: AuthStore, useValue: fakeAuthStore(testUser({ id: 'rob', firstName: 'Rob', lastName: 'Reservator', fullName: 'Rob Reservator', email: 'rob@gimmi.be' })) },

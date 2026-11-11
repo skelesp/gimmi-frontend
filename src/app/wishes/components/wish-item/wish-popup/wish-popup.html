@@ -9,82 +9,82 @@
   </ngb-alert>
 }
 
-<form [formGroup]="wishForm" (ngSubmit)="saveWish()">
+<form (submit)="saveWish($event)" novalidate>
   <div class="modal-body container">
     <div class="row">
       <div class="col-7">
         <div class="mb-3 required">
           <label for="wishTitle" class="form-control-label">Titel</label>
-          <input  type="text" class="form-control form-control-sm" name="wishTitle" id="wishTitle"
+          <input type="text" class="form-control form-control-sm" id="wishTitle"
             placeholder="Titel"
-            formControlName="title"
+            [formField]="wishForm.title"
             NgbAutoFocus />
-            @if (wishForm.get('title').errors?.required) {
-              <small class="text-danger">
-              Titel is een verplicht veld</small>
-            }
-          </div>
-          <div class="mb-3">
-            <label for="wishPrice" class="form-control-label">Prijs</label>
-            <div class="input-group input-group-sm mb-2">
-              <div class="input-group-prepend">
-                <div class="input-group-text">€</div>
-              </div>
-              <input type="number" class="form-control form-control-sm" name="inputPrice" id="WishPrice"
-                placeholder="Prijs"
-                formControlName="price" />
-              </div>
-            </div>
-            <div class="mb-3 mt-2">
-              <gimmi-image-upload
-                [searchTerm]="wishForm.get('title').value"
-                (previewChanged)="imagePreview = $event"
-                (imageUploaded)="updateWishImage($event)"
-              ></gimmi-image-upload>
-            </div>
-          </div>
-          <div class="col-5">
-            <div class="mb-3">
-              <gimmi-image-view
-                class="img-fluid rounded float-end"
-                [image]="wishForm.get('image').value"
-                sizes="200px"
-                [preview]="imagePreview"
-              ></gimmi-image-view>
-            </div>
-          </div>
+          @if (wishForm.title().invalid()) {
+            <small class="text-danger">{{ wishForm.title().errors()[0].message }}</small>
+          }
         </div>
-        <div class="row">
-          <div class="mb-3 col-12">
-            <label for="wishUrl" class="form-control-label">Website/webshop</label>
-            <input type="text" class="form-control form-control-sm" id="WishUrl"
-              placeholder="Link naar externe website"
-              formControlName="url"/>
+        <div class="mb-3">
+          <label for="WishPrice" class="form-control-label">Prijs</label>
+          <div class="input-group input-group-sm mb-2">
+            <div class="input-group-prepend">
+              <div class="input-group-text">€</div>
             </div>
-            <div class="mb-3 col-6">
-              <label for="wishColor" class="form-control-label">Kleur</label>
-              <input type="text" class="form-control form-control-sm" id="wishColor"
-                placeholder="Gewenste kleur"
-                formControlName="color" />
-              </div>
-              <div class="mb-3 col-6">
-                <label for="wishSize" class="form-control-label">Grootte/Maat</label>
-                <input type="text" class="form-control form-control-sm" id="WishSize"
-                  placeholder="Gewenste maat"
-                  formControlName="size"/>
-                </div>
-                <div class="mb-3 col-12">
-                  <label for="wishDescription" class="form-control-label">Beschrijving</label>
-                  <textarea class="form-control form-control-sm" rows="3" id="wishDescription"
-                    placeholder="Geef een korte beschrijving van je wens"
-                    formControlName="description">
-                  </textarea>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-danger" type="submit" [disabled]="wishForm.invalid"
-              aria-describedby="saveHelpText">{{actionButtonText}}</button>
-              <button class="btn btn-outline-danger" type="button" (click)="cancel()">Annuleer</button>
-            </div>
-          </form>
+            <input type="text" inputmode="decimal" class="form-control form-control-sm" id="WishPrice"
+              placeholder="Prijs"
+              [formField]="wishForm.price" />
+          </div>
+          @if (wishForm.price().invalid()) {
+            <small class="text-danger">{{ wishForm.price().errors()[0].message }}</small>
+          }
+        </div>
+        <div class="mb-3 mt-2">
+          <gimmi-image-upload
+            [searchTerm]="wishForm.title().value()"
+            (previewChanged)="imagePreview = $event"
+            (imageUploaded)="updateWishImage($event)"
+          ></gimmi-image-upload>
+        </div>
+      </div>
+      <div class="col-5">
+        <div class="mb-3">
+          <gimmi-image-view
+            class="img-fluid rounded float-end"
+            [image]="image()"
+            sizes="200px"
+            [preview]="imagePreview"
+          ></gimmi-image-view>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="mb-3 col-12">
+        <label for="WishUrl" class="form-control-label">Website/webshop</label>
+        <input type="text" class="form-control form-control-sm" id="WishUrl"
+          placeholder="Link naar externe website"
+          [formField]="wishForm.url"/>
+      </div>
+      <div class="mb-3 col-6">
+        <label for="wishColor" class="form-control-label">Kleur</label>
+        <input type="text" class="form-control form-control-sm" id="wishColor"
+          placeholder="Gewenste kleur"
+          [formField]="wishForm.color" />
+      </div>
+      <div class="mb-3 col-6">
+        <label for="WishSize" class="form-control-label">Grootte/Maat</label>
+        <input type="text" class="form-control form-control-sm" id="WishSize"
+          placeholder="Gewenste maat"
+          [formField]="wishForm.size"/>
+      </div>
+      <div class="mb-3 col-12">
+        <label for="wishDescription" class="form-control-label">Beschrijving</label>
+        <textarea class="form-control form-control-sm" rows="3" id="wishDescription"
+          placeholder="Geef een korte beschrijving van je wens"
+          [formField]="wishForm.description"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-danger" type="submit" [disabled]="wishForm().invalid()">{{actionButtonText}}</button>
+    <button class="btn btn-outline-danger" type="button" (click)="cancel()">Annuleer</button>
+  </div>
+</form>

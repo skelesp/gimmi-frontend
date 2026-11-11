@@ -72,7 +72,7 @@ describe('PeopleSearch', () => {
         fixture.componentInstance.onPersonSelect(event);
         expect(event.preventDefault).toHaveBeenCalled();
         expect(router.navigate).toHaveBeenCalledWith(['/people', 'ria']);
-        expect(fixture.componentInstance.selectedPerson).toBeNull();
+        expect(fixture.componentInstance.searchInput().nativeElement.value).toBe('');
     });
 
     it('"niet gevonden" kiezen opent het uitnodigen', () => {

@@ -24,9 +24,16 @@ describe('MailToButton', () => {
         expect(fixture.componentInstance.hideMailInfo).toBe(false);
     });
 
-    it('opent de mailapp met alle adressen in bcc, het onderwerp en de link', () => {
+    async function typAdressen(adressen: string) {
+        const veld = fixture.nativeElement.querySelector('#mailAddresses') as HTMLTextAreaElement;
+        veld.value = adressen;
+        veld.dispatchEvent(new Event('input'));
+        await fixture.whenStable();
+    }
+
+    it('opent de mailapp met alle adressen in bcc, het onderwerp en de link', async () => {
         fixture.componentInstance.hideMailInfo = false;
-        fixture.componentInstance.mailAddresses = 'a@gimmi.be, b@gimmi.be';
+        await typAdressen('a@gimmi.be, b@gimmi.be');
         fixture.componentInstance.send();
         expect(fixture.componentInstance.hideMailInfo).toBe(true);
         expect(open).toHaveBeenCalledTimes(1);
@@ -37,10 +44,9 @@ describe('MailToButton', () => {
         expect(mailto.searchParams.get('body')).toContain('https://www.gimmi.be/people/ria');
     });
 
-    it('zonder adres opent er niets', () => {
-        fixture.componentInstance.mailAddresses = ' , ';
+    it('zonder adres opent er niets', async () => {
         fixture.componentInstance.send();
-        fixture.componentInstance.mailAddresses = undefined;
+        await typAdressen(' , ');
         fixture.componentInstance.send();
         expect(open).not.toHaveBeenCalled();
     });

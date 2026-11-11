@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { By } from '@angular/platform-browser';
+import { NgbActiveModal, NgbRating } from '@ng-bootstrap/ng-bootstrap';
 
 import { Person } from 'src/app/people/models/person.model';
 import { Wish } from '../../models/wish.model';
@@ -13,6 +14,14 @@ describe('GiftFeedback', () => {
     let activeModal: Record<string, any>;
 
     function el(): HTMLElement { return fixture.nativeElement; }
+    function opslaan(): HTMLButtonElement { return el().querySelector('.modal-footer .btn-danger'); }
+    function rate(waarde: number) { fixture.debugElement.query(By.directive(NgbRating)).triggerEventHandler('rateChange', waarde); }
+    async function typ(selector: string, waarde: string) {
+        const veld = el().querySelector<HTMLInputElement | HTMLTextAreaElement>(selector);
+        veld.value = waarde;
+        veld.dispatchEvent(new Event('input'));
+        await fixture.whenStable();
+    }
 
     beforeEach(async () => {
         activeModal = { close: vi.fn(), dismiss: vi.fn() };
@@ -29,21 +38,50 @@ describe('GiftFeedback', () => {
 
     it('vermeldt wie het cadeau gaf en vult de datum in met de reservatiedatum', () => {
         expect(el().querySelector('.alert').textContent).toContain('Je kreeg het cadeau "Fiets" van Rob Reservator');
-        expect(fixture.componentInstance.giftFeedbackForm.value.receivedOn).toBe('2026-03-05');
+        expect(el().querySelector<HTMLInputElement>('#receivedOn').value).toBe('2026-03-05');
     });
 
     it('opslaan kan pas met een tevredenheid', async () => {
-        const knop = el().querySelector('.modal-footer .btn-danger') as HTMLButtonElement;
-        expect(knop.disabled).toBe(true);
-        fixture.componentInstance.giftFeedbackForm.patchValue({ satisfaction: 4 });
+        expect(opslaan().disabled).toBe(true);
+        rate(4);
         await fixture.whenStable();
-        expect(knop.disabled).toBe(false);
+        expect(opslaan().disabled).toBe(false);
     });
 
-    it('opslaan sluit de popup met de feedback voor API v2 (tevredenheid als getal, datum als tekst)', () => {
-        fixture.componentInstance.giftFeedbackForm.patchValue({ satisfaction: 5, message: 'Dank!', putBackOnList: true });
-        fixture.componentInstance.saveGiftFeedback();
+    it('zonder datum kan er niet opgeslagen worden en komt er een melding', async () => {
+        rate(4);
+        await typ('#receivedOn', '');
+        el().querySelector('#receivedOn').dispatchEvent(new Event('blur'));
+        await fixture.whenStable();
+        expect(opslaan().disabled).toBe(true);
+        expect(el().textContent).toContain('De afgiftedatum moet ingevuld worden.');
+    });
+
+    it('een datum in de toekomst wordt geweigerd', async () => {
+        rate(4);
+        await typ('#receivedOn', '2999-01-01');
+        el().querySelector('#receivedOn').dispatchEvent(new Event('blur'));
+        await fixture.whenStable();
+        expect(opslaan().disabled).toBe(true);
+        expect(el().textContent).toContain('De afgiftedatum kan niet in de toekomst liggen.');
+    });
+
+    it('opslaan sluit de popup met de feedback voor API v2 (tevredenheid als getal, datum als tekst)', async () => {
+        rate(5);
+        await typ('#message', 'Dank!');
+        el().querySelector<HTMLInputElement>('#putBackOnList').click();
+        await fixture.whenStable();
+        opslaan().click();
+        await fixture.whenStable();
         expect(activeModal.close).toHaveBeenCalledWith({ satisfaction: 5, receivedOn: '2026-03-05', message: 'Dank!', putBackOnList: true });
+    });
+
+    it('een lege boodschap gaat als null mee', async () => {
+        rate(3);
+        await fixture.whenStable();
+        opslaan().click();
+        await fixture.whenStable();
+        expect(activeModal.close).toHaveBeenCalledWith({ satisfaction: 3, receivedOn: '2026-03-05', message: null, putBackOnList: false });
     });
 
     it('annuleren en sluiten via het kruisje', () => {
