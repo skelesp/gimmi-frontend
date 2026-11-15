@@ -150,7 +150,7 @@ export class ImagePicker implements OnInit, OnDestroy {
     let foto: Blob;
     try {
       foto = await verkleinAfbeelding(bestand);
-    } catch (e) {
+    } catch {
       this.bezigMet.set(null);
       this.uploadFout.set('Deze afbeelding kunnen we niet lezen. Kies een andere (jpg, png, webp of gif).');
       return;

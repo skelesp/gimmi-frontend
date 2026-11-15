@@ -1,5 +1,6 @@
+import type { Mock } from 'vitest';
 import { provideRouter } from '@angular/router';
-import { NO_ERRORS_SCHEMA, WritableSignal, signal } from '@angular/core';
+import { NO_ERRORS_SCHEMA, Signal, WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
@@ -8,7 +9,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ImagesData } from 'src/app/features/images/images-data';
 import { viewWishAs } from 'src/app/features/wishes/wish.testing';
 import { Notifications } from 'src/app/core/notifications';
-import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
+import { fakeAuthStore } from 'src/app/core/auth/auth-store.testing';
 import { AuthStore } from 'src/app/core/auth/auth-store';
 import { Wish, WishStatus } from 'src/app/features/wishes/wish';
 import type { PersonRef } from 'src/app/features/people/service/people';
@@ -32,7 +33,7 @@ describe('WishPage', () => {
     let component: WishPage;
     let selectedWish: WritableSignal<Wish | null>;
     let loading: WritableSignal<boolean>;
-    let wishService: { selectedWish: any; selectedLoading: any; select: ReturnType<typeof vi.fn> };
+    let wishService: { selectedWish: Signal<Wish | null>; selectedLoading: Signal<boolean>; select: Mock };
 
     function maakWens(opties: {
         status?: WishStatus;

@@ -12,7 +12,7 @@ describe('ImageView', () => {
     const img = (): HTMLImageElement => fixture.nativeElement.querySelector('img');
 
     // OnPush: inputs via setInput (die markeert de view), daarna wachten tot de weergave bijgewerkt is.
-    async function toon(image: any) {
+    async function toon(image: unknown) {
         fixture.componentRef.setInput('image', image);
         await fixture.whenStable();
     }
@@ -64,7 +64,7 @@ describe('ImageView', () => {
     });
 
     it('een oud Cloudinary-veld (zonder sleutel) telt als geen beeld (sc-3070)', async () => {
-        await toon({ publicId: 'wish_images/w1', version: '3' } as any);
+        await toon({ publicId: 'wish_images/w1', version: '3' });
         expect(img().getAttribute('src')).toBe(STANDAARD_AFBEELDING);
         expect(img().hasAttribute('srcset')).toBe(false);
     });

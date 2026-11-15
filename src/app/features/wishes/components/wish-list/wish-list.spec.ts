@@ -1,5 +1,5 @@
 import type { Mock } from "vitest";
-import { NO_ERRORS_SCHEMA, SimpleChange, WritableSignal, signal } from '@angular/core';
+import { NO_ERRORS_SCHEMA, Signal, SimpleChange, WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbAlertModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 
@@ -23,9 +23,9 @@ describe('WishList', () => {
     let listError: WritableSignal<unknown>;
     let problems: { show: Mock };
     let wishService: {
-        wishes: any;
-        listLoading: any;
-        listError: any;
+        wishes: Signal<Wish[]>;
+        listLoading: Signal<boolean>;
+        listError: Signal<unknown>;
         showList: Mock;
     };
 

@@ -1,9 +1,9 @@
+import type { Mock } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { of } from 'rxjs';
 
 import { Notifications } from 'src/app/core/notifications';
-import { Wish } from 'src/app/features/wishes/wish';
 import { WishesData } from '../../wishes-data';
 import { WishDelete } from './wish-delete';
 import { apiWish } from 'src/app/features/wishes/wish.testing';
@@ -12,9 +12,9 @@ import { apiWish } from 'src/app/features/wishes/wish.testing';
 describe('WishDelete', () => {
     const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     let fixture: ComponentFixture<WishDelete>;
-    let activeModal: Record<string, any>;
-    let wishService: Record<string, any>;
-    let notifications: Record<string, any>;
+    let activeModal: Record<string, Mock>;
+    let wishService: Record<string, Mock>;
+    let notifications: Record<string, Mock>;
 
     function el(): HTMLElement { return fixture.nativeElement; }
 

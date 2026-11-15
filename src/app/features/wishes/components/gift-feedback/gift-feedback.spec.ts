@@ -1,9 +1,9 @@
+import type { Mock } from 'vitest';
 import type { Schema } from 'src/app/core/api/api-types';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { NgbActiveModal, NgbRating } from '@ng-bootstrap/ng-bootstrap';
 
-import { Wish } from 'src/app/features/wishes/wish';
 import { GiftFeedback } from './gift-feedback';
 import { apiWish } from 'src/app/features/wishes/wish.testing';
 
@@ -12,7 +12,7 @@ describe('GiftFeedback', () => {
     const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     const rob = { id: 'rob', firstName: 'Rob', lastName: 'Reservator' };
     let fixture: ComponentFixture<GiftFeedback>;
-    let activeModal: Record<string, any>;
+    let activeModal: Record<string, Mock>;
 
     function el(): HTMLElement { return fixture.nativeElement; }
     function opslaan(): HTMLButtonElement { return el().querySelector('.modal-footer .btn-danger'); }

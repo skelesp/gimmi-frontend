@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Notifications } from 'src/app/core/notifications';
@@ -6,7 +7,7 @@ import { CopyToClipboardButton } from './copy-to-clipboard-button';
 // Knop "Kopieer naar klembord" in de deelpopup.
 describe('CopyToClipboardButton', () => {
     let fixture: ComponentFixture<CopyToClipboardButton>;
-    let notifications: Record<string, any>;
+    let notifications: Record<string, Mock>;
 
     beforeEach(async () => {
         notifications = { showNotification: vi.fn() };

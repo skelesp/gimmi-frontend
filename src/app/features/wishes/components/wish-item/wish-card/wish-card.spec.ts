@@ -1,5 +1,5 @@
+import type { Mock } from 'vitest';
 import { provideRouter } from '@angular/router';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -44,13 +44,13 @@ describe('WishCard', () => {
 
     let fixture: ComponentFixture<WishCard>;
     let component: WishCard;
-    let modal: Record<string, any>;
-    let wishService: Record<string, any>;
-    let images: Record<string, any>;
-    let notifications: Record<string, any>;
+    let modal: Record<string, Mock>;
+    let wishService: Record<string, Mock>;
+    let images: Record<string, Mock>;
+    let notifications: Record<string, Mock>;
     let popup: {
-        componentInstance: any;
-        result: Promise<any>;
+        componentInstance: Record<string, unknown>;
+        result: Promise<unknown>;
     };
 
     function maakWens(opties: {
@@ -92,11 +92,11 @@ describe('WishCard', () => {
     }
 
     beforeEach(async () => {
-        popup = { componentInstance: {}, result: new Promise(() => { }) };
+        popup = { componentInstance: {}, result: new Promise(() => undefined) };
         modal = {
             open: vi.fn().mockName("NgbModal.open")
         };
-        modal.open.mockImplementation(() => popup as any);
+        modal.open.mockImplementation(() => popup);
         wishService = {
             fulfill: vi.fn().mockName("WishesData.fulfill"),
             update: vi.fn().mockName("WishesData.update"),
@@ -251,7 +251,7 @@ describe('WishCard', () => {
         it('feedback-popup weggeklikt: niets bevestigd', async () => {
             const wens = maakWens({ status: 'received', reservedBy: rob, viewer: 'ria' });
             popup.result = Promise.reject('Cancel');
-            popup.result.catch(() => { });   // geen unhandled rejection vóór de component luistert
+            popup.result.catch((): void => undefined);   // geen unhandled rejection vóór de component luistert
             await toon(wens);
             cta().click();
             await vi.advanceTimersByTimeAsync(0);
