@@ -1,7 +1,8 @@
 import { provideRouter } from '@angular/router';
 import { NO_ERRORS_SCHEMA, WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { of } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { ImagesData } from 'src/app/features/images/images-data';
@@ -30,6 +31,8 @@ describe('WishPage', () => {
     let fixture: ComponentFixture<WishPage>;
     let component: WishPage;
     let selectedWish: WritableSignal<Wish | null>;
+    let loading: WritableSignal<boolean>;
+    let wishService: { selectedWish: any; selectedLoading: any; select: ReturnType<typeof vi.fn> };
 
     function maakWens(opties: {
         status?: WishStatus;
@@ -63,19 +66,21 @@ describe('WishPage', () => {
 
     beforeEach(async () => {
         selectedWish = signal<Wish | null>(null);
+        loading = signal(false);
+        wishService = { selectedWish: selectedWish.asReadonly(), selectedLoading: loading.asReadonly(), select: vi.fn() };
         TestBed.overrideComponent(WishPage, { remove: { imports: [FaIconComponent, ActionList, WishBanner, ImageView, WishCallToActionButton] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
     imports: [WishPage],
     providers: [
         provideRouter([]),
-        { provide: WishesData, useValue: { selectedWish: selectedWish.asReadonly() } },
+        { provide: WishesData, useValue: wishService },
         { provide: NgbModal, useValue: {
                 open: vi.fn().mockName("NgbModal.open")
             } },
         { provide: Notifications, useValue: {} },
         { provide: AuthStore, useValue: fakeAuthStore() },
         { provide: ImagesData, useValue: {} },
-        { provide: ActivatedRoute, useValue: {} }
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ wishId: 'w1' })) } }
     ],
     schemas: [NO_ERRORS_SCHEMA]
 }).compileComponents();
@@ -136,6 +141,26 @@ describe('WishPage', () => {
         expect(component.wishActionItems.map(a => a.text)).toEqual(['Aanpassen', 'Verwijderen']);
         expect(fixture.debugElement.query(el => el.name === 'gimmi-action-list').nativeElement.actionListItems)
             .toBe(component.wishActionItems);
+    });
+
+    it('vraagt de wens uit de route', async () => {
+        await toon(maakWens({ viewer: 'rob' }));
+        expect(wishService.select).toHaveBeenCalledWith('w1');
+    });
+
+    it('terwijl de wens laadt: een spinner, geen wens', async () => {
+        loading.set(true);
+        fixture = TestBed.createComponent(WishPage);
+        await fixture.whenStable();
+        expect(fixture.nativeElement.querySelector('.spinner-border')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('h2')).toBeNull();
+    });
+
+    it('een wens die niet bestaat: een melding', async () => {
+        fixture = TestBed.createComponent(WishPage);
+        await fixture.whenStable();
+        expect(fixture.nativeElement.textContent).toContain('deze wens werd niet gevonden');
+        expect(fixture.nativeElement.querySelector('.spinner-border')).toBeNull();
     });
 
     it('volgt de geselecteerde wens: een wijziging (bv. een reservatie) is meteen zichtbaar', async () => {

@@ -79,7 +79,9 @@ export class WishItem implements OnInit {
     this.defineWishActions();
   }
 
-  private defineWishActions(): void {
+  protected defineWishActions(): void {
+    this.wishActionItems = [];
+    if (!this.wish) return;
     if (canDo(this.wish, 'copy')) this.wishActionItems.push(this.actionListItemConfigs.copy);
     if (canDo(this.wish, 'update')) this.wishActionItems.unshift(this.actionListItemConfigs.edit);
     if (canDo(this.wish, 'delete')) this.wishActionItems.push(this.actionListItemConfigs.delete);

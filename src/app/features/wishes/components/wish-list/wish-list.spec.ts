@@ -2,7 +2,6 @@ import type { Mock } from "vitest";
 import { NO_ERRORS_SCHEMA, SimpleChange, WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbAlertModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
-import { Subject } from 'rxjs';
 
 import { Wish, WishStatus } from 'src/app/features/wishes/wish';
 import { FilterOnStatePipe } from '../../pipes/filter-on-state-pipe';
@@ -20,11 +19,14 @@ describe('WishList', () => {
     let fixture: ComponentFixture<WishList>;
     let component: WishList;
     let wishes: WritableSignal<Wish[]>;
-    let antwoord$: Subject<Wish[]>;
+    let loading: WritableSignal<boolean>;
+    let listError: WritableSignal<unknown>;
     let problems: { show: Mock };
     let wishService: {
         wishes: any;
-        getWishlist: Mock;
+        listLoading: any;
+        listError: any;
+        showList: Mock;
     };
 
     function wens(titel: string, status: WishStatus): Wish {
@@ -36,7 +38,6 @@ describe('WishList', () => {
         component.ngOnChanges({ receiver: new SimpleChange(null, ria, true) });
         await fixture.whenStable();
         wishes.set(lijst);
-        antwoord$.next(lijst);
         await fixture.whenStable();
     }
 
@@ -53,9 +54,10 @@ describe('WishList', () => {
 
     beforeEach(async () => {
         wishes = signal<Wish[]>([]);
-        antwoord$ = new Subject<Wish[]>();
+        loading = signal(false);
+        listError = signal<unknown>(undefined);
         problems = { show: vi.fn().mockName('ProblemNotifier.show') };
-        wishService = { wishes: wishes.asReadonly(), getWishlist: vi.fn().mockName('getWishlist').mockReturnValue(antwoord$) };
+        wishService = { wishes: wishes.asReadonly(), listLoading: loading.asReadonly(), listError: listError.asReadonly(), showList: vi.fn().mockName('showList') };
         TestBed.overrideComponent(WishList, { remove: { imports: [WishCreateCard, WishCard] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
     imports: [NgbNavModule, NgbAlertModule, WishList, FilterOnStatePipe],
@@ -70,29 +72,45 @@ describe('WishList', () => {
         component.receiver = ria;
         component.ngOnChanges({ receiver: new SimpleChange(null, ria, true) });
         await fixture.whenStable();
-        expect(wishService.getWishlist).toHaveBeenCalledWith('ria');
-        expect(component.loading()).toBe(true);
+        expect(wishService.showList).toHaveBeenCalledWith('ria');
+        loading.set(true);
+        await fixture.whenStable();
         expect(fixture.nativeElement.querySelector('.spinner-border')).toBeTruthy();
 
-        antwoord$.next([]);
+        loading.set(false);
         await fixture.whenStable();
-        expect(component.loading()).toBe(false);
         expect(fixture.nativeElement.querySelector('.spinner-border')).toBeNull();
     });
 
-    it('een fout van de server stopt de spinner en wordt gemeld', async () => {
+    it('een fout van de server wordt gemeld (de resource verpakt hem)', async () => {
         const problem = new ApiProblem({ status: 404, code: 'not-found' as never });
-        component.receiver = ria;
-        component.ngOnChanges({ receiver: new SimpleChange(null, ria, true) });
-        antwoord$.error(problem);
+        await laad([]);
+        listError.set(Object.assign(new Error('Resource is currently in an error state'), { cause: problem }));
         await fixture.whenStable();
-        expect(component.loading()).toBe(false);
+        expect(problems.show).toHaveBeenCalledWith(problem);
+    });
+
+    it('een fout die geen ApiProblem is, komt in de console', async () => {
+        const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
+        const fout = new Error('stuk');
+        await laad([]);
+        listError.set(fout);
+        await fixture.whenStable();
+        expect(problems.show).not.toHaveBeenCalled();
+        expect(consoleError).toHaveBeenCalledWith(fout);
+    });
+
+    it('een ApiProblem zonder verpakking wordt ook gemeld', async () => {
+        const problem = new ApiProblem({ status: 403, code: 'forbidden' as never });
+        await laad([]);
+        listError.set(problem);
+        await fixture.whenStable();
         expect(problems.show).toHaveBeenCalledWith(problem);
     });
 
     it('andere wijziging dan de ontvanger: geen nieuwe ophaling', () => {
         component.ngOnChanges({ wishlistFilter: new SimpleChange(null, ['Open'], true) });
-        expect(wishService.getWishlist).not.toHaveBeenCalled();
+        expect(wishService.showList).not.toHaveBeenCalled();
     });
 
     it('tab "Wensenlijst": open, gereserveerde en ontvangen (nog niet afgesloten) wensen', async () => {

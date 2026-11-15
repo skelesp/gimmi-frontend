@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, effect, inject, signal } from '@angular/core';
 import { ApiProblem } from 'src/app/core/api/api-problem';
 import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
 import { WishStatus } from '../../wish';
@@ -22,24 +22,25 @@ export class WishList implements OnChanges {
 
   @Input() receiver : { id: string; firstName: string };
   readonly wishes = this.wishService.wishes;
+  readonly loading = this.wishService.listLoading;
   readonly wishlistFilter = signal<WishStatus[]>(undefined);
-  readonly loading = signal(false);
   readonly activeTab = signal("Open");
-  
+
+  constructor() {
+    effect(() => {
+      const error = this.wishService.listError();
+      if (!error) return;
+      // A resource wraps what the request threw.
+      const cause = error instanceof ApiProblem ? error : (error as { cause?: unknown }).cause;
+      if (cause instanceof ApiProblem) this.problems.show(cause);
+      else console.error(error);
+    });
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.receiver) {
-      this.loading.set(true);
-      this.wishService.getWishlist(this.receiver.id).subscribe({
-        next: () => {
-          this.loading.set(false);
-          this.setWishlistFilter('Open');
-        },
-        error: error => {
-          this.loading.set(false);
-          if (error instanceof ApiProblem) this.problems.show(error);
-          else console.error(error);
-        }
-      });
+      this.wishService.showList(this.receiver.id);
+      this.setWishlistFilter('Open');
     }
   }
 

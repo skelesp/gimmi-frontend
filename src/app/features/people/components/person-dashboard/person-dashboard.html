@@ -1,4 +1,8 @@
-@if (!profile()) {
+@if (loading()) {
+  <div class="spinner-border text-danger" role="status">
+    <span class="visually-hidden">Laden...</span>
+  </div>
+} @else if (!profile()) {
   <div class="container">
     <ngb-alert>Sorry, geen lijst gevonden.</ngb-alert>
   </div>
