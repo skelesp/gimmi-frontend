@@ -1,8 +1,8 @@
+import type { Mock } from 'vitest';
 
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal, NgbAlertModule } from '@ng-bootstrap/ng-bootstrap';
-import { of } from 'rxjs';
 
 import { AuthStore } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
@@ -20,8 +20,8 @@ describe('WishPopup', () => {
     const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     let fixture: ComponentFixture<WishPopup>;
     let component: WishPopup;
-    let activeModal: Record<string, any>;
-    let wishService: Record<string, any>;
+    let activeModal: Record<string, Mock>;
+    let wishService: Record<string, Mock>;
 
     function bestaandeWens(): Wish {
         const w = apiWish({ id: 'w1', title: 'Fiets', price: { amount: 25000, currency: 'EUR' }, links: [{ url: 'www.fiets.be' }], receiver: ria, createdBy: ria, color: 'rood', size: 'L', description: 'Met bel' });
@@ -66,7 +66,7 @@ describe('WishPopup', () => {
 
     it('titel en knoptekst per modus', async () => {
         const verwacht: [
-            any,
+            WishPopup['mode'] | undefined,
             string,
             string
         ][] = [

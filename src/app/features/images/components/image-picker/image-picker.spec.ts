@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal, NgbAlertModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
@@ -15,10 +16,10 @@ import { boodschapVoor, ImagePicker, MAX_BESTAND_BYTES } from './image-picker';
 describe('ImagePicker', () => {
     let fixture: ComponentFixture<ImagePicker>;
     let component: ImagePicker;
-    let beelden: Record<string, any>;
-    let zoekService: Record<string, any>;
-    let toestel: Record<string, any>;
-    let modal: Record<string, any>;
+    let beelden: Record<string, Mock>;
+    let zoekService: Record<string, Mock>;
+    let toestel: Record<string, Mock>;
+    let modal: Record<string, Mock>;
 
     const resultaat = (n: number): IImageSearchResult => ({
         url: `https://winkel.be/${n}.jpg`, thumbnailUrl: `https://imgs.search.brave.com/${n}`,

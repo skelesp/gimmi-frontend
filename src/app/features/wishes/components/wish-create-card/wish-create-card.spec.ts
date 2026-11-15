@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ModalDismissReasons, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -7,7 +8,7 @@ import { Notifications } from 'src/app/core/notifications';
 import { AuthStore } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { ImageView } from '../../../images/components/image-view/image-view';
-import { Wish, WishDraft } from 'src/app/features/wishes/wish';
+import { WishDraft } from 'src/app/features/wishes/wish';
 import { WishesData } from '../../wishes-data';
 import { WishCreateCard } from './wish-create-card';
 import { apiWish } from 'src/app/features/wishes/wish.testing';
@@ -17,16 +18,16 @@ describe('WishCreateCard', () => {
     const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     const rob = testUser({ id: 'rob', firstName: 'Rob', lastName: 'Reservator', fullName: 'Rob Reservator', email: 'rob@gimmi.be' });
     let fixture: ComponentFixture<WishCreateCard>;
-    let modal: Record<string, any>;
-    let popup: { componentInstance: Record<string, any>; result: Promise<any> };
-    let wishService: Record<string, any>;
-    let notifications: Record<string, any>;
+    let modal: Record<string, Mock>;
+    let popup: { componentInstance: Record<string, unknown>; result: Promise<unknown> };
+    let wishService: Record<string, Mock>;
+    let notifications: Record<string, Mock>;
 
     function klik() {
         (fixture.nativeElement.querySelector('.card-img-overlay') as HTMLElement).click();
     }
 
-    function open(result: Promise<any>) {
+    function open(result: Promise<unknown>) {
         popup = { componentInstance: {}, result };
         modal.open.mockReturnValue(popup);
     }
@@ -35,7 +36,7 @@ describe('WishCreateCard', () => {
         modal = { open: vi.fn() };
         wishService = { create: vi.fn() };
         notifications = { showNotification: vi.fn() };
-        vi.spyOn(console, 'warn').mockImplementation(() => { });
+        vi.spyOn(console, 'warn').mockImplementation(() => undefined);
         TestBed.overrideComponent(WishCreateCard, { remove: { imports: [ImageView] }, add: { schemas: [CUSTOM_ELEMENTS_SCHEMA] } });
         await TestBed.configureTestingModule({
             imports: [WishCreateCard],

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
@@ -7,7 +8,7 @@ import { modalsClosedGuard } from './modals-closed-guard';
 
 // Navigeren terwijl er een modal open staat sluit eerst de modal (sc-2693).
 describe('modalsClosedGuard', () => {
-    let modal: Record<string, any>;
+    let modal: Record<string, Mock>;
     const route = {} as ActivatedRouteSnapshot;
     const state = {} as RouterStateSnapshot;
 
@@ -22,9 +23,6 @@ describe('modalsClosedGuard', () => {
     function check() {
         return TestBed.runInInjectionContext(() => modalsClosedGuard(route, state));
     }
-
-    beforeEach(() => {
-    });
 
     it('zonder open modal: navigatie gaat door', () => {
         modal.hasOpenModals.mockReturnValue(false);

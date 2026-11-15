@@ -1,5 +1,5 @@
 import { convertToParamMap, provideRouter } from '@angular/router';
-import { NO_ERRORS_SCHEMA, WritableSignal, signal } from '@angular/core';
+import { DebugElement, NO_ERRORS_SCHEMA, WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
@@ -38,7 +38,7 @@ describe('PersonDashboard', () => {
 
     function el(): HTMLElement { return fixture.nativeElement; }
 
-    function kind(naam: string): any {
+    function kind(naam: string): DebugElement {
         return fixture.debugElement.query(e => e.name === naam);
     }
 

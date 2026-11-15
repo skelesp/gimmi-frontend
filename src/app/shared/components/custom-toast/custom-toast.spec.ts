@@ -1,17 +1,13 @@
+import type { Mock } from 'vitest';
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Toast } from '../../../core/toaster';
 
 import { CustomToast } from './custom-toast';
 
 // Notificatiepopup (sc-2000), ook met tekst over meerdere regels (sc-2187).
 describe('CustomToast', () => {
     let fixture: ComponentFixture<CustomToast>;
-    let toast: Record<string, any> & {
-        text: string;
-        caption: string;
-        type: string;
-    };
+    let toast: { close: Mock; text: string; caption: string; type: string };
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({ imports: [CustomToast] }).compileComponents();
@@ -23,7 +19,7 @@ describe('CustomToast', () => {
             type: 'success'
         });
         fixture = TestBed.createComponent(CustomToast);
-        fixture.componentInstance.toast = toast as any;
+        fixture.componentInstance.toast = toast as unknown as typeof fixture.componentInstance.toast;
         await fixture.whenStable();
     });
 
