@@ -29,6 +29,8 @@ async function main(): Promise<void> {
         lastName: account.lastName,
         email: account.email,
         birthday: new Date(1990, 4, 17),
+        likes: [],
+        dislikes: [],
         accounts: { local: { password: passwordHash } },
         tokenVersion: 0,
         birthdayVisibility: 'day-month',
