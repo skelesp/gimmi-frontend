@@ -1,4 +1,5 @@
-import { Service, inject, signal } from '@angular/core';
+import { Service, computed, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, Observable, of } from 'rxjs';
 import { catchError, expand, map, reduce, switchMap, tap } from 'rxjs/operators';
 
@@ -12,39 +13,72 @@ import { Wish, WishDraft, wishUrl } from './wish';
 // A page holds at most 100 wishes; a list is read to the end (there is no "load more" yet).
 const pageSize = 100;
 
-/** Everything about wishes goes to API v2: reading, the wish itself, reserving and confirming a gift. */
+/**
+ * Everything about wishes goes to API v2. Reading is done by two resources (the list that is shown and the wish
+ * of the wish page); a write puts its answer in them, so the screen follows without reading again.
+ */
 @Service()
 export class WishesData {
   private api = inject(ApiClient);
   private problems = inject(ProblemNotifier);
 
-  private readonly wishList = signal<Wish[]>([]);
-  /** The wishes of the list that was loaded last. */
-  readonly wishes = this.wishList.asReadonly();
-  private readonly receiverId = signal<string | null>(null);
-  /** The person whose list was loaded last. */
+  private readonly receiverId = signal<string | undefined>(undefined);
+  /** The person whose list is shown. */
   readonly currentReceiverId = this.receiverId.asReadonly();
-  private readonly selected = signal<Wish | null>(null);
-  /** The wish the wish page shows. */
-  readonly selectedWish = this.selected.asReadonly();
+  private readonly list = rxResource({
+    params: () => this.receiverId(),
+    stream: ({ params }) => this.readList(params),
+    defaultValue: [] as Wish[]
+  });
+  /** The wishes of the list that is shown; none while it loads or when it could not be read. */
+  readonly wishes = computed(() => this.list.hasValue() ? this.list.value() : []);
+  readonly listLoading = this.list.isLoading;
+  /** Why the list could not be read; `undefined` when it could. */
+  readonly listError = this.list.error;
 
-  public getWishlist(receiverId: string): Observable<Wish[]> {
+  private readonly selectedId = signal<string | undefined>(undefined);
+  // A wish that is on the list on screen is not read again.
+  private readonly idToRead = computed(() => {
+    const id = this.selectedId();
+    return id && !this.wishes().some(wish => wish.id === id) ? id : undefined;
+  });
+  private readonly readWish = rxResource({
+    params: () => this.idToRead(),
+    stream: ({ params }) => this.fetchWish(params)
+  });
+  /** The wish the wish page shows: from the list, or read on its own; `null` while it loads or when it cannot be shown. */
+  readonly selectedWish = computed(() => {
+    const id = this.selectedId();
+    const read = this.readWish.hasValue() ? this.readWish.value() : undefined;
+    return this.wishes().find(wish => wish.id === id) ?? (id && read?.id === id ? read : null);
+  });
+  readonly selectedLoading = this.readWish.isLoading;
+
+  /** Shows the list of this person; it is read to the end, page by page. */
+  public showList(receiverId: string): void {
     this.receiverId.set(receiverId);
+  }
+
+  /** Shows this wish on the wish page. */
+  public select(wishId: string | null | undefined): void {
+    this.selectedId.set(wishId || undefined);
+  }
+
+  private readList(receiverId: string): Observable<Wish[]> {
     const page = (cursor?: string) => this.api.get('/people/{personId}/wishes', {
       path: { personId: receiverId },
       query: { limit: pageSize, cursor }
     });
     return page().pipe(
       expand(wishPage => wishPage.nextCursor ? page(wishPage.nextCursor) : EMPTY),
-      reduce((items, wishPage) => [...items, ...wishPage.items], [] as Wish[]),
-      tap(wishes => this.wishList.set(wishes))
+      reduce((items, wishPage) => [...items, ...wishPage.items], [] as Wish[])
     );
   }
 
   /** Reserves the wish for the viewer, or changes the viewer's own reservation. The giver comes from the token. */
   public addReservation(wish: Wish, reservation: { handoverDate: string; occasion: Schema<'Occasion'> }) : Observable<Wish> {
     return this.api.put('/wishes/{wishId}/reservation', { path: { wishId: wish.id }, body: reservation }).pipe(
-      tap(reserved => this.updateWishInWishlist(reserved)),
+      tap(reserved => this.replaceInView(reserved)),
       this.showProblem(() => this.reloadWish(wish))
     );
   }
@@ -74,7 +108,7 @@ export class WishesData {
       path: { wishId: wish.id },
       body: { ...feedback, message: blankToNull(feedback.message) }
     }).pipe(
-      tap(fulfilled => this.updateWishInWishlist(fulfilled)),
+      tap(fulfilled => this.replaceInView(fulfilled)),
       switchMap(fulfilled => this.addRelistedWish(fulfilled)),
       this.showProblem()
     );
@@ -110,25 +144,9 @@ export class WishesData {
     const changes = this.changesTo(wish, draft);
     if (Object.keys(changes).length === 0) return of(wish);
     return this.api.patch('/wishes/{wishId}', { path: { wishId: wish.id }, body: changes }).pipe(
-      tap(updated => this.updateWishInWishlist(updated)),
+      tap(updated => this.replaceInView(updated)),
       this.showProblem()
     );
-  }
-
-  public getWishById ( wishID: string ) : Observable<Wish> {
-    // Check wish caches for wishID
-    if (this.selected()?.id === wishID) return of(this.selected());
-
-    const index = this.findWishInWishlist(wishID);
-    if (index !== -1) {
-      const cachedWish: Wish = this.wishList()[index];
-      this.updateSelectedWish(cachedWish);
-      return of(cachedWish);
-    }
-
-    return wishID ?
-      this.fetchWish(wishID).pipe(tap(wish => this.updateSelectedWish(wish)))
-      : of(null);
   }
 
   /* PRIVATE methods */
@@ -138,14 +156,13 @@ export class WishesData {
 
   /** Reads the wish again after a write, and puts the fresh version in the list. */
   private reloadWish (wish: Wish) : Observable<Wish> {
-    return this.fetchWish(wish.id).pipe(tap(updated => this.updateWishInWishlist(updated)));
+    return this.fetchWish(wish.id).pipe(tap(updated => this.replaceInView(updated)));
   }
 
   /** The viewer now has a copy of this wish on their list: the "already on your list" warning follows. */
   private markCopied (originalId: string, copyId: string) : void {
-    const copied = (wish: Wish) => wish.id === originalId ? { ...wish, viewer: { ...wish.viewer, ownCopyId: copyId } } : wish;
-    this.wishList.update(wishes => wishes.map(copied));
-    if (this.selected()) this.selected.update(copied);
+    const original = this.findKnownWish(originalId);
+    if (original) this.replaceInView({ ...original, viewer: { ...original.viewer, ownCopyId: copyId } });
   }
 
   /** Shows an `ApiProblem` as a toast and ends the stream without a value, so the "it worked" messages stay away. */
@@ -159,8 +176,8 @@ export class WishesData {
   }
 
   private findKnownWish (wishId: string) : Wish | undefined {
-    return this.wishList().find(wish => wish.id === wishId)
-      ?? (this.selected()?.id === wishId ? this.selected() : undefined);
+    const selected = this.selectedWish();
+    return this.wishes().find(wish => wish.id === wishId) ?? (selected?.id === wishId ? selected : undefined);
   }
 
   private createBody (draft: WishDraft) : Schema<'WishCreate'> {
@@ -199,39 +216,18 @@ export class WishesData {
     return changes;
   }
 
-  private updateSelectedWish ( wish: Wish ) : void {
-    this.selected.set(wish);
-  }
-
-  private findWishInWishlist (wishID : string) : number {
-    return this.wishList().findIndex(item => item.id === wishID);
-  }
-
-  private updateWishInWishlist(updatedWish: Wish): void {
-    const currentWishlist = [...this.wishList()]; //spread operator passes a copy of the array, so change detection will detect this change.
-    if (currentWishlist.length !== 0) {
-      const index = this.findWishInWishlist(updatedWish.id);
-      if (index !== -1) currentWishlist[index] = updatedWish;
-    }
-    this.wishList.set(currentWishlist);
-
-    if (this.selected()) this.updateSelectedWish(updatedWish);
+  /** Puts the new version of a wish in the list and on the wish page, wherever it is shown. */
+  private replaceInView ( updated : Wish ) : void {
+    this.list.value.set(this.wishes().map(wish => wish.id === updated.id ? updated : wish));
+    if (this.readWish.hasValue() && this.readWish.value().id === updated.id) this.readWish.value.set(updated);
   }
 
   private addWishToWishlist ( newWish : Wish) : void {
-    if (this.receiverId() === newWish.receiver.id) {
-      const wishlist = [...this.wishList()]; // nieuwe verwijzing: een signal (toSignal) negeert dezelfde array
-      wishlist.unshift(newWish);
-      this.wishList.set(wishlist);
-    }
+    if (this.receiverId() === newWish.receiver.id) this.list.value.set([newWish, ...this.wishes()]);
   }
 
   private deleteWishFromWishlist (deletedWish : Wish) {
-    const filteredWishlist = this.wishList().filter( wish => {
-      return wish.id !== deletedWish.id;
-    }); // Filter always returns copy of array
-
-    this.wishList.set(filteredWishlist);
+    this.list.value.set(this.wishes().filter(wish => wish.id !== deletedWish.id));
   }
 }
 

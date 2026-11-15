@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResourceRef, httpResource } from '@angular/common/http';
 import { Service, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -31,6 +31,19 @@ export class ApiClient {
 
   put<P extends ApiPath<'put'>>(path: P, ...args: ArgsOf<P, 'put'>): Observable<ResponseOf<P, 'put'>> {
     return this.request('put', path, args[0]);
+  }
+
+  /**
+   * Reads a resource reactively (`httpResource`): it loads again when the options change, and stays idle while
+   * `options` gives `undefined`. The value is writable, so a screen can show the answer of a write without a new read.
+   *
+   *   api.resource('/wishes/{wishId}', () => id() ? { path: { wishId: id() } } : undefined)
+   */
+  resource<P extends ApiPath<'get'>>(path: P, options: () => NonNullable<ArgsOf<P, 'get'>[0]> | undefined): HttpResourceRef<ResponseOf<P, 'get'> | undefined> {
+    return httpResource<ResponseOf<P, 'get'>>(() => {
+      const current = options() as Options | undefined;
+      return current && { url: buildUrl(path, current.path as Record<string, string>), params: buildParams(current.query as Record<string, unknown>) };
+    });
   }
 
   /** Partial update as JSON Merge Patch (RFC 7396): `null` removes a field, an absent field stays. */

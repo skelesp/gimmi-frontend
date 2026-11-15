@@ -35,7 +35,9 @@ export class GiftFeedback implements OnInit {
   protected readonly ratingIcon = faThumbsUp;
 
   ngOnInit(): void {
-    const defaultReceivedDate = new Date(this.wish.reservation.reservedAt).toISOString().slice(0, 10);
+    // The reservation date, or the handover date when the server does not show the first; today when there is neither.
+    const { reservedAt, handoverDate } = this.wish.reservation ?? {};
+    const defaultReceivedDate = reservedAt || handoverDate ? new Date(reservedAt ?? handoverDate).toISOString().slice(0, 10) : this.maxDate;
     this.feedback.update(feedback => ({ ...feedback, receivedOn: defaultReceivedDate }));
   }
 

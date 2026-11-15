@@ -1,3 +1,4 @@
+import type { Schema } from 'src/app/core/api/api-types';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { NgbActiveModal, NgbRating } from '@ng-bootstrap/ng-bootstrap';
@@ -40,6 +41,17 @@ describe('GiftFeedback', () => {
     it('vermeldt wie het cadeau gaf en vult de datum in met de reservatiedatum', () => {
         expect(el().querySelector('.alert').textContent).toContain('Je kreeg het cadeau "Fiets" van Rob Reservator');
         expect(el().querySelector<HTMLInputElement>('#receivedOn').value).toBe('2026-03-05');
+    });
+
+    it('zonder reservatiedatum (de server toont die niet): de overhandigingsdatum, anders vandaag', async () => {
+        const open = async (reservation: Schema<'Reservation'>) => {
+            fixture = TestBed.createComponent(GiftFeedback);
+            fixture.componentInstance.wish = apiWish({ id: 'w1', title: 'Fiets', receiver: ria, createdBy: ria, reservation });
+            await fixture.whenStable();
+            return el().querySelector<HTMLInputElement>('#receivedOn').value;
+        };
+        expect(await open({ reservedBy: rob, handoverDate: '2026-04-01' })).toBe('2026-04-01');
+        expect(await open({ reservedBy: rob })).toBe(new Date().toISOString().slice(0, 10));
     });
 
     it('opslaan kan pas met een tevredenheid', async () => {
