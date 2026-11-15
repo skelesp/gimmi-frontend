@@ -1,11 +1,11 @@
 import { Service, inject } from '@angular/core';
-import { NotificationService } from '../../shared/services/notification.service';
+import { Notifications } from '../notifications';
 import { ApiProblem } from './api-problem';
 import { problemMessage } from './error-messages';
 
 @Service()
 export class ProblemNotifier {
-  private notifications = inject(NotificationService);
+  private notifications = inject(Notifications);
 
   /** Shows the message for the problem as a toast; for a server error also the `requestId` (Sentry trace). */
   show(problem: ApiProblem): void {

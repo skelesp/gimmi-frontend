@@ -1,8 +1,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
-    "ignoreDeprecations": "6.0",
+    "paths": { "src/*": ["./src/*"] },
     "strict": true,
     "strictNullChecks": false,
     "strictPropertyInitialization": false,
@@ -18,7 +17,6 @@
     "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
-    "fullTemplateTypeCheck": true,
     "strictTemplates": true,
     "strictInjectionParameters": true
   }

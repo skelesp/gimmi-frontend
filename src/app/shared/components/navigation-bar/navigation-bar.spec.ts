@@ -6,9 +6,9 @@ import { AuthStore, CurrentUser } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { NavigationBar } from './navigation-bar';
 import { BrandLogo } from '../brand-logo/brand-logo';
-import { PeopleSearch } from '../../../people/components/people-search/people-search';
-import { UserMenu } from '../../../users/components/user-menu/user-menu';
-import { UnknownUserMenu } from '../../../users/components/unknown-user-menu/unknown-user-menu';
+import { PeopleSearch } from '../../../features/people/components/people-search/people-search';
+import { UserMenu } from '../../../features/users/components/user-menu/user-menu';
+import { UnknownUserMenu } from '../../../features/users/components/unknown-user-menu/unknown-user-menu';
 
 // Navigatiebalk (sc-2001). Het zoekveld staat vast in de balk en niet in het inklapmenu (sc-41).
 describe('NavigationBar', () => {

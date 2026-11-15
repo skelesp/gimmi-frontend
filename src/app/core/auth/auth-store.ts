@@ -2,7 +2,7 @@ import { Service, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { NotificationService } from '../../shared/services/notification.service';
+import { Notifications } from '../notifications';
 import { ApiClient } from '../api/api-client';
 import { ApiProblem } from '../api/api-problem';
 import type { Schema } from '../api/api-types';
@@ -32,7 +32,7 @@ const storageKey = 'currentUser';
 export class AuthStore {
   private api = inject(ApiClient);
   private router = inject(Router);
-  private notifications = inject(NotificationService);
+  private notifications = inject(Notifications);
 
   private readonly session = signal<Session | null>(this.readSession());
 

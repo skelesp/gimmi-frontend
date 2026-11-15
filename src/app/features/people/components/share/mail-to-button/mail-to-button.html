@@ -1,0 +1,13 @@
+<button type="button" class="btn btn-sm btn-social btn-danger" (click)="hideMailInfo=!hideMailInfo">
+    <fa-icon [icon]="mailIcon"></fa-icon> Mail de link
+</button>
+<div #collapse="ngbCollapse" [(ngbCollapse)]="hideMailInfo">
+    <div class="card border-light bg-light mt-1">
+        <div class="card-body">
+            <textarea [formField]="mailForm.addresses" class="form-control" id="mailAddresses"
+                aria-describedby="Emailadresses" placeholder="Voeg hier de emailadressen toe die je wilt uitnodigen."></textarea>
+            <small id="emailHelp" class="form-text text-muted">Meerdere emailadressen scheiden door een komma (",")</small>
+            <button class="btn btn-sm btn-outline-danger float-end mt-3" type="button" (click)="send()">Verzend de mail</button>
+        </div>
+    </div>
+</div>
