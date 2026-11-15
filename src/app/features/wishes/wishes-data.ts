@@ -1,4 +1,5 @@
-import { Service, inject, signal } from '@angular/core';
+import { Service, computed, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { EMPTY, Observable, of } from 'rxjs';
 import { catchError, expand, map, reduce, switchMap, tap } from 'rxjs/operators';
 
@@ -7,47 +8,77 @@ import { ApiProblem } from 'src/app/core/api/api-problem';
 import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
 import { validateUrl } from 'src/app/core/url-utility';
 import type { Schema } from 'src/app/core/api/api-types';
-import { Person } from 'src/app/features/people/models/person.model';
-import { Wish } from './models/wish.model';
-import { wishFromApi } from './models/wish-from-api';
+import { Wish, WishDraft, wishUrl } from './wish';
 
 // A page holds at most 100 wishes; a list is read to the end (there is no "load more" yet).
 const pageSize = 100;
 
-/** Everything about wishes goes to API v2: reading, the wish itself, reserving and confirming a gift. */
+/**
+ * Everything about wishes goes to API v2. Reading is done by two resources (the list that is shown and the wish
+ * of the wish page); a write puts its answer in them, so the screen follows without reading again.
+ */
 @Service()
 export class WishesData {
   private api = inject(ApiClient);
   private problems = inject(ProblemNotifier);
 
-  private readonly wishList = signal<Wish[]>([]);
-  /** The wishes of the list that was loaded last. */
-  readonly wishes = this.wishList.asReadonly();
-  private readonly receiver = signal<Person | null>(null);
-  readonly currentReceiver = this.receiver.asReadonly();
-  private readonly selected = signal<Wish | null>(null);
-  /** The wish the wish page shows. */
-  readonly selectedWish = this.selected.asReadonly();
+  private readonly receiverId = signal<string | undefined>(undefined);
+  /** The person whose list is shown. */
+  readonly currentReceiverId = this.receiverId.asReadonly();
+  private readonly list = rxResource({
+    params: () => this.receiverId(),
+    stream: ({ params }) => this.readList(params),
+    defaultValue: [] as Wish[]
+  });
+  /** The wishes of the list that is shown; none while it loads or when it could not be read. */
+  readonly wishes = computed(() => this.list.hasValue() ? this.list.value() : []);
+  readonly listLoading = this.list.isLoading;
+  /** Why the list could not be read; `undefined` when it could. */
+  readonly listError = this.list.error;
 
-  public getWishlist(receiver: Person): Observable<Wish[]> {
-    this.receiver.set(receiver);
+  private readonly selectedId = signal<string | undefined>(undefined);
+  // A wish that is on the list on screen is not read again.
+  private readonly idToRead = computed(() => {
+    const id = this.selectedId();
+    return id && !this.wishes().some(wish => wish.id === id) ? id : undefined;
+  });
+  private readonly readWish = rxResource({
+    params: () => this.idToRead(),
+    stream: ({ params }) => this.fetchWish(params)
+  });
+  /** The wish the wish page shows: from the list, or read on its own; `null` while it loads or when it cannot be shown. */
+  readonly selectedWish = computed(() => {
+    const id = this.selectedId();
+    const read = this.readWish.hasValue() ? this.readWish.value() : undefined;
+    return this.wishes().find(wish => wish.id === id) ?? (id && read?.id === id ? read : null);
+  });
+  readonly selectedLoading = this.readWish.isLoading;
+
+  /** Shows the list of this person; it is read to the end, page by page. */
+  public showList(receiverId: string): void {
+    this.receiverId.set(receiverId);
+  }
+
+  /** Shows this wish on the wish page. */
+  public select(wishId: string | null | undefined): void {
+    this.selectedId.set(wishId || undefined);
+  }
+
+  private readList(receiverId: string): Observable<Wish[]> {
     const page = (cursor?: string) => this.api.get('/people/{personId}/wishes', {
-      path: { personId: receiver.id },
+      path: { personId: receiverId },
       query: { limit: pageSize, cursor }
     });
     return page().pipe(
       expand(wishPage => wishPage.nextCursor ? page(wishPage.nextCursor) : EMPTY),
-      reduce((items, wishPage) => [...items, ...wishPage.items], [] as Schema<'Wish'>[]),
-      map(items => items.map(wishFromApi)),
-      tap(wishes => this.wishList.set(wishes))
+      reduce((items, wishPage) => [...items, ...wishPage.items], [] as Wish[])
     );
   }
 
   /** Reserves the wish for the viewer, or changes the viewer's own reservation. The giver comes from the token. */
   public addReservation(wish: Wish, reservation: { handoverDate: string; occasion: Schema<'Occasion'> }) : Observable<Wish> {
     return this.api.put('/wishes/{wishId}/reservation', { path: { wishId: wish.id }, body: reservation }).pipe(
-      map(wishFromApi),
-      tap(reserved => this.updateWishInWishlist(reserved)),
+      tap(reserved => this.replaceInView(reserved)),
       this.showProblem(() => this.reloadWish(wish))
     );
   }
@@ -77,8 +108,7 @@ export class WishesData {
       path: { wishId: wish.id },
       body: { ...feedback, message: blankToNull(feedback.message) }
     }).pipe(
-      map(wishFromApi),
-      tap(fulfilled => this.updateWishInWishlist(fulfilled)),
+      tap(fulfilled => this.replaceInView(fulfilled)),
       switchMap(fulfilled => this.addRelistedWish(fulfilled)),
       this.showProblem()
     );
@@ -86,7 +116,7 @@ export class WishesData {
 
   /** Adds the wish that the server put back on the list to the list on screen; gives back the fulfilled wish. */
   private addRelistedWish (fulfilled: Wish) : Observable<Wish> {
-    const relistedId = fulfilled.giftFeedback?.relistedWishId;
+    const relistedId = fulfilled.fulfillment?.relistedWishId;
     if (!relistedId) return of(fulfilled);
     return this.fetchWish(relistedId).pipe(
       tap(relisted => this.addWishToWishlist(relisted)),
@@ -95,64 +125,44 @@ export class WishesData {
     );
   }
 
-  /** Adds the wish to the list of `newWish.receiver`; with `copyOf` it is a copy of that wish on the list of the viewer. */
-  public create ( newWish : Wish) : Observable<Wish>{
-    const created = newWish.copyOf
-      ? this.api.post('/wishes/{wishId}/copies', { path: { wishId: newWish.copyOf }, body: this.copyBody(newWish) })
-      : this.api.post('/people/{personId}/wishes', { path: { personId: newWish.receiver.id }, body: this.createBody(newWish) });
+  /** Adds the wish to the list of `receiverId`; with `copyOf` it is a copy of that wish on the list of the viewer. */
+  public create ( draft : WishDraft, receiverId: string) : Observable<Wish>{
+    const created = draft.copyOf
+      ? this.api.post('/wishes/{wishId}/copies', { path: { wishId: draft.copyOf }, body: this.copyBody(draft) })
+      : this.api.post('/people/{personId}/wishes', { path: { personId: receiverId }, body: this.createBody(draft) });
     return created.pipe(
-      map(wishFromApi),
       tap(wish => {
         this.addWishToWishlist(wish);
-        if (newWish.copyOf) this.markCopied(newWish.copyOf, wish.id);
+        if (draft.copyOf) this.markCopied(draft.copyOf, wish.id);
       }),
       this.showProblem()
     );
   }
 
-  /** Sends only what differs from the wish as we know it (JSON Merge Patch). */
-  public update ( wish : Wish ) : Observable<Wish>{
-    const original = this.findKnownWish(wish.id);
-    const changes = this.changesTo(wish, original);
-    if (Object.keys(changes).length === 0) return of(original ?? wish);
+  /** Sends only what differs between the wish and the draft (JSON Merge Patch). */
+  public update ( wish : Wish, draft: WishDraft ) : Observable<Wish>{
+    const changes = this.changesTo(wish, draft);
+    if (Object.keys(changes).length === 0) return of(wish);
     return this.api.patch('/wishes/{wishId}', { path: { wishId: wish.id }, body: changes }).pipe(
-      map(wishFromApi),
-      tap(updated => this.updateWishInWishlist(updated)),
+      tap(updated => this.replaceInView(updated)),
       this.showProblem()
     );
   }
 
-  public getWishById ( wishID: string ) : Observable<Wish> {
-    // Check wish caches for wishID
-    if (this.selected()?.id === wishID) return of(this.selected());
-
-    const index = this.findWishInWishlist(wishID);
-    if (index !== -1) {
-      const cachedWish: Wish = this.wishList()[index];
-      this.updateSelectedWish(cachedWish);
-      return of(cachedWish);
-    }
-
-    return wishID ?
-      this.fetchWish(wishID).pipe(tap(wish => this.updateSelectedWish(wish)))
-      : of(null);
-  }
-
   /* PRIVATE methods */
   private fetchWish (wishId: string) : Observable<Wish> {
-    return this.api.get('/wishes/{wishId}', { path: { wishId } }).pipe(map(wishFromApi));
+    return this.api.get('/wishes/{wishId}', { path: { wishId } });
   }
 
   /** Reads the wish again after a write, and puts the fresh version in the list. */
   private reloadWish (wish: Wish) : Observable<Wish> {
-    return this.fetchWish(wish.id).pipe(tap(updated => this.updateWishInWishlist(updated)));
+    return this.fetchWish(wish.id).pipe(tap(updated => this.replaceInView(updated)));
   }
 
   /** The viewer now has a copy of this wish on their list: the "already on your list" warning follows. */
   private markCopied (originalId: string, copyId: string) : void {
-    for (const wish of [...this.wishList(), this.selected()]) {
-      if (wish?.id === originalId && wish.viewer) wish.viewer = { ...wish.viewer, ownCopyId: copyId };
-    }
+    const original = this.findKnownWish(originalId);
+    if (original) this.replaceInView({ ...original, viewer: { ...original.viewer, ownCopyId: copyId } });
   }
 
   /** Shows an `ApiProblem` as a toast and ends the stream without a value, so the "it worked" messages stay away. */
@@ -166,39 +176,39 @@ export class WishesData {
   }
 
   private findKnownWish (wishId: string) : Wish | undefined {
-    return this.wishList().find(wish => wish.id === wishId)
-      ?? (this.selected()?.id === wishId ? this.selected() : undefined);
+    const selected = this.selectedWish();
+    return this.wishes().find(wish => wish.id === wishId) ?? (selected?.id === wishId ? selected : undefined);
   }
 
-  private createBody (wish: Wish) : Schema<'WishCreate'> {
+  private createBody (draft: WishDraft) : Schema<'WishCreate'> {
     return {
-      title: wish.title,
-      description: blankToNull(wish.description),
-      price: toMoney(wish.price),
-      links: toLinks(wish.url),
+      title: draft.title,
+      description: blankToNull(draft.description),
+      price: toMoney(draft.price),
+      links: toLinks(draft.url),
       // The server sets `url`; the generated type wants it too.
-      image: wish.image?.key ? { key: wish.image.key } as Schema<'Image'> : null,
-      color: blankToNull(wish.color),
-      size: blankToNull(wish.size)
+      image: draft.image?.key ? { key: draft.image.key } as Schema<'Image'> : null,
+      color: blankToNull(draft.color),
+      size: blankToNull(draft.size)
     };
   }
 
   /** What the copier filled in; the server copies the rest. The image is shared unless the copier chose another. */
-  private copyBody (copy: Wish) : Schema<'WishCopyCreate'> {
+  private copyBody (copy: WishDraft) : Schema<'WishCopyCreate'> {
     const { image, ...fields } = this.createBody(copy);
     const original = this.findKnownWish(copy.copyOf);
     const imageChanged = (copy.image?.key ?? null) !== (original?.image?.key ?? null);
     return imageChanged ? { ...fields, image } : fields;
   }
 
-  private changesTo (wish: Wish, original: Wish | undefined) : Schema<'WishUpdate'> {
-    const wanted = this.createBody(wish);
+  private changesTo (original: Wish, draft: WishDraft) : Schema<'WishUpdate'> {
+    const others = original.links.slice(1).map(link => link.url);
+    const wanted = this.createBody(draft);
     // The form shows the first link only: the others stay as they are.
-    wanted.links = toLinks(wish.url, original?.links.slice(1));
-    if (!original) return wanted;
+    wanted.links = toLinks(draft.url, others);
 
-    const known = this.createBody(original);
-    known.links = toLinks(original.links[0], original.links.slice(1));
+    const known = this.createBody(toDraft(original));
+    known.links = toLinks(original.links[0]?.url, others);
     const changes: Record<string, unknown> = {};
     for (const [field, value] of Object.entries(wanted)) {
       if (JSON.stringify(value) !== JSON.stringify(known[field as keyof typeof known])) changes[field] = value;
@@ -206,39 +216,18 @@ export class WishesData {
     return changes;
   }
 
-  private updateSelectedWish ( wish: Wish ) : void {
-    this.selected.set(wish);
-  }
-
-  private findWishInWishlist (wishID : string) : number {
-    return this.wishList().findIndex(item => item.id === wishID);
-  }
-
-  private updateWishInWishlist(updatedWish: Wish): void {
-    const currentWishlist = [...this.wishList()]; //spread operator passes a copy of the array, so change detection will detect this change.
-    if (currentWishlist.length !== 0) {
-      const index = this.findWishInWishlist(updatedWish.id);
-      if (index !== -1) currentWishlist[index] = updatedWish;
-    }
-    this.wishList.set(currentWishlist);
-
-    if (this.selected()) this.updateSelectedWish(updatedWish);
+  /** Puts the new version of a wish in the list and on the wish page, wherever it is shown. */
+  private replaceInView ( updated : Wish ) : void {
+    this.list.value.set(this.wishes().map(wish => wish.id === updated.id ? updated : wish));
+    if (this.readWish.hasValue() && this.readWish.value().id === updated.id) this.readWish.value.set(updated);
   }
 
   private addWishToWishlist ( newWish : Wish) : void {
-    if (this.receiver()?.id === newWish.receiver.id) {
-      const wishlist = [...this.wishList()]; // nieuwe verwijzing: een signal (toSignal) negeert dezelfde array
-      wishlist.unshift(newWish);
-      this.wishList.set(wishlist);
-    }
+    if (this.receiverId() === newWish.receiver.id) this.list.value.set([newWish, ...this.wishes()]);
   }
 
   private deleteWishFromWishlist (deletedWish : Wish) {
-    const filteredWishlist = this.wishList().filter( wish => {
-      return wish.id !== deletedWish.id;
-    }); // Filter always returns copy of array
-
-    this.wishList.set(filteredWishlist);
+    this.list.value.set(this.wishes().filter(wish => wish.id !== deletedWish.id));
   }
 }
 
@@ -253,3 +242,15 @@ const toMoney = (euros: number | null | undefined): Schema<'Money'> | null =>
 /** The first link from the form (made absolute) followed by the links the form does not show. */
 const toLinks = (first: string | null | undefined, others: string[] = []): Schema<'WishLink'>[] =>
   [...(first?.trim() ? [validateUrl(first)] : []), ...others].map(url => ({ url }));
+
+/** The wish as the form shows it. */
+export const toDraft = (wish: Wish): WishDraft => ({
+  title: wish.title,
+  price: wish.price ? wish.price.amount / 100 : null,
+  url: wishUrl(wish) ?? '',
+  color: wish.color ?? '',
+  size: wish.size ?? '',
+  description: wish.description ?? '',
+  image: wish.image,
+  copyOf: wish.copyOf
+});

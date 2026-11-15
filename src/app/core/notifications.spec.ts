@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 
 import { TestBed } from '@angular/core/testing';
 import { Toaster } from './toaster';
@@ -7,7 +8,7 @@ import { Notifications } from './notifications';
 // sc-2000 (flash messages): type en titel van de toast.
 describe('Notifications', () => {
     let service: Notifications;
-    let toaster: Record<string, any>;
+    let toaster: Record<string, Mock>;
 
     beforeEach(() => {
         toaster = {
@@ -18,7 +19,7 @@ describe('Notifications', () => {
     });
 
     function laatsteToast() {
-        return vi.mocked(toaster.open).mock.lastCall[0] as any;
+        return vi.mocked(toaster.open).mock.lastCall[0] as { type: string; caption: string; text: string };
     }
 
     it('success: type success, titel "Gelukt!!"', () => {

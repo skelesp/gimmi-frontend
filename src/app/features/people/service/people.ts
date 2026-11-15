@@ -1,3 +1,4 @@
+import { HttpResourceRef } from '@angular/common/http';
 import { Service, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -18,9 +19,15 @@ export class People {
     return this.api.get('/people', { query: { q: text } }).pipe(map(page => page.items));
   }
 
-  /** The profile of a person as the viewer may see it, with what the viewer may do (`viewer.can`). */
-  get(personId: string): Observable<PersonProfile> {
-    return this.api.get('/people/{personId}', { path: { personId } });
+  /**
+   * The profile of a person as the viewer may see it, with what the viewer may do (`viewer.can`). Loads again when
+   * `personId` changes and stays idle while it is `undefined`.
+   */
+  profile(personId: () => string | null | undefined): HttpResourceRef<PersonProfile | undefined> {
+    return this.api.resource('/people/{personId}', () => {
+      const id = personId();
+      return id ? { path: { personId: id } } : undefined;
+    });
   }
 
   /** Replaces the likes and dislikes of the person (only their own profile). */

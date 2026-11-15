@@ -15,14 +15,14 @@ describe('ImageUpload', () => {
     });
     let fixture: ComponentFixture<ImageUpload>;
     let component: ImageUpload;
-    let modalService: Record<string, any>;
+    let modalService: Record<string, Mock>;
     let kiezer: {
-        componentInstance: any;
-        result: Promise<any>;
+        componentInstance: Record<string, unknown>;
+        result: Promise<unknown>;
         dismiss: Mock;
     };
-    let sluit: (waarde: any) => void;
-    let annuleer: (reden: any) => void;
+    let sluit: (waarde: unknown) => void;
+    let annuleer: (reden: unknown) => void;
     let opgeladen: Mock;
 
     async function maak(opties: {

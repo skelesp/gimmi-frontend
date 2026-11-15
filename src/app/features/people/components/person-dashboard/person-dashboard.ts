@@ -1,10 +1,9 @@
-import { Component, ChangeDetectionStrategy, computed, inject, linkedSignal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStore } from 'src/app/core/auth/auth-store';
-import { Person } from '../../models/person.model';
-import { PersonProfile } from '../../service/people';
+import { People, PersonProfile } from '../../service/people';
 
 import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { Share } from '../share/share';
@@ -24,21 +23,21 @@ export class PersonDashboard {
   private route = inject(ActivatedRoute);
 
   readonly currentUser = this.auth.user;
-  private readonly routeProfile = toSignal(this.route.data.pipe(map(data => data.person as PersonProfile | null)));
-  /** The profile from the route; replaced by the answer when the likes and dislikes are saved. */
-  readonly profile = linkedSignal(() => this.routeProfile());
+  private readonly personId = toSignal(this.route.paramMap.pipe(map(params => params.get('personId'))));
+  private readonly profileResource = inject(People).profile(this.personId);
+  readonly loading = this.profileResource.isLoading;
+  /** The profile of the person in the route, or `null` while it loads and when it cannot be shown. */
+  readonly profile = computed(() => this.profileResource.hasValue() ? this.profileResource.value() : null);
   readonly personIsUser = computed(() => this.profile()?.viewer.isSelf ?? false);
   readonly canEdit = computed(() => this.profile()?.viewer.can.update ?? false);
-  /**
-   * The person as the (v1) wish list wants it. The same object for the same person, so saving the likes
-   * does not reload the wishes. Goes away with sc-3288.
-   */
+  /** The person whose list is shown. The same object for the same person, so saving the likes does not reload the wishes. */
   readonly receiver = computed(() => {
     const profile = this.profile();
-    return profile ? new Person(profile.id, profile.firstName, profile.lastName) : null;
+    return profile ? { id: profile.id, firstName: profile.firstName, lastName: profile.lastName } : null;
   }, { equal: (a, b) => a?.id === b?.id });
 
+  /** Shows the answer of saving the likes and dislikes, without reading the profile again. */
   updateProfile(profile: PersonProfile) {
-    this.profile.set(profile);
+    this.profileResource.value.set(profile);
   }
 }

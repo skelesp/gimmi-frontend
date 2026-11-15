@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -10,7 +11,7 @@ import { SharePopup } from './share-popup';
 describe('SharePopup', () => {
     let fixture: ComponentFixture<SharePopup>;
     let auth: ReturnType<typeof fakeAuthStore>;
-    let activeModal: Record<string, any>;
+    let activeModal: Record<string, Mock>;
     const ilse = testUser({ id: 'u1', firstName: 'Ilse', lastName: 'Ingelogd', fullName: 'Ilse Ingelogd', email: 'ilse@gimmi.be' });
 
     beforeEach(async () => {

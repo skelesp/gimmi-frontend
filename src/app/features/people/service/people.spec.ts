@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
@@ -31,11 +32,19 @@ describe('People', () => {
         expect(found).toEqual([{ id: 'p1', firstName: 'Ria', lastName: 'Receiver' }]);
     });
 
-    it('get: GET /people/{id}', () => {
-        let profile: unknown;
-        people.get('p1').subscribe(p => profile = p);
+    it('profile: GET /people/{id}, as a resource that waits for an id and reads again when it changes', async () => {
+        const id = signal<string | null>(null);
+        const profile = TestBed.runInInjectionContext(() => people.profile(id));
+        TestBed.tick();
+        http.expectNone(environment.apiV2Url + 'people/p1');
+        expect(profile.hasValue()).toBe(false);
+
+        id.set('p1');
+        TestBed.tick();
         http.expectOne(environment.apiV2Url + 'people/p1').flush(ria);
-        expect(profile).toEqual(ria);
+        await Promise.resolve();
+        TestBed.tick();
+        expect(profile.value()).toEqual(ria);
     });
 
     it('updatePreferences: PATCH as merge-patch with likes and dislikes, returns the profile', () => {

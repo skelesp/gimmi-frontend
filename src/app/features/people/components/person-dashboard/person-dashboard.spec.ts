@@ -1,12 +1,12 @@
-import { provideRouter } from '@angular/router';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { convertToParamMap, provideRouter } from '@angular/router';
+import { DebugElement, NO_ERRORS_SCHEMA, WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
 import { AuthStore, CurrentUser } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
-import { PersonProfile } from '../../service/people';
+import { People, PersonProfile } from '../../service/people';
 import { PersonDashboard } from './person-dashboard';
 import { Share } from '../share/share';
 import { ExtraInfo } from '../extra-info/extra-info';
@@ -17,6 +17,8 @@ import { WishList } from '../../../wishes/components/wish-list/wish-list';
 describe('PersonDashboard', () => {
     let fixture: ComponentFixture<PersonDashboard>;
     let auth: ReturnType<typeof fakeAuthStore>;
+    let profile: WritableSignal<PersonProfile | undefined>;
+    let loading: WritableSignal<boolean>;
     const ilse = testUser({ id: 'ilse', firstName: 'Ilse', lastName: 'Ingelogd', fullName: 'Ilse Ingelogd', email: 'ilse@gimmi.be' });
 
     function ria(isSelf = false): PersonProfile {
@@ -29,29 +31,39 @@ describe('PersonDashboard', () => {
 
     async function toon(person: PersonProfile | null, user: CurrentUser | null) {
         auth.user.set(user);
-        TestBed.overrideProvider(ActivatedRoute, { useValue: { data: of({ person }) } });
+        profile.set(person ?? undefined);
         fixture = TestBed.createComponent(PersonDashboard);
         await fixture.whenStable();
     }
 
     function el(): HTMLElement { return fixture.nativeElement; }
 
-    function kind(naam: string): any {
+    function kind(naam: string): DebugElement {
         return fixture.debugElement.query(e => e.name === naam);
     }
 
     beforeEach(async () => {
         auth = fakeAuthStore(null);
+        profile = signal<PersonProfile | undefined>(undefined);
+        loading = signal(false);
         TestBed.overrideComponent(PersonDashboard, { remove: { imports: [Share, ExtraInfo, WishList] }, add: { schemas: [NO_ERRORS_SCHEMA] } });
         await TestBed.configureTestingModule({
     imports: [PersonDashboard],
     providers: [
         provideRouter([]),
         { provide: AuthStore, useValue: auth },
-        { provide: ActivatedRoute, useValue: {} }
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ personId: 'ria' })) } },
+        { provide: People, useValue: { profile: vi.fn().mockReturnValue({ isLoading: loading.asReadonly(), hasValue: () => profile() !== undefined, value: profile }) } }
     ],
     schemas: [NO_ERRORS_SCHEMA]
 }).compileComponents();
+    });
+
+    it('terwijl het profiel laadt: een spinner en geen melding', async () => {
+        loading.set(true);
+        await toon(null, ilse);
+        expect(el().querySelector('.spinner-border')).toBeTruthy();
+        expect(el().querySelector('ngb-alert')).toBeNull();
     });
 
     it('onbekende persoon: "geen lijst gevonden"', async () => {
@@ -63,7 +75,7 @@ describe('PersonDashboard', () => {
     it('toont de naam, deelknop en de wenslijst van de persoon', async () => {
         await toon(ria(), ilse);
         expect(el().querySelector('h1').textContent.trim()).toBe('Ria Receiver');
-        expect(kind('gimmi-share').nativeElement.personToShare).toMatchObject({ id: 'ria', fullName: 'Ria Receiver' });
+        expect(kind('gimmi-share').nativeElement.personToShare).toMatchObject({ id: 'ria', firstName: 'Ria', lastName: 'Receiver' });
         expect(kind('gimmi-wish-list').nativeElement.receiver).toMatchObject({ id: 'ria', firstName: 'Ria', lastName: 'Receiver' });
     });
 

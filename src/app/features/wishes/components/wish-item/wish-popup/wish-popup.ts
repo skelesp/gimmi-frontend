@@ -3,7 +3,7 @@ import { FormField, form, required, submit, validate } from '@angular/forms/sign
 import { NgbActiveModal, NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { CurrentUser } from 'src/app/core/auth/auth-store';
 import { AuthStore } from 'src/app/core/auth/auth-store';
-import { IWishImage, Wish } from 'src/app/features/wishes/models/wish.model';
+import { Wish, WishDraft, WishImage, wishUrl } from 'src/app/features/wishes/wish';
 import { WishesData } from 'src/app/features/wishes/wishes-data';
 import { CursorPointer } from '../../../../../shared/directives/cursor-pointer';
 
@@ -22,7 +22,8 @@ export class WishPopup implements OnInit {
   auth = inject(AuthStore);
   wishService = inject(WishesData);
 
-  @Input() wish: Wish = new Wish(null, null, null, null, null, null, null, null, null, 1);
+  /** The wish to change or to copy; `null` for a new wish. */
+  @Input() wish: Wish | null = null;
   @Input() mode: 'edit' | 'create' | 'copy';
   /** What the visitor types; the price stays text until saving, so an empty price is not `0`. */
   protected readonly wishFields = signal({ title: '', price: '', url: '', color: '', size: '', description: '' });
@@ -32,7 +33,7 @@ export class WishPopup implements OnInit {
       value().trim() && !(parsePrice(value()) >= 0) ? { kind: 'price', message: 'Geef een geldige prijs in (bv. 25 of 25,50).' } : undefined);
   });
   /** The chosen image is not typed in a field: the image upload hands it over. */
-  readonly image = signal<IWishImage | undefined>(undefined);
+  readonly image = signal<WishImage | null>(null);
   actionButtonText: string;
   popupTitle: string;
   saving = false;
@@ -44,20 +45,21 @@ export class WishPopup implements OnInit {
   ngOnInit(): void {
     this.wishFields.set({
       title: this.wish?.title ?? '',
-      price: this.wish?.price == null ? '' : String(this.wish.price),
-      url: this.wish?.url ?? '',
+      price: this.wish?.price ? String(this.wish.price.amount / 100) : '',
+      url: this.wish ? wishUrl(this.wish) ?? '' : '',
       color: this.wish?.color ?? '',
       size: this.wish?.size ?? '',
-      description: this.wish?.description ?? ''
+      // A copy starts without the description of the original.
+      description: this.mode === 'copy' ? '' : this.wish?.description ?? ''
     });
-    this.image.set(this.wish?.image ?? undefined);
+    this.image.set(this.wish?.image ?? null);
 
     this.setSaveButtonText();
 
     this.currentUser = this.auth.user();
 
     // The server says whether the viewer already has a copy of this wish on their own list.
-    if (this.mode === 'copy' && this.wish.viewer?.ownCopyId) {
+    if (this.mode === 'copy' && this.wish?.viewer.ownCopyId) {
       this.showWarningExistingCopy.set(true);
     }
   }
@@ -83,7 +85,7 @@ export class WishPopup implements OnInit {
     }
   }
 
-  updateWishImage(newImage: IWishImage) {
+  updateWishImage(newImage: WishImage) {
     this.image.set(newImage);
   }
 
@@ -92,8 +94,13 @@ export class WishPopup implements OnInit {
     return submit(this.wishForm, async () => {
       this.saving = true;
       const { price, ...fields } = this.wishFields();
-      const returnedWish = { ...this.wish, ...fields, price: price.trim() ? parsePrice(price) : null, image: this.image() } as Wish;
-      this.activeModal.close(returnedWish);
+      const draft: WishDraft = {
+        ...fields,
+        price: price.trim() ? parsePrice(price) : null,
+        image: this.image(),
+        copyOf: this.mode === 'copy' ? this.wish.id : null
+      };
+      this.activeModal.close(draft);
     });
   }
 

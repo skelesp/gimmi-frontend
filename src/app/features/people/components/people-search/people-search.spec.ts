@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
@@ -14,7 +15,7 @@ describe('PeopleSearch', () => {
     let fixture: ComponentFixture<PeopleSearch>;
     let people: { search: ReturnType<typeof vi.fn> };
     let problems: { show: ReturnType<typeof vi.fn> };
-    let router: Record<string, any>;
+    let router: Record<string, Mock>;
 
     function zoek(term: string): (PersonResult | null)[] {
         let uitkomst: (PersonResult | null)[];

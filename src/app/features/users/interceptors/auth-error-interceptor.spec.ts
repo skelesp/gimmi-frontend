@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -14,14 +15,12 @@ import { authErrorInterceptor } from './auth-error-interceptor';
 describe('authErrorInterceptor', () => {
     let http: HttpClient;
     let backend: HttpTestingController;
-    let router: Record<string, any> & {
-        url: string;
-    };
-    let notifications: Record<string, any>;
+    let router: { navigate: Mock; url: string };
+    let notifications: Record<string, Mock>;
     let users: ReturnType<typeof fakeAuthStore>;
 
-    function vraag(url: string, status: number): any {
-        let fout: any;
+    function vraag(url: string, status: number): { status: number } {
+        let fout: { status: number };
         http.get(url).subscribe({ error: e => fout = e });
         backend.expectOne(url).flush({ message: 'x' }, { status, statusText: 'Fout' });
         return fout;

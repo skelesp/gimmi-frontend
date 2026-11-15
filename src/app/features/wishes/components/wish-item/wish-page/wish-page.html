@@ -1,3 +1,4 @@
+@if (wish) {
 
 <div class="container mt-2">
     <a [routerLink]="['/people', wish.receiver.id]" class="badge text-bg-secondary mb-2 lead"> 
@@ -6,7 +7,7 @@
         <div class="row">
             <div class="col col-11">
                 <h2>{{wish.title}}</h2>
-                <h6>voor {{wish.receiver.fullName}}
+                <h6>voor {{wish.receiver | fullName}}
                     <a class="badge text-bg-light text-dark p-0 ms-2"
                     [routerLink]="['/people', wish.receiver.id]" uib-tooltip="Terug naar lijst"
                     tooltip-placement="top-left" tooltip-class="customTooltip"><fa-icon [icon]="listIcon"></fa-icon></a>
@@ -18,7 +19,7 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <h3 class="float-end"><span class="badge rounded-pill text-bg-warning">{{wish.price | currency : "EUR" : 'symbol' : '1.2-2'}}</span></h3>
+                <h3 class="float-end"><span class="badge rounded-pill text-bg-warning">{{wish.price | euros | currency : "EUR" : 'symbol' : '1.2-2'}}</span></h3>
             </div>
         </div>
     </div>
@@ -39,16 +40,16 @@
                 </li>
                 <li class="list-group-item">
                     <fa-icon [icon]="userIcon" class="me-2"></fa-icon>
-                    Idee van: {{wish.createdBy.fullName}}
+                    Idee van: {{wish.createdBy | fullName}}
                 </li>
-                <li class="list-group-item" [hidden]="!wish.url">
+                <li class="list-group-item" [hidden]="!url">
                     <fa-icon [icon]="linkIcon" class="me-2"></fa-icon>
-                    <a href="{{wish.url}}" target="_blank">Externe website</a>
+                    <a [href]="url" target="_blank">Externe website</a>
                 </li>
                 <li class="list-group-item"
                     [hidden]="!canShowReservationStatus()">
                     <fa-icon [icon]="giftIcon" class="me-2"></fa-icon>Gereserveerd door:
-                    {{wish.reservation?.reservedBy.fullName}}
+                    {{wish.reservation?.reservedBy | fullName}}
                 </li>
                 <li class="list-group-item"
                     [hidden]="canShowReservationStatus()">
@@ -63,9 +64,9 @@
                 <li class="list-group-item" [hidden]="!wish.description">
                     <fa-icon [icon]="textIcon" class="me-2"></fa-icon>{{wish.description}}
                 </li>
-                <li class="list-group-item" [hidden]="!wish.closure">
+                <li class="list-group-item" [hidden]="!wish.fulfillment">
                     <fa-icon [icon]="doneIcon" class="me-2"></fa-icon>Afgesloten op:
-                    {{$safeNavigationMigration(wish.closure?.closedOn) | date: 'dd / MM / \'yy'}}
+                    {{wish.fulfillment?.fulfilledAt | date: 'dd / MM / \'yy'}}
                 </li>
             </ul>
         </div>
@@ -75,3 +76,14 @@
         </div>
     </div>
 </div>
+} @else if (loading()) {
+<div class="container mt-2">
+    <div class="spinner-border text-danger" role="status">
+        <span class="visually-hidden">Laden...</span>
+    </div>
+</div>
+} @else {
+<div class="container mt-2">
+    <div class="alert alert-info">Sorry, deze wens werd niet gevonden.</div>
+</div>
+}

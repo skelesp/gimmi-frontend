@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, ChangeDetectionStrategy, inject, output } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { IWishImage } from 'src/app/features/wishes/models/wish.model';
+import { WishImage } from 'src/app/features/wishes/wish';
 import { IGekozenAfbeelding, ImagePicker } from '../image-picker/image-picker';
 
 /**
@@ -22,7 +22,7 @@ export class ImageUpload implements OnDestroy {
 
   @Input() searchTerm = "";
 
-  readonly imageUploaded = output<IWishImage>();
+  readonly imageUploaded = output<WishImage>();
   /** Komt vlak vóór imageUploaded: een URL of data-URI die de browser meteen kan tonen. */
   readonly previewChanged = output<string>();
 

@@ -1,17 +1,18 @@
+import type { Mock } from 'vitest';
+import type { Schema } from 'src/app/core/api/api-types';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { NgbActiveModal, NgbRating } from '@ng-bootstrap/ng-bootstrap';
 
-import { Person } from 'src/app/features/people/models/person.model';
-import { Wish } from '../../models/wish.model';
 import { GiftFeedback } from './gift-feedback';
+import { apiWish } from 'src/app/features/wishes/wish.testing';
 
 // Feedbackpopup bij een ontvangen cadeau.
 describe('GiftFeedback', () => {
-    const ria = new Person('ria', 'Ria', 'Receiver');
-    const rob = new Person('rob', 'Rob', 'Reservator');
+    const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
+    const rob = { id: 'rob', firstName: 'Rob', lastName: 'Reservator' };
     let fixture: ComponentFixture<GiftFeedback>;
-    let activeModal: Record<string, any>;
+    let activeModal: Record<string, Mock>;
 
     function el(): HTMLElement { return fixture.nativeElement; }
     function opslaan(): HTMLButtonElement { return el().querySelector('.modal-footer .btn-danger'); }
@@ -30,15 +31,27 @@ describe('GiftFeedback', () => {
             providers: [{ provide: NgbActiveModal, useValue: activeModal }]
         }).compileComponents();
         fixture = TestBed.createComponent(GiftFeedback);
-        const wish = new Wish('w1', 'Fiets', 250, null, ria, ria, null, null, null, 1);
-        wish.reservation = { reservedBy: rob, reservationDate: new Date('2026-03-05T12:00:00Z') } as any;
-        fixture.componentInstance.wish = wish;
+        fixture.componentInstance.wish = apiWish({
+            id: 'w1', title: 'Fiets', price: { amount: 25000, currency: 'EUR' }, links: [], receiver: ria, createdBy: ria,
+            reservation: { reservedBy: rob, reservedAt: '2026-03-05T12:00:00Z' }
+        });
         await fixture.whenStable();
     });
 
     it('vermeldt wie het cadeau gaf en vult de datum in met de reservatiedatum', () => {
         expect(el().querySelector('.alert').textContent).toContain('Je kreeg het cadeau "Fiets" van Rob Reservator');
         expect(el().querySelector<HTMLInputElement>('#receivedOn').value).toBe('2026-03-05');
+    });
+
+    it('zonder reservatiedatum (de server toont die niet): de overhandigingsdatum, anders vandaag', async () => {
+        const open = async (reservation: Schema<'Reservation'>) => {
+            fixture = TestBed.createComponent(GiftFeedback);
+            fixture.componentInstance.wish = apiWish({ id: 'w1', title: 'Fiets', receiver: ria, createdBy: ria, reservation });
+            await fixture.whenStable();
+            return el().querySelector<HTMLInputElement>('#receivedOn').value;
+        };
+        expect(await open({ reservedBy: rob, handoverDate: '2026-04-01' })).toBe('2026-04-01');
+        expect(await open({ reservedBy: rob })).toBe(new Date().toISOString().slice(0, 10));
     });
 
     it('opslaan kan pas met een tevredenheid', async () => {

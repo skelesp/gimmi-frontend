@@ -2,7 +2,7 @@ import { Component, Input, ChangeDetectionStrategy, signal } from '@angular/core
 import { FormField, form } from '@angular/forms/signals';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
-import { PersonToShare } from 'src/app/features/people/models/person.model';
+import { fullName, PersonToShare } from 'src/app/features/people/person';
 import { CursorPointer } from '../../../../../shared/directives/cursor-pointer';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { NgbCollapse } from '@ng-bootstrap/ng-bootstrap/collapse';
@@ -29,11 +29,11 @@ export class MailToButton {
     const recipients = this.mail().addresses.split(',').map(email => email.trim()).filter(email => email);
     if (!recipients.length) return;
 
-    const subject = `[GIMMI] ${this.person.fullName} nodigt je uit.`;
+    const subject = `[GIMMI] ${fullName(this.person)} nodigt je uit.`;
     const body = [
       'Hallo,',
       '',
-      `${this.person.fullName} nodigt je met veel plezier uit op Gimmi. Klik op de link of kopieer ze: ${this.url}`,
+      `${fullName(this.person)} nodigt je met veel plezier uit op Gimmi. Klik op de link of kopieer ze: ${this.url}`,
       '',
       `Op deze manier kan je ${this.person.firstName} echt gelukkig maken met het perfecte cadeau!`,
       '',

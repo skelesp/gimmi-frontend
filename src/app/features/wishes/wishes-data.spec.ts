@@ -5,11 +5,10 @@ import { problemInterceptor } from 'src/app/core/api/problem-interceptor';
 
 import { environment } from 'src/environments/environment';
 import type { Schema } from 'src/app/core/api/api-types';
-import { Person } from 'src/app/features/people/models/person.model';
-import { Wish } from './models/wish.model';
-import { apiWish } from './models/wish-from-api.testing';
+import { Wish, WishDraft } from './wish';
+import { apiWish } from './wish.testing';
 import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
-import { WishesData } from './wishes-data';
+import { WishesData, toDraft } from './wishes-data';
 
 // Legt vast hoe de app met de wish- en wishlist-API praat (sc-2979). Lezen, aanmaken, wijzigen, verwijderen
 // en kopiëren gaan via API v2 (sc-3288, sc-3289): wens aanmaken (sc-1977), verwijderen (sc-1981), kopieën (sc-2348).
@@ -20,11 +19,10 @@ describe('WishesData', () => {
     let service: WishesData;
     let http: HttpTestingController;
 
-    const ria = new Person('ria', 'Ria', 'Receiver');
-    let problems: { show: ReturnType<typeof vi.fn> };
+        let problems: { show: ReturnType<typeof vi.fn> };
 
-    function nieuweWens(): Wish {
-        return new Wish('w1', 'Boek', 20, 'boek.be', ria, ria, null, null, null, 1);
+    function nieuweWens(): WishDraft {
+        return { title: 'Boek', price: 20, url: 'boek.be', color: '', size: '', description: '', image: null, copyOf: null };
     }
 
     beforeEach(() => {
@@ -51,12 +49,20 @@ describe('WishesData', () => {
         return { items, nextCursor, counts: { open: items.length, reserved: 0, received: 0, fulfilled: 0 } };
     }
 
+    /** Lets the resources start a request, or take the answer of one. */
+    async function verwerk() {
+        TestBed.tick();
+        await Promise.resolve();
+        TestBed.tick();
+    }
+
     /** Loads a list of wishes for `ria` through the page endpoint. */
-    function laadLijst(...ids: string[]): Wish[] {
-        let wensen: Wish[];
-        service.getWishlist(ria).subscribe(w => wensen = w);
+    async function laadLijst(...ids: string[]): Promise<Wish[]> {
+        service.showList('ria');
+        await verwerk();
         http.expectOne(`${v2}people/ria/wishes?limit=100`).flush(page(ids.map(id => apiWish({ id }))));
-        return wensen;
+        await verwerk();
+        return service.wishes();
     }
 
     function huidigeLijst(): Wish[] {
@@ -64,84 +70,92 @@ describe('WishesData', () => {
     }
 
     describe('getWishlist', () => {
-        it('één request per pagina; zet de ontvanger en zet elke wens om', () => {
-            const wensen = laadLijst('w1', 'w2');
-            expect(wensen.map(w => w.id)).toEqual(['w1', 'w2']);
-            expect(service.currentReceiver()).toBe(ria);
-            expect(huidigeLijst()).toEqual(wensen);
+        it('één request per pagina; zet de ontvanger', async () => {
+            service.showList('ria');
+            await verwerk();
+            expect(service.listLoading()).toBe(true);
+            http.expectOne(`${v2}people/ria/wishes?limit=100`).flush(page([apiWish({ id: 'w1' }), apiWish({ id: 'w2' })]));
+            await verwerk();
+            expect(service.listLoading()).toBe(false);
+            expect(huidigeLijst().map(w => w.id)).toEqual(['w1', 'w2']);
+            expect(service.currentReceiverId()).toBe('ria');
         });
 
-        it('haalt alle pagina\'s op tot er geen nextCursor meer is', () => {
-            let wensen: Wish[];
-            service.getWishlist(ria).subscribe(w => wensen = w);
+        it('haalt alle pagina\'s op tot er geen nextCursor meer is', async () => {
+            service.showList('ria');
+            await verwerk();
             http.expectOne(`${v2}people/ria/wishes?limit=100`).flush(page([apiWish({ id: 'w1' })], 'c1'));
             http.expectOne(`${v2}people/ria/wishes?limit=100&cursor=c1`).flush(page([apiWish({ id: 'w2' })], 'c2'));
             http.expectOne(`${v2}people/ria/wishes?limit=100&cursor=c2`).flush(page([apiWish({ id: 'w3' })]));
-            expect(wensen.map(w => w.id)).toEqual(['w1', 'w2', 'w3']);
+            await verwerk();
+            expect(huidigeLijst().map(w => w.id)).toEqual(['w1', 'w2', 'w3']);
         });
 
-        it('een lege lijst geeft een lege array', () => {
-            expect(laadLijst()).toEqual([]);
+        it('een lege lijst geeft een lege array', async () => {
+            expect(await laadLijst()).toEqual([]);
         });
 
-        it('doet geen aparte aanroepen per wens meer (geen status, geen personen)', () => {
-            laadLijst('w1', 'w2', 'w3');
+        it('doet geen aparte aanroepen per wens meer (geen status, geen personen)', async () => {
+            await laadLijst('w1', 'w2', 'w3');
             http.verify();
         });
 
-        it('een fout van de server komt door', () => {
-            let fout: { status: number };
-            service.getWishlist(ria).subscribe({ error: e => fout = e });
+        it('een fout van de server komt door', async () => {
+            service.showList('ria');
+            await verwerk();
             http.expectOne(`${v2}people/ria/wishes?limit=100`).flush({ status: 404 }, { status: 404, statusText: 'Not Found' });
-            expect(fout.status).toBe(404);
+            await verwerk();
+            expect(service.listError()).toBeTruthy();
+            expect(service.listLoading()).toBe(false);
+            expect(huidigeLijst()).toEqual([]);
         });
     });
 
     describe('reservatie', () => {
-        it('addReservation: PUT /wishes/{id}/reservation met datum en gelegenheid; de wens in de lijst volgt het antwoord', () => {
-            const [wens] = laadLijst('w1');
+        it('addReservation: PUT /wishes/{id}/reservation met datum en gelegenheid; de wens in de lijst volgt het antwoord', async () => {
+            const [wens] = await laadLijst('w1');
             let bijgewerkt: Wish;
             service.addReservation(wens, { handoverDate: '2026-12-24', occasion: 'birthday' }).subscribe(w => bijgewerkt = w);
             const req = http.expectOne(`${v2}wishes/w1/reservation`);
             expect(req.request.method).toBe('PUT');
             expect(req.request.body).toEqual({ handoverDate: '2026-12-24', occasion: 'birthday' });
             req.flush(apiWish({ id: 'w1', status: 'reserved', reservation: { reservedBy: { id: 'rob', firstName: 'Rob', lastName: 'Reservator' } } }));
-            expect(bijgewerkt.status).toBe('Reserved');
-            expect(huidigeLijst()[0].status).toBe('Reserved');
+            expect(bijgewerkt.status).toBe('reserved');
+            expect(huidigeLijst()[0].status).toBe('reserved');
         });
 
-        it('addReservation: een tweede gever komt te laat (409): melding, geen waarde, de wens wordt opnieuw gelezen', () => {
-            const [wens] = laadLijst('w1');
+        it('addReservation: een tweede gever komt te laat (409): melding, geen waarde, de wens wordt opnieuw gelezen', async () => {
+            const [wens] = await laadLijst('w1');
             const waarde = vi.fn();
             service.addReservation(wens, { handoverDate: '2026-12-24', occasion: 'other' }).subscribe(waarde);
             flushProblem(`${v2}wishes/w1/reservation`, 409, 'wish-already-reserved');
             expect(problems.show).toHaveBeenCalledTimes(1);
             http.expectOne(`${v2}wishes/w1`).flush(apiWish({ id: 'w1', status: 'reserved' }));
             expect(waarde).not.toHaveBeenCalled();
-            expect(huidigeLijst()[0].status).toBe('Reserved');
+            expect(huidigeLijst()[0].status).toBe('reserved');
         });
 
-        it('addReservation: een andere fout (422): melding en geen nieuwe lees', () => {
-            const [wens] = laadLijst('w1');
+        it('addReservation: een andere fout (422): melding en geen nieuwe lees', async () => {
+            const [wens] = await laadLijst('w1');
             service.addReservation(wens, { handoverDate: '2026-12-24', occasion: 'other' }).subscribe();
             flushProblem(`${v2}wishes/w1/reservation`, 422, 'date-in-future');
             expect(problems.show).toHaveBeenCalledTimes(1);
         });
 
-        it('deleteReservation: DELETE /wishes/{id}/reservation (204), daarna een lees: de wens staat weer open', () => {
-            const [wens] = laadLijst('w1');
+        it('deleteReservation: DELETE /wishes/{id}/reservation (204), daarna een lees: de wens staat weer open', async () => {
+            const [wens] = await laadLijst('w1');
             let bijgewerkt: Wish;
             service.deleteReservation(wens).subscribe(w => bijgewerkt = w);
             const req = http.expectOne(`${v2}wishes/w1/reservation`);
             expect(req.request.method).toBe('DELETE');
             req.flush(null, { status: 204, statusText: 'No Content' });
             http.expectOne(`${v2}wishes/w1`).flush(apiWish({ id: 'w1', status: 'open' }));
-            expect(bijgewerkt.reservation).toBeUndefined();
-            expect(bijgewerkt.status).toBe('Open');
+            expect(bijgewerkt.reservation).toBeNull();
+            expect(bijgewerkt.status).toBe('open');
         });
 
-        it('deleteReservation: een fout (403) wordt gemeld', () => {
-            const [wens] = laadLijst('w1');
+        it('deleteReservation: een fout (403) wordt gemeld', async () => {
+            const [wens] = await laadLijst('w1');
             service.deleteReservation(wens).subscribe();
             flushProblem(`${v2}wishes/w1/reservation`, 403, 'forbidden');
             expect(problems.show).toHaveBeenCalledTimes(1);
@@ -155,28 +169,28 @@ describe('WishesData', () => {
             fulfillment: { receivedOn: '2026-10-05', givenBy: null, satisfaction: 4, message: 'dank je', fulfilledAt: '2026-10-05T10:00:00Z', ...fulfillment }
         });
 
-        it('PUT /wishes/{id}/fulfillment met alles in één oproep; de wens in de lijst volgt het antwoord', () => {
-            const [wens] = laadLijst('w1');
+        it('PUT /wishes/{id}/fulfillment met alles in één oproep; de wens in de lijst volgt het antwoord', async () => {
+            const [wens] = await laadLijst('w1');
             let bijgewerkt: Wish;
             service.fulfill(wens, feedback).subscribe(w => bijgewerkt = w);
             const req = http.expectOne(`${v2}wishes/w1/fulfillment`);
             expect(req.request.method).toBe('PUT');
             expect(req.request.body).toEqual(feedback);
             req.flush(vervuld());
-            expect(bijgewerkt.giftFeedback.message).toBe('dank je');
-            expect(huidigeLijst()[0].status).toBe('Fulfilled');
+            expect(bijgewerkt.fulfillment.message).toBe('dank je');
+            expect(huidigeLijst()[0].status).toBe('fulfilled');
         });
 
-        it('een lege boodschap gaat als null', () => {
-            const [wens] = laadLijst('w1');
+        it('een lege boodschap gaat als null', async () => {
+            const [wens] = await laadLijst('w1');
             service.fulfill(wens, { ...feedback, message: '  ' }).subscribe();
             const req = http.expectOne(`${v2}wishes/w1/fulfillment`);
             expect(req.request.body.message).toBeNull();
             req.flush(vervuld());
         });
 
-        it('putBackOnList: de wens die de server terugzette komt bovenaan de lijst, zonder eigen kopie', () => {
-            const [wens] = laadLijst('w1');
+        it('putBackOnList: de wens die de server terugzette komt bovenaan de lijst, zonder eigen kopie', async () => {
+            const [wens] = await laadLijst('w1');
             let bijgewerkt: Wish;
             service.fulfill(wens, { ...feedback, putBackOnList: true }).subscribe(w => bijgewerkt = w);
             http.expectOne(`${v2}wishes/w1/fulfillment`).flush(vervuld({ relistedWishId: 'w9' }));
@@ -185,8 +199,8 @@ describe('WishesData', () => {
             expect(bijgewerkt.id).toBe('w1');
         });
 
-        it('putBackOnList: lukt het lezen van de nieuwe wens niet, dan blijft het bevestigen gelukt', () => {
-            const [wens] = laadLijst('w1');
+        it('putBackOnList: lukt het lezen van de nieuwe wens niet, dan blijft het bevestigen gelukt', async () => {
+            const [wens] = await laadLijst('w1');
             let bijgewerkt: Wish;
             service.fulfill(wens, { ...feedback, putBackOnList: true }).subscribe(w => bijgewerkt = w);
             http.expectOne(`${v2}wishes/w1/fulfillment`).flush(vervuld({ relistedWishId: 'w9' }));
@@ -194,8 +208,8 @@ describe('WishesData', () => {
             expect(bijgewerkt.id).toBe('w1');
         });
 
-        it('een fout (date-in-future) wordt gemeld en geeft geen waarde', () => {
-            const [wens] = laadLijst('w1');
+        it('een fout (date-in-future) wordt gemeld en geeft geen waarde', async () => {
+            const [wens] = await laadLijst('w1');
             const waarde = vi.fn();
             service.fulfill(wens, feedback).subscribe(waarde);
             flushProblem(`${v2}wishes/w1/fulfillment`, 422, 'date-in-future');
@@ -205,8 +219,8 @@ describe('WishesData', () => {
     });
 
     describe('delete', () => {
-        it('DELETE /wishes/{id} en haalt de wens uit de lijst; de afbeelding ruimt de server op (sc-3052)', () => {
-            const [wens] = laadLijst('w1', 'w2');
+        it('DELETE /wishes/{id} en haalt de wens uit de lijst; de afbeelding ruimt de server op (sc-3052)', async () => {
+            const [wens] = await laadLijst('w1', 'w2');
             let verwijderd: Wish;
             service.delete(wens).subscribe(w => verwijderd = w);
             const req = http.expectOne(`${v2}wishes/w1`);
@@ -216,8 +230,8 @@ describe('WishesData', () => {
             expect(huidigeLijst().map(w => w.id)).toEqual(['w2']);
         });
 
-        it('een fout van de server wordt gemeld en laat de lijst staan', () => {
-            const [wens] = laadLijst('w1');
+        it('een fout van de server wordt gemeld en laat de lijst staan', async () => {
+            const [wens] = await laadLijst('w1');
             const gelukt = vi.fn();
             service.delete(wens).subscribe(gelukt);
             flushProblem(`${v2}wishes/w1`, 403, 'forbidden');
@@ -228,13 +242,11 @@ describe('WishesData', () => {
     });
 
     describe('create', () => {
-        it('POST /people/{ontvanger}/wishes met bedragen in centen en links als lijst, en zet de wens bovenaan', () => {
-            laadLijst('w0');
-            const wens = nieuweWens();
-            wens.image = { key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' };
-            wens.price = 12.34;
+        it('POST /people/{ontvanger}/wishes met bedragen in centen en links als lijst, en zet de wens bovenaan', async () => {
+            await laadLijst('w0');
+            const wens = { ...nieuweWens(), image: { key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' }, price: 12.34 };
             let aangemaakt: Wish;
-            service.create(wens).subscribe(w => aangemaakt = w);
+            service.create(wens, 'ria').subscribe(w => aangemaakt = w);
 
             const post = http.expectOne(`${v2}people/ria/wishes`);
             expect(post.request.method).toBe('POST');
@@ -248,29 +260,27 @@ describe('WishesData', () => {
             expect(aangemaakt.image).toEqual({ key: 'wishes/a.jpg', url: 'https://img.gimmi.be/wishes/a.jpg' });
         });
 
-        it('zonder prijs, link en afbeelding: null, een lege lijst en geen sleutel', () => {
-            laadLijst();
-            const wens = nieuweWens();
-            wens.price = null;
-            wens.url = '';
-            service.create(wens).subscribe();
+        it('zonder prijs, link en afbeelding: null, een lege lijst en geen sleutel', async () => {
+            await laadLijst();
+            const wens: WishDraft = { ...nieuweWens(), price: null, url: '' };
+            service.create(wens, 'ria').subscribe();
             const post = http.expectOne(`${v2}people/ria/wishes`);
             expect(post.request.body).toMatchObject({ price: null, links: [], image: null });
             post.flush(apiWish({ id: 'w1' }), { status: 201, statusText: 'Created' });
         });
 
-        it('geeft een nieuwe array door, zodat een signal op de lijst de wijziging ziet (sc-3323)', () => {
-            laadLijst('w0');
+        it('geeft een nieuwe array door, zodat een signal op de lijst de wijziging ziet (sc-3323)', async () => {
+            await laadLijst('w0');
             const eerste = huidigeLijst();
-            service.create(nieuweWens()).subscribe();
+            service.create(nieuweWens(), 'ria').subscribe();
             http.expectOne(`${v2}people/ria/wishes`).flush(apiWish({ id: 'w1' }), { status: 201, statusText: 'Created' });
             expect(huidigeLijst()).not.toBe(eerste);
         });
 
-        it('een fout van de server (bijv. afbeelding niet gevonden) wordt gemeld, zonder een wens toe te voegen', () => {
-            laadLijst('w0');
+        it('een fout van de server (bijv. afbeelding niet gevonden) wordt gemeld, zonder een wens toe te voegen', async () => {
+            await laadLijst('w0');
             const gelukt = vi.fn();
-            service.create(nieuweWens()).subscribe(gelukt);
+            service.create(nieuweWens(), 'ria').subscribe(gelukt);
             flushProblem(`${v2}people/ria/wishes`, 422, 'image-not-found');
             expect(gelukt).not.toHaveBeenCalled();
             expect(problems.show).toHaveBeenCalledTimes(1);
@@ -279,42 +289,35 @@ describe('WishesData', () => {
     });
 
     describe('copy (create met copyOf)', () => {
-        function kopieVan(origineel: Wish): Wish {
-            const kopie = nieuweWens();
-            kopie.id = undefined;
-            kopie.copyOf = origineel.id;
-            kopie.description = '';
-            kopie.image = origineel.image;
-            return kopie;
+        function kopieVan(origineel: Wish): WishDraft {
+            return { ...nieuweWens(), copyOf: origineel.id, image: origineel.image };
         }
 
-        it('POST /wishes/{origineel}/copies, de afbeelding wordt gedeeld (niet meegestuurd) en de originele weet van de kopie', () => {
-            const [origineel] = laadLijst('origineel');
+        it('POST /wishes/{origineel}/copies, de afbeelding wordt gedeeld (niet meegestuurd) en de originele weet van de kopie', async () => {
+            const [origineel] = await laadLijst('origineel');
             expect(origineel.viewer.ownCopyId).toBeNull();
             let kopie: Wish;
-            service.create(kopieVan(origineel)).subscribe(w => kopie = w);
+            service.create(kopieVan(origineel), 'ria').subscribe(w => kopie = w);
             const post = http.expectOne(`${v2}wishes/origineel/copies`);
             expect(post.request.body).toEqual({
                 title: 'Boek', description: null, price: { amount: 2000, currency: 'EUR' }, links: [{ url: 'http://boek.be' }], color: null, size: null
             });
             post.flush(apiWish({ id: 'k1', copyOf: 'origineel' }), { status: 201, statusText: 'Created' });
             expect(kopie.copyOf).toBe('origineel');
-            expect(origineel.viewer.ownCopyId).toBe('k1');
+            expect(huidigeLijst().find(w => w.id === 'origineel').viewer.ownCopyId).toBe('k1');
         });
 
-        it('een andere afbeelding in de popup gaat wel mee, en weghalen als null', () => {
-            const [origineel] = laadLijst('origineel');
+        it('een andere afbeelding in de popup gaat wel mee, en weghalen als null', async () => {
+            const [origineel] = await laadLijst('origineel');
             origineel.image = { key: 'wishes/a.jpg', url: 'u' };
-            const andere = kopieVan(origineel);
-            andere.image = { key: 'wishes/b.jpg', url: 'u' };
-            service.create(andere).subscribe();
+            const andere = { ...kopieVan(origineel), image: { key: 'wishes/b.jpg', url: 'u' } };
+            service.create(andere, 'ria').subscribe();
             const eerste = http.expectOne(`${v2}wishes/origineel/copies`);
             expect(eerste.request.body.image).toEqual({ key: 'wishes/b.jpg' });
             eerste.flush(apiWish({ id: 'k1' }), { status: 201, statusText: 'Created' });
 
-            const zonder = kopieVan(origineel);
-            zonder.image = null;
-            service.create(zonder).subscribe();
+            const zonder: WishDraft = { ...kopieVan(origineel), image: null };
+            service.create(zonder, 'ria').subscribe();
             const tweede = http.expectOne(`${v2}wishes/origineel/copies`);
             expect(tweede.request.body.image).toBeNull();
             tweede.flush(apiWish({ id: 'k2' }), { status: 201, statusText: 'Created' });
@@ -322,11 +325,10 @@ describe('WishesData', () => {
     });
 
     describe('update', () => {
-        it('PATCH met alleen wat verandert (JSON Merge Patch) en werkt de lijst bij', () => {
-            const [wens] = laadLijst('w1', 'w2');
-            const aangepast = Object.assign(new Wish(wens.id, 'Nieuw boek', 20, wens.url, wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links });
-            aangepast.image = { key: 'wishes/b.jpg', url: 'https://img.gimmi.be/wishes/b.jpg' };
-            service.update(aangepast).subscribe();
+        it('PATCH met alleen wat verandert (JSON Merge Patch) en werkt de lijst bij', async () => {
+            const [wens] = await laadLijst('w1', 'w2');
+            const aangepast = { ...toDraft(wens), title: 'Nieuw boek', image: { key: 'wishes/b.jpg', url: 'https://img.gimmi.be/wishes/b.jpg' } };
+            service.update(wens, aangepast).subscribe();
             const patch = http.expectOne(`${v2}wishes/w1`);
             expect(patch.request.method).toBe('PATCH');
             expect(patch.request.headers.get('Content-Type')).toBe('application/merge-patch+json');
@@ -336,45 +338,42 @@ describe('WishesData', () => {
             expect(huidigeLijst()[0].image.key).toBe('wishes/b.jpg');
         });
 
-        it('leeg maken stuurt null; de prijs gaat in centen', () => {
-            const [wens] = laadLijst('w1');
-            const aangepast = Object.assign(new Wish(wens.id, wens.title, 5.5, wens.url, wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links });
-            service.update(aangepast).subscribe();
+        it('leeg maken stuurt null; de prijs gaat in centen', async () => {
+            const [wens] = await laadLijst('w1');
+            service.update(wens, { ...toDraft(wens), price: 5.5 }).subscribe();
             const patch = http.expectOne(`${v2}wishes/w1`);
             expect(patch.request.body).toEqual({ price: { amount: 550, currency: 'EUR' } });
             patch.flush(apiWish({ id: 'w1' }));
 
-            const zonderLink = Object.assign(new Wish(wens.id, wens.title, wens.price, '', wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links });
-            zonderLink.url = '';
-            service.update(zonderLink).subscribe();
+            service.update(wens, { ...toDraft(wens), url: '' }).subscribe();
             const tweede = http.expectOne(`${v2}wishes/w1`);
             expect(tweede.request.body).toEqual({ links: [] });
             tweede.flush(apiWish({ id: 'w1', links: [] }));
         });
 
-        it('de links die het formulier niet toont blijven bewaard', () => {
-            service.getWishlist(ria).subscribe();
+        it('de links die het formulier niet toont blijven bewaard', async () => {
+            service.showList('ria');
+            await verwerk();
             http.expectOne(`${v2}people/ria/wishes?limit=100`).flush(page([apiWish({ id: 'w1', links: [{ url: 'https://een.be' }, { url: 'https://twee.be' }] })]));
+            await verwerk();
             const wens = huidigeLijst()[0];
-            const aangepast = Object.assign(new Wish(wens.id, wens.title, wens.price, 'https://nieuw.be', wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links });
-            service.update(aangepast).subscribe();
+            service.update(wens, { ...toDraft(wens), url: 'https://nieuw.be' }).subscribe();
             const patch = http.expectOne(`${v2}wishes/w1`);
             expect(patch.request.body).toEqual({ links: [{ url: 'https://nieuw.be' }, { url: 'https://twee.be' }] });
             patch.flush(apiWish({ id: 'w1' }));
         });
 
-        it('niets gewijzigd: geen request', () => {
-            const [wens] = laadLijst('w1');
+        it('niets gewijzigd: geen request', async () => {
+            const [wens] = await laadLijst('w1');
             let uitkomst: Wish;
-            service.update(Object.assign(new Wish(wens.id, wens.title, wens.price, wens.url, wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links })).subscribe(w => uitkomst = w);
+            service.update(wens, toDraft(wens)).subscribe(w => uitkomst = w);
             expect(uitkomst).toBe(wens);
         });
 
-        it('wish-fulfilled (409) wordt gemeld en de lijst blijft staan', () => {
-            const [wens] = laadLijst('w1');
-            const aangepast = Object.assign(new Wish(wens.id, 'Anders', wens.price, wens.url, wens.receiver, wens.createdBy, null, null, null, 1), { links: wens.links });
+        it('wish-fulfilled (409) wordt gemeld en de lijst blijft staan', async () => {
+            const [wens] = await laadLijst('w1');
             const gelukt = vi.fn();
-            service.update(aangepast).subscribe(gelukt);
+            service.update(wens, { ...toDraft(wens), title: 'Anders' }).subscribe(gelukt);
             flushProblem(`${v2}wishes/w1`, 409, 'wish-fulfilled');
             expect(gelukt).not.toHaveBeenCalled();
             expect(problems.show).toHaveBeenCalledTimes(1);
@@ -382,29 +381,96 @@ describe('WishesData', () => {
         });
     });
 
-    describe('getWishById', () => {
-        it('wens uit de geladen lijst: geen request', () => {
-            laadLijst('w1');
-            let wens: Wish;
-            service.getWishById('w1').subscribe(w => wens = w);
-            expect(wens.id).toBe('w1');
-            // tweede keer uit de geselecteerde wens
-            service.getWishById('w1').subscribe(w => wens = w);
-            expect(wens.id).toBe('w1');
+    describe('select', () => {
+        it('wens uit de geladen lijst: geen request', async () => {
+            await laadLijst('w1');
+            service.select('w1');
+            await verwerk();
+            expect(service.selectedWish().id).toBe('w1');
         });
 
-        it('onbekende wens: één request naar v2, met de ontvanger erbij', () => {
-            let wens: Wish;
-            service.getWishById('w5').subscribe(w => wens = w);
+        it('onbekende wens: één request naar v2, met de ontvanger erbij', async () => {
+            service.select('w5');
+            await verwerk();
+            expect(service.selectedLoading()).toBe(true);
+            expect(service.selectedWish()).toBeNull();
             http.expectOne(`${v2}wishes/w5`).flush(apiWish({ id: 'w5' }));
-            expect(wens.id).toBe('w5');
-            expect(wens.receiver.fullName).toBe('Ria Receiver');
+            await verwerk();
+            expect(service.selectedWish().id).toBe('w5');
+            expect(service.selectedWish().receiver.firstName).toBe('Ria');
         });
 
-        it('zonder id: null', () => {
-            let wens: Wish = undefined;
-            service.getWishById('').subscribe(w => wens = w);
-            expect(wens).toBeNull();
+        it('zonder id: niets te tonen', async () => {
+            service.select('');
+            await verwerk();
+            expect(service.selectedWish()).toBeNull();
+        });
+
+        it('een wens die niet bestaat (404): niets te tonen', async () => {
+            service.select('weg');
+            await verwerk();
+            http.expectOne(`${v2}wishes/weg`).flush({ status: 404 }, { status: 404, statusText: 'Not Found' });
+            await verwerk();
+            expect(service.selectedWish()).toBeNull();
+            expect(service.selectedLoading()).toBe(false);
+        });
+    });
+
+    describe('de wens op de wenspagina (niet in de lijst)', () => {
+        it('een kopie van de geselecteerde wens vergelijkt de afbeelding met die wens en markeert hem als gekopieerd', async () => {
+            service.select('w5');
+            await verwerk();
+            http.expectOne(`${v2}wishes/w5`).flush(apiWish({ id: 'w5', image: { key: 'wishes/a.jpg', url: 'u' } }));
+            await verwerk();
+            const origineel = service.selectedWish();
+
+            service.create({ ...nieuweWens(), copyOf: 'w5', image: { key: 'wishes/a.jpg', url: 'u' } }, 'rob').subscribe();
+            const post = http.expectOne(`${v2}wishes/w5/copies`);
+            expect(post.request.body.image).toBeUndefined();
+            post.flush(apiWish({ id: 'k1', copyOf: 'w5' }), { status: 201, statusText: 'Created' });
+
+            expect(service.selectedWish().viewer.ownCopyId).toBe('k1');
+            expect(origineel.viewer.ownCopyId).toBeNull();
+        });
+
+        it('een wijziging in de lijst werkt ook de geselecteerde wens bij', async () => {
+            const [wens] = await laadLijst('w1');
+            service.select('w1');
+            await verwerk();
+            service.addReservation(wens, { handoverDate: '2026-12-24', occasion: 'other' }).subscribe();
+            http.expectOne(`${v2}wishes/w1/reservation`).flush(apiWish({ id: 'w1', status: 'reserved' }));
+            expect(service.selectedWish().status).toBe('reserved');
+        });
+
+        it('een wijziging van een wens die niet in de lijst staat, laat de lijst zoals ze was', async () => {
+            await laadLijst('w1');
+            service.deleteReservation(apiWish({ id: 'ander' })).subscribe();
+            http.expectOne(`${v2}wishes/ander/reservation`).flush(null, { status: 204, statusText: 'No Content' });
+            http.expectOne(`${v2}wishes/ander`).flush(apiWish({ id: 'ander' }));
+            expect(huidigeLijst().map(w => w.id)).toEqual(['w1']);
+        });
+
+        it('een wens van iemand anders komt niet op de geladen lijst', async () => {
+            await laadLijst('w1');
+            service.create(nieuweWens(), 'rob').subscribe();
+            http.expectOne(`${v2}people/rob/wishes`).flush(apiWish({ id: 'w2', receiver: { id: 'rob', firstName: 'Rob', lastName: 'R' } }), { status: 201, statusText: 'Created' });
+            expect(huidigeLijst().map(w => w.id)).toEqual(['w1']);
+        });
+
+        it('een fout die geen ApiProblem is, komt door en wordt niet gemeld', async () => {
+            const [wens] = await laadLijst('w1');
+            const fout = vi.fn();
+            service.delete(wens).subscribe({ error: fout });
+            http.expectOne(`${v2}wishes/w1`).error(new ProgressEvent('error'));
+            expect(fout).toHaveBeenCalled();
+            expect(problems.show).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('toDraft', () => {
+        it('een wens zonder prijs, beschrijving, kleur en maat geeft lege velden', async () => {
+            const concept = toDraft(apiWish({ price: null, links: [], description: null, color: null, size: null }));
+            expect(concept).toMatchObject({ price: null, url: '', description: '', color: '', size: '', image: null, copyOf: null });
         });
     });
 });

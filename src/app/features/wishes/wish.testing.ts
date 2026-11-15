@@ -1,7 +1,7 @@
 import type { Schema } from 'src/app/core/api/api-types';
-import { Wish } from './wish.model';
+import type { Wish } from './wish';
 
-type ApiWish = Schema<'Wish'>;
+type ApiWish = Wish;
 
 /** A wish as API v2 returns it, for specs: an open wish of Ria on her own list. Override what the spec cares about. */
 export function apiWish(overrides: Partial<Omit<ApiWish, 'viewer'>> & { viewer?: Partial<ApiWish['viewer']> } = {}): ApiWish {
@@ -34,19 +34,22 @@ export function apiWish(overrides: Partial<Omit<ApiWish, 'viewer'>> & { viewer?:
 }
 
 /**
- * Makes `userId` the viewer of the wish, with the roles and rights the server would give: the receiver and the
+ * A copy of the wish with `userId` as the viewer, with the roles and rights the server would give: the receiver and the
  * creator may change and delete it, the receiver does not copy it, the giver is the one who reserved it.
  */
-export function viewWishAs(wish: Wish, userId: string): void {
+export function viewWishAs(wish: Wish, userId: string): Wish {
   const roles: Schema<'WishViewer'>['roles'] = [];
   if (userId === wish.receiver.id) roles.push('receiver');
   if (userId === wish.createdBy.id) roles.push('creator');
   if (userId === wish.reservation?.reservedBy.id) roles.push('giver');
   const receiver = roles.includes('receiver');
   const mayChange = receiver || roles.includes('creator');
-  wish.viewer = {
-    roles: roles.length ? roles : ['other'],
-    can: { update: mayChange, delete: mayChange, copy: !receiver, reserve: false, unreserve: false, fulfill: false, unfulfill: false },
-    ownCopyId: null
+  return {
+    ...wish,
+    viewer: {
+      roles: roles.length ? roles : ['other'],
+      can: { update: mayChange, delete: mayChange, copy: !receiver, reserve: false, unreserve: false, fulfill: false, unfulfill: false },
+      ownCopyId: null
+    }
   };
 }

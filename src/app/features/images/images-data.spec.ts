@@ -22,7 +22,7 @@ describe('ImagesData', () => {
 
     describe('uploadImage', () => {
         it('een URL gaat als JSON {sourceUrl} en geeft {key, url} door', () => {
-            let beeld: any;
+            let beeld: unknown;
             service.uploadImage('https://x.be/a.jpg').subscribe(b => beeld = b);
             const req = http.expectOne(api + 'images');
             expect(req.request.method).toBe('POST');
@@ -41,7 +41,7 @@ describe('ImagesData', () => {
         });
 
         it('zonder afbeelding: null, geen request', () => {
-            let beeld: any = 'iets';
+            let beeld: unknown = 'iets';
             service.uploadImage(null).subscribe(b => beeld = b);
             expect(beeld).toBeNull();
         });

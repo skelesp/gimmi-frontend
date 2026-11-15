@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DeviceDetectorService } from 'ngx-device-detector';
@@ -7,10 +8,10 @@ import { WhatsappButton } from './whatsapp-button';
 describe('WhatsappButton', () => {
   let component: WhatsappButton;
   let fixture: ComponentFixture<WhatsappButton>;
-  let device: Record<string, any>;
+  let device: Record<string, Mock>;
 
   function url(): string {
-    return String((component.generateUrl() as any).changingThisBreaksApplicationSecurity);
+    return String((component.generateUrl() as unknown as { changingThisBreaksApplicationSecurity: string }).changingThisBreaksApplicationSecurity);
   }
 
   beforeEach(async () => {

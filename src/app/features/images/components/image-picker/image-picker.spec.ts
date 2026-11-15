@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal, NgbAlertModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
@@ -5,7 +6,7 @@ import { DeviceDetectorService } from 'ngx-device-detector';
 import { of, Subject, throwError } from 'rxjs';
 
 import { ApiProblem, ProblemCode } from 'src/app/core/api/api-problem';
-import { IWishImage } from 'src/app/features/wishes/models/wish.model';
+import { WishImage } from 'src/app/features/wishes/wish';
 import { ImagesData } from '../../images-data';
 import { IImageSearchResult, ImageSearch } from '../../image-search';
 import { boodschapVoor, ImagePicker, MAX_BESTAND_BYTES } from './image-picker';
@@ -15,10 +16,10 @@ import { boodschapVoor, ImagePicker, MAX_BESTAND_BYTES } from './image-picker';
 describe('ImagePicker', () => {
     let fixture: ComponentFixture<ImagePicker>;
     let component: ImagePicker;
-    let beelden: Record<string, any>;
-    let zoekService: Record<string, any>;
-    let toestel: Record<string, any>;
-    let modal: Record<string, any>;
+    let beelden: Record<string, Mock>;
+    let zoekService: Record<string, Mock>;
+    let toestel: Record<string, Mock>;
+    let modal: Record<string, Mock>;
 
     const resultaat = (n: number): IImageSearchResult => ({
         url: `https://winkel.be/${n}.jpg`, thumbnailUrl: `https://imgs.search.brave.com/${n}`,
@@ -178,7 +179,7 @@ describe('ImagePicker', () => {
 
     describe('een zoekresultaat kiezen', () => {
         it('laadt de URL op en sluit met de afbeelding en de thumbnail als voorvertoning', async () => {
-            const nieuw: IWishImage = { key: 'wishes/a.jpg', url: 'https://img-test.gimmi.be/wishes/a.jpg' };
+            const nieuw: WishImage = { key: 'wishes/a.jpg', url: 'https://img-test.gimmi.be/wishes/a.jpg' };
             beelden.uploadImage.mockReturnValue(of(nieuw));
             await maak({ zoekterm: 'fiets' });
             alle('.resultaat')[1].click();
@@ -187,7 +188,7 @@ describe('ImagePicker', () => {
         });
 
         it('tijdens het opladen: wieltje op het gekozen resultaat, de andere staan uit', async () => {
-            beelden.uploadImage.mockReturnValue(new Subject<IWishImage>());
+            beelden.uploadImage.mockReturnValue(new Subject<WishImage>());
             await maak({ zoekterm: 'fiets' });
             alle('.resultaat')[0].click();
             await fixture.whenStable();
@@ -224,7 +225,7 @@ describe('ImagePicker', () => {
 
         it('popup weg tijdens zoeken en opladen: alles wordt afgebroken (sc-1391)', async () => {
             const zoeken = new Subject<IImageSearchResult[]>();
-            const upload = new Subject<IWishImage>();
+            const upload = new Subject<WishImage>();
             zoekService.search.mockReturnValue(zoeken);
             beelden.uploadImage.mockReturnValue(upload);
             await maak({ zoekterm: 'fiets' });
@@ -284,7 +285,7 @@ describe('ImagePicker', () => {
         });
 
         it('tijdens het opladen: "Bezig met opladen…"', async () => {
-            beelden.uploadImage.mockReturnValue(new Subject<IWishImage>());
+            beelden.uploadImage.mockReturnValue(new Subject<WishImage>());
             await openBestandTab();
             await kiesBestand(await pngBestand());
             await fixture.whenStable();

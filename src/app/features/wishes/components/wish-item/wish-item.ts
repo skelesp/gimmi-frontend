@@ -4,7 +4,7 @@ import { faClone, faComment, faEdit } from '@fortawesome/free-regular-svg-icons'
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import type { Schema } from 'src/app/core/api/api-types';
-import { Wish } from '../../models/wish.model';
+import { Wish, WishDraft, canDo, hasRole, wishUrl } from '../../wish';
 import { WishReservation } from '../wish-reservation/wish-reservation';
 import { ChangeWishReservation } from '../wish-reservation/change-wish-reservation/change-wish-reservation';
 import { GiftFeedback } from '../gift-feedback/gift-feedback';
@@ -15,9 +15,7 @@ import { WishDelete } from '../wish-delete/wish-delete';
 import { WishPopup } from './wish-popup/wish-popup';
 import { WishesData } from '../../wishes-data';
 import { Notifications } from 'src/app/core/notifications';
-import { Person } from 'src/app/features/people/models/person.model';
 import { AuthStore } from 'src/app/core/auth/auth-store';
-import { ImagesData } from 'src/app/features/images/images-data';
 
 @Component({
     template: '',
@@ -29,7 +27,6 @@ export class WishItem implements OnInit {
   protected wishService = inject(WishesData);
   protected notificationService = inject(Notifications);
   protected auth = inject(AuthStore);
-  protected imageService = inject(ImagesData);
 
   @Input() wish: Wish;
   wishActionItems : ActionListItemConfig[] = [];
@@ -58,22 +55,22 @@ export class WishItem implements OnInit {
   };
   /** The banner and the call-to-action button of the wish: they follow from its status and what the viewer is to it. */
   presentation(): { CTAbutton: CTAButtonConfig, bannerConfig: BannerConfig } {
-    const giver = this.wish.hasRole('giver');
-    const receiver = this.wish.hasRole('receiver');
+    const giver = hasRole(this.wish, 'giver');
+    const receiver = hasRole(this.wish, 'receiver');
     const banners = this.bannerConfigs;
     const buttons = this.CTAbuttonConfigs;
     switch (this.wish.status) {
-      case 'Open':
-        return { CTAbutton: buttons.reserve, bannerConfig: !receiver && this.wish.hasRole('creator') ? banners.yourIdea : banners.noBanner };
-      case 'Reserved':
+      case 'open':
+        return { CTAbutton: buttons.reserve, bannerConfig: !receiver && hasRole(this.wish, 'creator') ? banners.yourIdea : banners.noBanner };
+      case 'reserved':
         if (giver) return { CTAbutton: buttons.cancel, bannerConfig: banners.reservedByUser };
         // The receiver must not know that something is reserved on their list.
         return receiver ? { CTAbutton: buttons.reserve, bannerConfig: banners.noBanner }
           : { CTAbutton: buttons.noButton, bannerConfig: banners.reserved };
-      case 'Received':
+      case 'received':
         if (giver) return { CTAbutton: buttons.noButton, bannerConfig: banners.givenByUser };
         return { CTAbutton: receiver ? buttons.feedback : buttons.noButton, bannerConfig: banners.received };
-      case 'Fulfilled':
+      case 'fulfilled':
         return { CTAbutton: buttons.noButton, bannerConfig: giver ? banners.fulfilledByUser : banners.fulfilled };
     }
   }
@@ -82,12 +79,15 @@ export class WishItem implements OnInit {
     this.defineWishActions();
   }
 
-  private defineWishActions(): void {
-    if (this.wish.can('copy')) this.wishActionItems.push(this.actionListItemConfigs.copy);
-    if (this.wish.can('update')) this.wishActionItems.unshift(this.actionListItemConfigs.edit);
-    if (this.wish.can('delete')) this.wishActionItems.push(this.actionListItemConfigs.delete);
-    if (this.wish.url) {
-      this.actionListItemConfigs.externalSite.url = this.wish.url;
+  protected defineWishActions(): void {
+    this.wishActionItems = [];
+    if (!this.wish) return;
+    if (canDo(this.wish, 'copy')) this.wishActionItems.push(this.actionListItemConfigs.copy);
+    if (canDo(this.wish, 'update')) this.wishActionItems.unshift(this.actionListItemConfigs.edit);
+    if (canDo(this.wish, 'delete')) this.wishActionItems.push(this.actionListItemConfigs.delete);
+    const url = wishUrl(this.wish);
+    if (url) {
+      this.actionListItemConfigs.externalSite.url = url;
       this.wishActionItems.unshift(this.actionListItemConfigs.externalSite);
     }
   }
@@ -122,35 +122,21 @@ export class WishItem implements OnInit {
     editPopup.componentInstance.wish = this.wish;
     editPopup.componentInstance.mode = 'edit';
 
-    (editPopup.result as Promise<Wish>).then( wish => {
-      this.wishService.update(wish).subscribe(wish => {
+    (editPopup.result as Promise<WishDraft>).then( draft => {
+      this.wishService.update(this.wish, draft).subscribe(wish => {
         console.info('Wish updated:', wish);
       });
     }).catch( err => console.warn('popup closed:', err) );
   }
 
   copy() {
-    const currentUser = new Person(
-      this.auth.user().id,
-      this.auth.user().firstName,
-      this.auth.user().lastName
-    );
-
     const copyPopup = this.modalService.open(WishPopup);
     copyPopup.componentInstance.mode = 'copy';
-    copyPopup.componentInstance.wish = { 
-      ...this.wish, 
-      id: undefined, 
-      copyOf: this.wish.id, 
-      description: "", 
-      // De kopie deelt het R2-beeld (sc-2911): de backend verwijdert het pas als geen enkele wens het nog gebruikt.
-      image: this.imageService.heeftBeeld(this.wish.image) ? this.wish.image : null,
-      createdBy: currentUser,
-      receiver: currentUser
-    };
+    // The popup starts from this wish; the copy shares its R2 image (sc-2911): the backend removes it only when no wish uses it any more.
+    copyPopup.componentInstance.wish = this.wish;
 
-    (copyPopup.result as Promise<Wish>).then(wish => {
-      this.wishService.create(wish).subscribe(wish =>
+    (copyPopup.result as Promise<WishDraft>).then(draft => {
+      this.wishService.create(draft, this.auth.user().id).subscribe(wish =>
         this.notificationService.showNotification(
           `De wens '${wish.title}' werd toegevoegd aan je lijst.`,
           'success',

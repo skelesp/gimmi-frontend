@@ -145,7 +145,7 @@ export class AuthStore {
   }
 
   private readSession(): Session | null {
-    let stored: string | null = null;
+    let stored: string | null;
     try {
       stored = localStorage.getItem(storageKey);
     } catch {
