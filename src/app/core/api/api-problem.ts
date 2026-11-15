@@ -34,6 +34,13 @@ export class ApiProblem extends Error {
     return this.status >= 500;
   }
 
+  /** The problem behind an error, also when a resource wrapped it (`cause`); `undefined` for any other error. */
+  static of(error: unknown): ApiProblem | undefined {
+    if (error instanceof ApiProblem) return error;
+    const cause = (error as { cause?: unknown } | null)?.cause;
+    return cause instanceof ApiProblem ? cause : undefined;
+  }
+
   /**
    * Converts a failed response into an `ApiProblem`, or returns `undefined` when the response is not a
    * problem document (v1 errors, network failures).

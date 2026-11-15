@@ -1,3 +1,4 @@
+import { HttpResourceRef } from '@angular/common/http';
 import { Service, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -16,9 +17,12 @@ export class PasswordReset {
     return this.api.post('/password-resets', { body: { email } });
   }
 
-  /** Who the link is for. 404 (`ApiProblem`) when the link is unknown, used or expired. */
-  get(resetToken: string): Observable<Schema<'PasswordResetInfo'>> {
-    return this.api.get('/password-resets/{resetToken}', { path: { resetToken } });
+  /** Who the link is for, as a resource that waits for a token. The error is a 404 (`ApiProblem`) when the link is unknown, used or expired. */
+  get(resetToken: () => string | null | undefined): HttpResourceRef<Schema<'PasswordResetInfo'> | undefined> {
+    return this.api.resource('/password-resets/{resetToken}', () => {
+      const token = resetToken();
+      return token ? { path: { resetToken: token } } : undefined;
+    });
   }
 
   /** Sets the password and logs the person in with the token from the answer. */

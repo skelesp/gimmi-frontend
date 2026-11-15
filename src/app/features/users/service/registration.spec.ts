@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -36,11 +37,18 @@ describe('Registration', () => {
     request.flush(null, { status: 202, statusText: 'Accepted' });
   });
 
-  it('get: GET /registrations/{token}', () => {
-    let info: unknown;
-    registration.get('tok1').subscribe(i => info = i);
+  it('get: GET /registrations/{token} as a resource that waits for a token', async () => {
+    const token = signal<string | null>(null);
+    const info = TestBed.runInInjectionContext(() => registration.get(token));
+    TestBed.tick();
+    http.expectNone(environment.apiV2Url + 'registrations/tok1');
+
+    token.set('tok1');
+    TestBed.tick();
     http.expectOne(environment.apiV2Url + 'registrations/tok1').flush({ email: 'ria@gimmi.be', expiresAt: '2026-11-10T10:00:00Z' });
-    expect(info).toEqual({ email: 'ria@gimmi.be', expiresAt: '2026-11-10T10:00:00Z' });
+    await Promise.resolve();
+    TestBed.tick();
+    expect(info.value()).toEqual({ email: 'ria@gimmi.be', expiresAt: '2026-11-10T10:00:00Z' });
   });
 
   it('complete: PUT /registrations/{token} and starts the session with the token from the answer', () => {

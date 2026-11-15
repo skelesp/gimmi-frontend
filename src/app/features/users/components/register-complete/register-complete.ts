@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { form, maxLength, minLength, required, submit, validate } from '@angular/forms/signals';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormField } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiProblem } from '../../../../core/api/api-problem';
 import type { Schema } from '../../../../core/api/api-types';
 import { problemMessage } from '../../../../core/api/error-messages';
@@ -28,9 +30,19 @@ export class RegisterComplete {
   private problems = inject(ProblemNotifier);
   private notifications = inject(Notifications);
 
-  private readonly token = this.route.snapshot.paramMap.get('token')!;
+  private readonly token = toSignal(this.route.paramMap.pipe(map(params => params.get('token'))));
+  private readonly info = this.registration.get(this.token);
+  /** Set when the link turned out to be used or expired while the form was open. */
+  private readonly linkClosed = signal(false);
+  protected readonly loading = this.info.isLoading;
   /** The address the link confirms; `null` when the link is unknown, used or expired. */
-  protected readonly pending = signal<Schema<'RegistrationInfo'> | null>(this.route.snapshot.data['registration']);
+  protected readonly pending = computed<Schema<'RegistrationInfo'> | null>(() =>
+    !this.linkClosed() && this.info.hasValue() ? this.info.value() : null);
+  /** The link could not be checked now (which is not the same as: unknown or expired). */
+  protected readonly checkFailed = computed(() => {
+    const error = this.info.error();
+    return !!error && ApiProblem.of(error)?.status !== 404;
+  });
   /** Set when the account with this address appeared while the form was open. */
   protected readonly emailTaken = signal(false);
   protected readonly serverErrors = signal<Record<string, string[]>>({});
@@ -53,7 +65,7 @@ export class RegisterComplete {
       const { firstName, lastName, birthday, password } = this.details();
       this.serverErrors.set({});
       try {
-        await firstValueFrom(this.registration.complete(this.token, { firstName, lastName, birthday, password }));
+        await firstValueFrom(this.registration.complete(this.token()!, { firstName, lastName, birthday, password }));
         this.auth.showAuthenticationConfirmation();
         this.auth.redirectAfterAuthentication();
       } catch (error) {
@@ -67,7 +79,7 @@ export class RegisterComplete {
       console.error(error);
       this.notifications.showNotification('Registreren lukt nu niet. Probeer het straks opnieuw.', 'error');
     } else if (error.status === 404) {
-      this.pending.set(null); // the link was used or expired in the meantime
+      this.linkClosed.set(true); // the link was used or expired in the meantime
     } else if (error.code === 'email-taken') {
       this.emailTaken.set(true);
     } else if (error.code === 'password-too-weak' || error.code === 'password-too-long') {

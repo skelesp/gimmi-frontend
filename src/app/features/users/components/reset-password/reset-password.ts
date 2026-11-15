@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { form, maxLength, minLength, required, submit, validate } from '@angular/forms/signals';
 import { ActivatedRoute } from '@angular/router';
 import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 import { firstValueFrom } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiProblem } from '../../../../core/api/api-problem';
 import type { Schema } from '../../../../core/api/api-types';
 import { problemMessage } from '../../../../core/api/error-messages';
@@ -28,10 +30,20 @@ export class ResetPassword {
   private problems = inject(ProblemNotifier);
   private notifications = inject(Notifications);
 
-  private readonly token = this.route.snapshot.paramMap.get('token')!;
+  private readonly token = toSignal(this.route.paramMap.pipe(map(params => params.get('token'))));
+  private readonly info = this.passwordReset.get(this.token);
+  /** Set when the link turned out to be used or expired while the form was open. */
+  private readonly linkClosed = signal(false);
+  protected readonly loading = this.info.isLoading;
   /** `null` when the link is unknown, used or expired. */
-  private readonly pending = signal<Schema<'PasswordResetInfo'> | null>(this.route.snapshot.data['passwordReset']);
+  private readonly pending = computed<Schema<'PasswordResetInfo'> | null>(() =>
+    !this.linkClosed() && this.info.hasValue() ? this.info.value() : null);
   readonly invalidToken = computed(() => !this.pending());
+  /** The link could not be checked now (which is not the same as: unknown or expired). */
+  protected readonly checkFailed = computed(() => {
+    const error = this.info.error();
+    return !!error && ApiProblem.of(error)?.status !== 404;
+  });
   protected readonly serverError = signal('');
 
   protected readonly details = signal({ password: '', passwordCheck: '' });
@@ -48,7 +60,7 @@ export class ResetPassword {
     return submit(this.resetPasswordForm, async () => {
       this.serverError.set('');
       try {
-        await firstValueFrom(this.passwordReset.complete(this.token, this.details().password));
+        await firstValueFrom(this.passwordReset.complete(this.token()!, this.details().password));
         this.notifications.showNotification(
           'Wachtwoord reset is succesvol uitgevoerd. Je bent meteen ingelogd.',
           'success',
@@ -71,7 +83,7 @@ export class ResetPassword {
         'error',
         'Link vervallen'
       );
-      this.pending.set(null);
+      this.linkClosed.set(true);
     } else if (error.code === 'password-too-weak' || error.code === 'password-too-long') {
       this.serverError.set(problemMessage(error));
     } else {

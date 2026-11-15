@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -36,11 +37,18 @@ describe('PasswordReset', () => {
     request.flush(null, { status: 202, statusText: 'Accepted' });
   });
 
-  it('get: GET /password-resets/{token}', () => {
-    let info: unknown;
-    passwordReset.get('tok1').subscribe(i => info = i);
+  it('get: GET /password-resets/{token} as a resource that waits for a token', async () => {
+    const token = signal<string | null>(null);
+    const info = TestBed.runInInjectionContext(() => passwordReset.get(token));
+    TestBed.tick();
+    http.expectNone(environment.apiV2Url + 'password-resets/tok1');
+
+    token.set('tok1');
+    TestBed.tick();
     http.expectOne(environment.apiV2Url + 'password-resets/tok1').flush({ firstName: 'Ria', expiresAt: '2026-11-10T10:00:00Z' });
-    expect(info).toEqual({ firstName: 'Ria', expiresAt: '2026-11-10T10:00:00Z' });
+    await Promise.resolve();
+    TestBed.tick();
+    expect(info.value()).toEqual({ firstName: 'Ria', expiresAt: '2026-11-10T10:00:00Z' });
   });
 
   it('complete: PUT /password-resets/{token} and starts the session with the token from the answer', () => {
