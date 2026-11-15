@@ -4,27 +4,27 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal, NgbAlertModule } from '@ng-bootstrap/ng-bootstrap';
 import { of } from 'rxjs';
 
-import { Person } from 'src/app/features/people/models/person.model';
 import { AuthStore } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
-import { Wish } from 'src/app/features/wishes/models/wish.model';
+import { Wish } from 'src/app/features/wishes/wish';
 import { WishesData } from 'src/app/features/wishes/wishes-data';
 import { WishPopup } from './wish-popup';
 import { ImageUpload } from '../../../../images/components/image-upload/image-upload';
 import { ImageView } from '../../../../images/components/image-view/image-view';
+import { apiWish } from 'src/app/features/wishes/wish.testing';
 
 // Popup om een wens toe te voegen, aan te passen of te kopiëren (sc-2348). Sluit met de
 // ingevulde wens. Een opgeladen afbeelding heeft meteen een eigen sleutel in R2 (sc-2911):
 // geen tijdelijke naam meer die de popup zelf moet opruimen.
 describe('WishPopup', () => {
-    const ria = new Person('ria', 'Ria', 'Receiver');
+    const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     let fixture: ComponentFixture<WishPopup>;
     let component: WishPopup;
     let activeModal: Record<string, any>;
     let wishService: Record<string, any>;
 
     function bestaandeWens(): Wish {
-        const w = new Wish('w1', 'Fiets', 250, 'www.fiets.be', ria, ria, 'rood', 'L', 'Met bel', 1);
+        const w = apiWish({ id: 'w1', title: 'Fiets', price: { amount: 25000, currency: 'EUR' }, links: [{ url: 'www.fiets.be' }], receiver: ria, createdBy: ria, color: 'rood', size: 'L', description: 'Met bel' });
         w.image = { key: 'wishes/w1.jpg', url: 'https://img-test.gimmi.be/wishes/w1.jpg' };
         return w;
     }
@@ -115,7 +115,7 @@ describe('WishPopup', () => {
         await fixture.whenStable();
 
         const resultaat = vi.mocked(activeModal.close).mock.lastCall[0];
-        expect(resultaat.id).toBe('w1');
+        expect(resultaat.copyOf).toBeNull();
         expect(resultaat.title).toBe('Elektrische fiets');
         expect(resultaat.color).toBe('rood');
         expect(component.saving).toBe(true);
@@ -171,5 +171,42 @@ describe('WishPopup', () => {
         component.updateWishImage({ key: 'wishes/b.jpg', url: 'u' });
         await component.saveWish();
         expect(vi.mocked(activeModal.close).mock.lastCall[0].image).toEqual({ key: 'wishes/b.jpg', url: 'u' });
+    });
+
+    it('kopiëren: de beschrijving van het origineel wordt niet overgenomen en het concept verwijst naar het origineel', async () => {
+        await open('copy', bestaandeWens());
+        expect(veld('wishDescription').value).toBe('');
+        await component.saveWish();
+        const concept = vi.mocked(activeModal.close).mock.lastCall[0];
+        expect(concept.copyOf).toBe('w1');
+        expect(concept.title).toBe('Fiets');
+        expect(concept.price).toBe(250);
+        expect(concept.image).toEqual({ key: 'wishes/w1.jpg', url: 'https://img-test.gimmi.be/wishes/w1.jpg' });
+    });
+
+    it('nieuwe wens zonder prijs en afbeelding: een concept met lege prijs en zonder afbeelding', async () => {
+        await open('create');
+        veld('wishTitle').value = 'Boek';
+        veld('wishTitle').dispatchEvent(new Event('input'));
+        await fixture.whenStable();
+        await component.saveWish();
+        expect(vi.mocked(activeModal.close).mock.lastCall[0]).toMatchObject({ title: 'Boek', price: null, url: '', image: null, copyOf: null });
+    });
+
+    it('de prijs mag een komma hebben; tekst als prijs is ongeldig', async () => {
+        await open('create');
+        veld('wishTitle').value = 'Boek';
+        veld('wishTitle').dispatchEvent(new Event('input'));
+        veld('WishPrice').value = '12,5';
+        veld('WishPrice').dispatchEvent(new Event('input'));
+        await fixture.whenStable();
+        await component.saveWish();
+        expect(vi.mocked(activeModal.close).mock.lastCall[0].price).toBe(12.5);
+
+        veld('WishPrice').value = 'veel';
+        veld('WishPrice').dispatchEvent(new Event('input'));
+        await fixture.whenStable();
+        expect(fixture.nativeElement.textContent).toContain('Geef een geldige prijs in');
+        expect(opslaan().disabled).toBe(true);
     });
 });

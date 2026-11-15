@@ -3,18 +3,18 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ModalDismissReasons, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { of } from 'rxjs';
 
-import { Person } from 'src/app/features/people/models/person.model';
 import { Notifications } from 'src/app/core/notifications';
 import { AuthStore } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { ImageView } from '../../../images/components/image-view/image-view';
-import { Wish } from '../../models/wish.model';
+import { Wish, WishDraft } from 'src/app/features/wishes/wish';
 import { WishesData } from '../../wishes-data';
 import { WishCreateCard } from './wish-create-card';
+import { apiWish } from 'src/app/features/wishes/wish.testing';
 
 // Kaart "Voeg wens toe" vooraan in de wenslijst.
 describe('WishCreateCard', () => {
-    const ria = new Person('ria', 'Ria', 'Receiver');
+    const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     const rob = testUser({ id: 'rob', firstName: 'Rob', lastName: 'Reservator', fullName: 'Rob Reservator', email: 'rob@gimmi.be' });
     let fixture: ComponentFixture<WishCreateCard>;
     let modal: Record<string, any>;
@@ -55,17 +55,16 @@ describe('WishCreateCard', () => {
         expect(fixture.nativeElement.textContent).toContain('Voeg wens toe');
     });
 
-    it('opent de popup in create-modus en bewaart de wens met de ingelogde gebruiker als maker', async () => {
-        const wish = new Wish(null, 'Fiets', 250, null, null, null, null, null, null, 1);
+    it('opent de popup in create-modus en bewaart de wens op de lijst van de ontvanger', async () => {
+        const draft: WishDraft = { title: 'Fiets', price: 250, url: '', color: '', size: '', description: '', image: null, copyOf: null };
+        const wish = apiWish({ title: 'Fiets', price: { amount: 25000, currency: 'EUR' }, links: [] });
         wishService.create.mockReturnValue(of(wish));
-        open(Promise.resolve(wish));
+        open(Promise.resolve(draft));
         klik();
         await popup.result;
         await Promise.resolve();
         expect(popup.componentInstance['mode']).toBe('create');
-        expect(wish.createdBy.id).toBe('rob');
-        expect(wish.receiver).toBe(ria);
-        expect(wishService.create).toHaveBeenCalledWith(wish);
+        expect(wishService.create).toHaveBeenCalledWith(draft, 'ria');
         expect(notifications.showNotification).toHaveBeenCalledWith("De wens 'Fiets' werd toegevoegd aan deze lijst.", 'success', 'Wens toegevoegd');
     });
 

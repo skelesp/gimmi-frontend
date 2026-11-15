@@ -2,7 +2,7 @@ import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Notifications } from 'src/app/core/notifications';
 
-import { Wish } from '../../models/wish.model';
+import { Wish } from '../../wish';
 import { WishesData } from '../../wishes-data';
 import { CursorPointer } from '../../../../shared/directives/cursor-pointer';
 

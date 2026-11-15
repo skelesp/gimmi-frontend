@@ -2,7 +2,6 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { NgbConfig, NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { Person } from 'src/app/features/people/models/person.model';
 import { Share } from './share';
 
 describe('Share', () => {
@@ -30,7 +29,7 @@ describe('Share', () => {
   });
 
   it('activate: de popup krijgt de link en de persoon', async () => {
-    const ilse = new Person('p1', 'Ilse', 'Janssens');
+    const ilse = { id: 'p1', firstName: 'Ilse', lastName: 'Janssens' };
     fixture.componentRef.setInput('personToShare', ilse);
     const open = vi.spyOn(TestBed.inject(NgbModal), 'open');
 

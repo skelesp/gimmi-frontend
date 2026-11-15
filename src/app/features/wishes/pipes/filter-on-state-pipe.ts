@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { Wish, wishStatus } from '../models/wish.model';
+import { Wish, WishStatus } from '../wish';
 
 @Pipe({
     name: 'filterOnState',
@@ -7,7 +7,7 @@ import { Wish, wishStatus } from '../models/wish.model';
 })
 export class FilterOnStatePipe implements PipeTransform {
 
-  transform(wishes: Wish[], stateFilter: wishStatus[]): Wish[] {
+  transform(wishes: Wish[], stateFilter: WishStatus[]): Wish[] {
     if ( !wishes || !stateFilter) {
       return wishes;
     }

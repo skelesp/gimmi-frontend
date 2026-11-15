@@ -29,8 +29,8 @@
     <div class="row g-0">
       <div class="col-10">
         <p  class="card-text fw-bold"
-          [class.text-muted]="wish.status !== 'Open'">
-        {{wish.price | currency : "EUR" : 'symbol' : '1.2-2'}}</p>
+          [class.text-muted]="wish.status !== 'open'">
+        {{wish.price | euros | currency : "EUR" : 'symbol' : '1.2-2'}}</p>
       </div>
     </div>
     <!-- Row with "idea of" -->

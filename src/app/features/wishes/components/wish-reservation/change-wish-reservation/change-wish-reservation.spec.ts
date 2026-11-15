@@ -2,15 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { of } from 'rxjs';
 
-import { Person } from 'src/app/features/people/models/person.model';
 import { Notifications } from 'src/app/core/notifications';
-import { Wish } from '../../../models/wish.model';
+import { Wish } from 'src/app/features/wishes/wish';
 import { WishesData } from '../../../wishes-data';
 import { ChangeWishReservation } from './change-wish-reservation';
+import { apiWish } from 'src/app/features/wishes/wish.testing';
 
 // Popup om je eigen reservatie weer te verwijderen.
 describe('ChangeWishReservation', () => {
-    const ria = new Person('ria', 'Ria', 'Receiver');
+    const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     let fixture: ComponentFixture<ChangeWishReservation>;
     let activeModal: Record<string, any>;
     let wishService: Record<string, any>;
@@ -19,7 +19,7 @@ describe('ChangeWishReservation', () => {
     function el(): HTMLElement { return fixture.nativeElement; }
 
     beforeEach(async () => {
-        const wish = new Wish('w1', 'Fiets', 250, null, ria, ria, null, null, null, 1);
+        const wish = apiWish({ id: 'w1', title: 'Fiets', price: { amount: 25000, currency: 'EUR' }, links: [], receiver: ria, createdBy: ria });
         activeModal = { close: vi.fn(), dismiss: vi.fn() };
         wishService = { deleteReservation: vi.fn().mockReturnValue(of(wish)) };
         notifications = { showNotification: vi.fn() };
