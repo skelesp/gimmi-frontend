@@ -5,7 +5,7 @@ import { provideHttpClient, withXhr } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { IImageSearchResult, ImageSearch } from './image-search';
 
-// Afbeeldingen zoeken via API v2 (Brave Search, sc-3028, sc-3290).
+// Searching images via API v2 (Brave Search, sc-3028, sc-3290).
 describe('ImageSearch', () => {
   let service: ImageSearch;
   let http: HttpTestingController;
@@ -18,19 +18,19 @@ describe('ImageSearch', () => {
 
   afterEach(() => http.verify());
 
-  it('vraagt GET /image-search-results met de zoekterm als q (gecodeerd) en geeft de items terug', () => {
-    const resultaat: IImageSearchResult = {
-      url: 'https://winkel.be/fiets.jpg', thumbnailUrl: 'https://imgs.search.brave.com/x',
-      width: 800, height: 600, title: 'Fiets', source: 'winkel.be', pageUrl: 'https://winkel.be/fiets'
+  it('requests GET /image-search-results with the query as q (encoded) and returns the items', () => {
+    const result: IImageSearchResult = {
+      url: 'https://shop.be/bike.jpg', thumbnailUrl: 'https://imgs.search.brave.com/x',
+      width: 800, height: 600, title: 'Bike', source: 'shop.be', pageUrl: 'https://shop.be/bike'
     };
-    let ontvangen: IImageSearchResult[];
-    service.search('rode fiets & bel').subscribe(r => ontvangen = r);
+    let received: IImageSearchResult[];
+    service.search('red bike & bell').subscribe(r => received = r);
 
     const req = http.expectOne(r => r.url === environment.apiV2Url + 'image-search-results');
     expect(req.request.method).toBe('GET');
-    expect(req.request.params.get('q')).toBe('rode fiets & bel');
-    expect(req.request.urlWithParams).toContain('q=rode%20fiets%20%26%20bel');
-    req.flush({ items: [resultaat], nextCursor: null });
-    expect(ontvangen).toEqual([resultaat]);
+    expect(req.request.params.get('q')).toBe('red bike & bell');
+    expect(req.request.urlWithParams).toContain('q=red%20bike%20%26%20bell');
+    req.flush({ items: [result], nextCursor: null });
+    expect(received).toEqual([result]);
   });
 });

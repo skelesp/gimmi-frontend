@@ -6,7 +6,7 @@ import { AuthStore } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { UserMenu } from './user-menu';
 
-// Menu van de ingelogde gebruiker in de navigatiebalk.
+// Menu of the logged-in user in the navigation bar.
 describe('UserMenu', () => {
     let fixture: ComponentFixture<UserMenu>;
     let auth: ReturnType<typeof fakeAuthStore>;
@@ -26,7 +26,7 @@ describe('UserMenu', () => {
         await fixture.whenStable();
     });
 
-    it('toont de voornaam van de gebruiker', () => {
+    it('shows the first name of the user', () => {
         expect(fixture.nativeElement.textContent).toContain('Ilse');
     });
 

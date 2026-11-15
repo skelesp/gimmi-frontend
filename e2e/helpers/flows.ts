@@ -1,10 +1,10 @@
 import { expect, Browser, BrowserContext, Page } from '@playwright/test';
 
-// Gedeelde stappen voor de e2e-specs.
+// Shared steps for the e2e specs.
 
 export interface Account { firstName: string; lastName: string; email: string; password: string; id?: string; }
 
-// De placeholder staat ook op het host-element van gimmi-password-input; kies dus de <input>.
+// The placeholder is also on the host element of gimmi-password-input; so pick the <input>.
 export function input(page: Page, placeholder: string) {
   return page.locator(`input[placeholder="${placeholder}"]`);
 }
@@ -15,13 +15,13 @@ export function wishCard(page: Page, title: string) {
 
 export async function newUserPage(browser: Browser): Promise<{ context: BrowserContext; page: Page }> {
   const context = await browser.newContext();
-  // De iubenda-cookiebanner ligt over de pagina en onderschept klikken; hij hoort niet bij deze flows.
+  // The iubenda cookie banner covers the page and intercepts clicks; it is not part of these flows.
   await context.route(/iubenda\.com/, route => route.abort());
   return { context, page: await context.newPage() };
 }
 
-// Registreren, stap 1 van 2 (sc-3285): het adres opgeven en de melding "controleer je mail" zien. Stap 2 vraagt het token uit
-// de mail, en dat kan CI niet lezen; het verzoek wordt beantwoord zonder het te versturen, zodat er ook geen echte mail vertrekt.
+// Registering, step 1 of 2 (sc-3285): enter the address and see the "check your mail" notice. Step 2 needs the token from
+// the mail, which CI cannot read; the request is answered without sending it, so no real mail goes out either.
 export async function requestRegistration(page: Page, email: string): Promise<void> {
   await page.route(/\/api\/v2\/registrations$/, route => route.fulfill({ status: 202 }));
   await page.goto('/users/register');
@@ -36,11 +36,11 @@ export async function login(page: Page, account: Account): Promise<void> {
   await expect(page).toHaveURL(`/people/${account.id}`);
 }
 
-// Vult het loginformulier in en klikt op Login, zonder op het resultaat te wachten.
+// Fills in the login form and clicks Login, without waiting for the result.
 export async function submitLogin(page: Page, account: Account): Promise<void> {
   await input(page, 'Email (login)').fill(account.email);
   await input(page, 'Wachtwoord').fill(account.password);
-  // De loginknop wordt pas actief als het formulier "touched" is.
+  // The login button only becomes active once the form is "touched".
   await input(page, 'Wachtwoord').blur();
   await page.getByRole('button', { name: 'Login', exact: true }).click();
 }
@@ -48,7 +48,7 @@ export async function submitLogin(page: Page, account: Account): Promise<void> {
 export async function createWish(page: Page, title: string, price = '25'): Promise<void> {
   await page.getByText('Voeg wens toe').click();
   const dialog = page.getByRole('dialog');
-  // Zonder zone.js bestaat het veld al vóór de eerste weergave en maakt die het weer leeg: eerst de titel van de popup afwachten.
+  // Without zone.js the field already exists before the first render and that render empties it again: wait for the popup title first.
   await expect(dialog.getByRole('heading', { name: 'Voeg een wens toe' })).toBeVisible();
   await dialog.locator('#wishTitle').fill(title);
   await dialog.locator('#WishPrice').fill(price);
@@ -57,9 +57,9 @@ export async function createWish(page: Page, title: string, price = '25'): Promi
   await expect(wishCard(page, title)).toBeVisible();
 }
 
-/** Opent het actiemenu (drie puntjes) van een wenskaart en kiest een actie. */
+/** Opens the action menu (three dots) of a wish card and picks an action. */
 export async function wishAction(page: Page, title: string, action: string): Promise<void> {
   await wishCard(page, title).locator('gimmi-action-list [ngbdropdowntoggle]').click();
-  // Het menu hangt aan <body> (container: 'body'), niet in de kaart.
+  // The menu hangs on <body> (container: 'body'), not in the card.
   await page.locator('.dropdown-menu.show').getByText(action, { exact: true }).click();
 }

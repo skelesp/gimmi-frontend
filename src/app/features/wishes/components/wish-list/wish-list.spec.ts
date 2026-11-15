@@ -13,7 +13,7 @@ import { WishCreateCard } from '../wish-create-card/wish-create-card';
 import { WishCard } from '../wish-item/wish-card/wish-card';
 import { apiWish } from 'src/app/features/wishes/wish.testing';
 
-// Wenslijst (sc-2300) met de tab "Ontvangen cadeaus" in plaats van een popup (sc-1984).
+// Wish list (sc-2300) with the "Ontvangen cadeaus" tab instead of a popup (sc-1984).
 describe('WishList', () => {
     const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     let fixture: ComponentFixture<WishList>;
@@ -29,25 +29,25 @@ describe('WishList', () => {
         showList: Mock;
     };
 
-    function wens(titel: string, status: WishStatus): Wish {
-        return apiWish({ id: titel, title: titel, price: { amount: 1000, currency: 'EUR' }, links: [], receiver: ria, createdBy: ria, status });
+    function wish(title: string, status: WishStatus): Wish {
+        return apiWish({ id: title, title: title, price: { amount: 1000, currency: 'EUR' }, links: [], receiver: ria, createdBy: ria, status });
     }
 
-    async function laad(lijst: Wish[]) {
+    async function load(list: Wish[]) {
         component.receiver = ria;
         component.ngOnChanges({ receiver: new SimpleChange(null, ria, true) });
         await fixture.whenStable();
-        wishes.set(lijst);
+        wishes.set(list);
         await fixture.whenStable();
     }
 
-    function kaarten(): string[] {
+    function cards(): string[] {
         return fixture.debugElement.queryAll(el => el.name === 'gimmi-wish-card').map(el => el.nativeElement.wish.title);
     }
 
-    async function klikTab(tekst: string) {
+    async function clickTab(text: string) {
         const tab: HTMLElement = Array.from(fixture.nativeElement.querySelectorAll('.nav-tabs button') as NodeListOf<HTMLElement>)
-            .find(a => a.textContent.trim() === tekst);
+            .find(a => a.textContent.trim() === text);
         tab.click();
         await fixture.whenStable();
     }
@@ -68,7 +68,7 @@ describe('WishList', () => {
         component = fixture.componentInstance;
     });
 
-    it('haalt de lijst op bij een nieuwe ontvanger en toont intussen een spinner', async () => {
+    it('fetches the list for a new recipient and shows a spinner meanwhile', async () => {
         component.receiver = ria;
         component.ngOnChanges({ receiver: new SimpleChange(null, ria, true) });
         await fixture.whenStable();
@@ -82,70 +82,70 @@ describe('WishList', () => {
         expect(fixture.nativeElement.querySelector('.spinner-border')).toBeNull();
     });
 
-    it('een fout van de server wordt gemeld (de resource verpakt hem)', async () => {
+    it('an error from the server is reported (the resource wraps it)', async () => {
         const problem = new ApiProblem({ status: 404, code: 'not-found' as never });
-        await laad([]);
+        await load([]);
         listError.set(Object.assign(new Error('Resource is currently in an error state'), { cause: problem }));
         await fixture.whenStable();
         expect(problems.show).toHaveBeenCalledWith(problem);
     });
 
-    it('een fout die geen ApiProblem is, komt in de console', async () => {
+    it('an error that is not an ApiProblem goes to the console', async () => {
         const consoleError = vi.spyOn(console, 'error').mockReturnValue(undefined);
-        const fout = new Error('stuk');
-        await laad([]);
-        listError.set(fout);
+        const error = new Error('stuk');
+        await load([]);
+        listError.set(error);
         await fixture.whenStable();
         expect(problems.show).not.toHaveBeenCalled();
-        expect(consoleError).toHaveBeenCalledWith(fout);
+        expect(consoleError).toHaveBeenCalledWith(error);
     });
 
-    it('een ApiProblem zonder verpakking wordt ook gemeld', async () => {
+    it('an ApiProblem without wrapping is also reported', async () => {
         const problem = new ApiProblem({ status: 403, code: 'forbidden' as never });
-        await laad([]);
+        await load([]);
         listError.set(problem);
         await fixture.whenStable();
         expect(problems.show).toHaveBeenCalledWith(problem);
     });
 
-    it('andere wijziging dan de ontvanger: geen nieuwe ophaling', () => {
+    it('change other than the recipient: no new fetch', () => {
         component.ngOnChanges({ wishlistFilter: new SimpleChange(null, ['Open'], true) });
         expect(wishService.showList).not.toHaveBeenCalled();
     });
 
-    it('tab "Wensenlijst": open, gereserveerde en ontvangen (nog niet afgesloten) wensen', async () => {
-        await laad([wens('open', 'open'), wens('gereserveerd', 'reserved'), wens('ontvangen', 'received'), wens('vervuld', 'fulfilled')]);
+    it('tab "Wensenlijst": open, reserved and received (not yet closed) wishes', async () => {
+        await load([wish('open', 'open'), wish('gereserveerd', 'reserved'), wish('ontvangen', 'received'), wish('vervuld', 'fulfilled')]);
         expect(component.wishlistFilter()).toEqual(['open', 'received', 'reserved']);
-        expect(kaarten()).toEqual(['open', 'gereserveerd', 'ontvangen']);
+        expect(cards()).toEqual(['open', 'gereserveerd', 'ontvangen']);
     });
 
-    it('tab "Ontvangen cadeaus": enkel de vervulde wensen (sc-1984)', async () => {
-        await laad([wens('open', 'open'), wens('vervuld', 'fulfilled'), wens('ook vervuld', 'fulfilled')]);
-        await klikTab('Ontvangen cadeaus');
+    it('tab "Ontvangen cadeaus": only the fulfilled wishes (sc-1984)', async () => {
+        await load([wish('open', 'open'), wish('vervuld', 'fulfilled'), wish('ook vervuld', 'fulfilled')]);
+        await clickTab('Ontvangen cadeaus');
         expect(component.wishlistFilter()).toEqual(['fulfilled']);
-        expect(kaarten()).toEqual(['vervuld', 'ook vervuld']);
+        expect(cards()).toEqual(['vervuld', 'ook vervuld']);
 
-        await klikTab('Wensenlijst');
-        expect(kaarten()).toEqual(['open']);
+        await clickTab('Wensenlijst');
+        expect(cards()).toEqual(['open']);
     });
 
-    it('de kaart om een wens toe te voegen staat altijd vooraan, met de ontvanger', async () => {
-        await laad([wens('open', 'open')]);
+    it('the card to add a wish is always at the front, with the recipient', async () => {
+        await load([wish('open', 'open')]);
         const create = fixture.debugElement.query(el => el.name === 'gimmi-wish-create-card');
         expect(create.nativeElement.receiver).toBe(ria);
     });
 
-    it('lege lijst: melding met de voornaam van de ontvanger', async () => {
-        await laad([]);
+    it('empty list: notice with the first name of the recipient', async () => {
+        await load([]);
         expect(fixture.nativeElement.querySelector('ngb-alert').textContent).toContain('Vraag Ria om wensen op de lijst toe te voegen');
     });
 
-    it('lijst met wensen: geen melding', async () => {
-        await laad([wens('open', 'open')]);
+    it('list with wishes: no notice', async () => {
+        await load([wish('open', 'open')]);
         expect(fixture.nativeElement.querySelector('ngb-alert')).toBeNull();
     });
 
-    it('onbekende filternaam valt terug op de wensenlijst', () => {
+    it('unknown filter name falls back to the wish list', () => {
         component.setWishlistFilter('iets anders');
         expect(component.wishlistFilter()).toEqual(['open', 'received', 'reserved']);
     });

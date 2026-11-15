@@ -10,13 +10,13 @@ import { PeopleSearch } from '../../../features/people/components/people-search/
 import { UserMenu } from '../../../features/users/components/user-menu/user-menu';
 import { UnknownUserMenu } from '../../../features/users/components/unknown-user-menu/unknown-user-menu';
 
-// Navigatiebalk (sc-2001). Het zoekveld staat vast in de balk en niet in het inklapmenu (sc-41).
+// Navigation bar (sc-2001). The search field is fixed in the bar and not in the collapsible menu (sc-41).
 describe('NavigationBar', () => {
     let fixture: ComponentFixture<NavigationBar>;
     let auth: ReturnType<typeof fakeAuthStore>;
     const ilse = testUser({ id: 'u1', firstName: 'Ilse', lastName: 'Ingelogd', fullName: 'Ilse Ingelogd', email: 'ilse@gimmi.be' });
 
-    async function toon(user: CurrentUser) {
+    async function show(user: CurrentUser) {
         auth.user.set(user);
         fixture = TestBed.createComponent(NavigationBar);
         await fixture.whenStable();
@@ -32,20 +32,20 @@ describe('NavigationBar', () => {
     providers: [{ provide: AuthStore, useValue: auth }],
     schemas: [NO_ERRORS_SCHEMA]
 }).compileComponents();
-        // Zonder animatie staat het menu meteen open of dicht (anders tijdelijk "collapsing").
+        // Without animation the menu is open or closed right away (otherwise temporarily "collapsing").
         TestBed.inject(NgbConfig).animation = false;
     });
 
-    it('logo en zoekveld staan altijd in de balk, het zoekveld buiten het inklapmenu (sc-41)', async () => {
-        await toon(null);
+    it('logo and search field are always in the bar, the search field outside the collapsible menu (sc-41)', async () => {
+        await show(null);
         expect(el().querySelector('.navbar-brand gimmi-brand-logo')).toBeTruthy();
-        const zoek = el().querySelector('gimmi-people-search');
-        expect(zoek).toBeTruthy();
-        expect(zoek.closest('.navbar-collapse')).toBeNull();
+        const search = el().querySelector('gimmi-people-search');
+        expect(search).toBeTruthy();
+        expect(search.closest('.navbar-collapse')).toBeNull();
     });
 
-    it('niet ingelogd: menuknop en een ingeklapt menu voor onbekende gebruikers', async () => {
-        await toon(null);
+    it('not logged in: menu button and a collapsed menu for unknown users', async () => {
+        await show(null);
         expect(el().querySelector('button.navbar-toggler')).toBeTruthy();
         expect(el().querySelector('gimmi-user-menu')).toBeNull();
         const menu = el().querySelector('.navbar-collapse');
@@ -53,35 +53,35 @@ describe('NavigationBar', () => {
         expect(menu.classList).not.toContain('show');
     });
 
-    it('de menuknop klapt het menu open en weer dicht', async () => {
-        await toon(null);
-        const knop: HTMLButtonElement = el().querySelector('button.navbar-toggler');
-        knop.click();
+    it('the menu button opens the menu and closes it again', async () => {
+        await show(null);
+        const button: HTMLButtonElement = el().querySelector('button.navbar-toggler');
+        button.click();
         await fixture.whenStable();
         expect(fixture.componentInstance.isNavbarCollapsed).toBe(false);
         expect(el().querySelector('.navbar-collapse').classList).toContain('show');
-        knop.click();
+        button.click();
         await fixture.whenStable();
         expect(fixture.componentInstance.isNavbarCollapsed).toBe(true);
     });
 
-    it('een keuze in het menu klapt het weer dicht', async () => {
-        await toon(null);
+    it('a choice in the menu collapses it again', async () => {
+        await show(null);
         fixture.componentInstance.toggleNavbarCollapseState();
         await fixture.whenStable();
         fixture.debugElement.query(e => e.name === 'gimmi-unknown-user-menu').triggerEventHandler('menuItemClicked', null);
         expect(fixture.componentInstance.isNavbarCollapsed).toBe(true);
     });
 
-    it('ingelogd: gebruikersmenu, geen menuknop en geen menu voor onbekenden', async () => {
-        await toon(ilse);
+    it('logged in: user menu, no menu button and no menu for unknown users', async () => {
+        await show(ilse);
         expect(el().querySelector('gimmi-user-menu')).toBeTruthy();
         expect(el().querySelector('button.navbar-toggler')).toBeNull();
         expect(el().querySelector('gimmi-unknown-user-menu')).toBeNull();
     });
 
-    it('volgt in- en uitloggen', async () => {
-        await toon(null);
+    it('follows logging in and out', async () => {
+        await show(null);
         auth.user.set(ilse);
         await fixture.whenStable();
         expect(el().querySelector('gimmi-user-menu')).toBeTruthy();

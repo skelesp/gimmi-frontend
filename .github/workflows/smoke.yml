@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       update_baseline:
-        description: 'Visuele baseline opnieuw maken (artifact visuele-baseline, zie docs/claude/ci.md)'
+        description: 'Recreate the visual baseline (artifact visual-baseline, zie docs/claude/ci.md)'
         type: boolean
         default: false
 
@@ -55,13 +55,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Visuele baseline bijwerken
+      - name: Update the visual baseline
         if: inputs.update_baseline
-        run: npx playwright test e2e/visueel.spec.ts --update-snapshots
+        run: npx playwright test e2e/visual.spec.ts --update-snapshots
       - uses: actions/upload-artifact@v7
         if: inputs.update_baseline
         with:
-          name: visuele-baseline
+          name: visual-baseline
           path: e2e/__screenshots__/
       - run: npm run e2e
         if: ${{ !inputs.update_baseline }}

@@ -12,7 +12,7 @@ import { WishesData } from '../../wishes-data';
 import { WishReservation } from './wish-reservation';
 import { apiWish } from 'src/app/features/wishes/wish.testing';
 
-// Reservatiepopup met overhandigingsdatum en gelegenheid (sc-1892).
+// Reservation popup with handover date and occasion (sc-1892).
 describe('WishReservation', () => {
     const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     let fixture: ComponentFixture<WishReservation>;
@@ -21,12 +21,12 @@ describe('WishReservation', () => {
     let notifications: Record<string, Mock>;
 
     function el(): HTMLElement { return fixture.nativeElement; }
-    function knop(): HTMLButtonElement { return el().querySelector('button[type="submit"]'); }
-    function reden(): HTMLSelectElement { return el().querySelector('#reservationReason'); }
+    function button(): HTMLButtonElement { return el().querySelector('button[type="submit"]'); }
+    function reasonSelect(): HTMLSelectElement { return el().querySelector('#reservationReason'); }
 
-    async function kies(optie: string) {
-        const select = reden();
-        select.value = Array.from(select.options).find(o => o.textContent.trim() === optie).value;
+    async function choose(option: string) {
+        const select = reasonSelect();
+        select.value = Array.from(select.options).find(o => o.textContent.trim() === option).value;
         select.dispatchEvent(new Event('input'));
         select.dispatchEvent(new Event('change'));
         await fixture.whenStable();
@@ -57,49 +57,49 @@ describe('WishReservation', () => {
         await fixture.whenStable();
     });
 
-    it('titel en uitleg met de wens en de voornaam van de ontvanger', () => {
+    it('title and explanation with the wish and the first name of the recipient', () => {
         expect(el().querySelector('.modal-title').textContent).toContain('Reserveer Fiets');
         expect(el().textContent).toContain('Wanneer geef je het cadeau aan Ria?');
         expect(el().textContent).toContain('Je reservatie blijft onzichtbaar voor Ria tot na deze datum.');
     });
 
-    it('overhandigingsdatum staat standaard op vandaag', () => {
-        const datum: HTMLInputElement = el().querySelector('#handoverDate');
-        expect(datum.type).toBe('date');
-        expect(datum.value).toBe(new Date().toISOString().substring(0, 10));
+    it('handover date defaults to today', () => {
+        const date: HTMLInputElement = el().querySelector('#handoverDate');
+        expect(date.type).toBe('date');
+        expect(date.value).toBe(new Date().toISOString().substring(0, 10));
     });
 
-    it('gelegenheden in vaste volgorde', () => {
-        const opties = Array.from(reden().options).filter(o => !o.hidden).map(o => o.textContent.trim());
-        expect(opties).toEqual(['Verjaardag', 'Sinterklaas', 'Kerstmis', 'Nieuwjaar', 'Housewarming', 'Geboorte', 'Huwelijk',
+    it('occasions in fixed order', () => {
+        const options = Array.from(reasonSelect().options).filter(o => !o.hidden).map(o => o.textContent.trim());
+        expect(options).toEqual(['Verjaardag', 'Sinterklaas', 'Kerstmis', 'Nieuwjaar', 'Housewarming', 'Geboorte', 'Huwelijk',
             'Afscheid collega', 'Afscheid', 'Communie / Lentefeest', 'Vader/moederdag', 'Andere reden']);
     });
 
     it('gelegenheid is verplicht: knop uit en melding na aanraken', async () => {
-        expect(knop().disabled).toBe(true);
-        reden().dispatchEvent(new Event('blur'));
+        expect(button().disabled).toBe(true);
+        reasonSelect().dispatchEvent(new Event('blur'));
         await fixture.whenStable();
         expect(el().textContent).toContain('De gelegenheid is een verplicht veld.');
-        await kies('Kerstmis');
-        expect(knop().disabled).toBe(false);
+        await choose('Kerstmis');
+        expect(button().disabled).toBe(false);
         expect(el().textContent).not.toContain('De gelegenheid is een verplicht veld.');
     });
 
-    it('reserveren: stuurt de overhandigingsdatum en de gelegenheid als code, meldt dat en sluit de popup', async () => {
+    it('reserving: sends the handover date and the occasion as code, reports that and closes the popup', async () => {
         wishService.addReservation.mockImplementation((w: Wish) => of(w));
-        await kies('Verjaardag');
-        const datum: HTMLInputElement = el().querySelector('#handoverDate');
-        datum.value = '2026-12-24';
-        datum.dispatchEvent(new Event('input'));
+        await choose('Verjaardag');
+        const date: HTMLInputElement = el().querySelector('#handoverDate');
+        date.value = '2026-12-24';
+        date.dispatchEvent(new Event('input'));
         await fixture.whenStable();
-        knop().click();
+        button().click();
 
         expect(wishService.addReservation).toHaveBeenCalledWith(fixture.componentInstance.wish, { handoverDate: '2026-12-24', occasion: 'birthday' });
         expect(notifications.showNotification).toHaveBeenCalledWith('Wens Fiets is gereserveerd. U hoeft dit perfecte cadeau enkel nog te kopen en af te geven!', 'success', 'Gereserveerd');
         expect(activeModal.close).toHaveBeenCalled();
     });
 
-    it('annuleren en het kruisje: niets gereserveerd', () => {
+    it('cancelling and the cross: nothing reserved', () => {
         el().querySelector<HTMLButtonElement>('.modal-footer .btn-outline-danger').click();
         el().querySelector<HTMLButtonElement>('button.btn-close').click();
         expect(vi.mocked(activeModal.dismiss).mock.calls).toEqual([['Cancel'], ['Cross click']]);

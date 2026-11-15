@@ -13,7 +13,7 @@ import { WishesData } from '../../wishes-data';
 import { WishCreateCard } from './wish-create-card';
 import { apiWish } from 'src/app/features/wishes/wish.testing';
 
-// Kaart "Voeg wens toe" vooraan in de wenslijst.
+// "Voeg wens toe" card at the front of the wish list.
 describe('WishCreateCard', () => {
     const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     const rob = testUser({ id: 'rob', firstName: 'Rob', lastName: 'Reservator', fullName: 'Rob Reservator', email: 'rob@gimmi.be' });
@@ -23,7 +23,7 @@ describe('WishCreateCard', () => {
     let wishService: Record<string, Mock>;
     let notifications: Record<string, Mock>;
 
-    function klik() {
+    function click() {
         (fixture.nativeElement.querySelector('.card-img-overlay') as HTMLElement).click();
     }
 
@@ -52,16 +52,16 @@ describe('WishCreateCard', () => {
         await fixture.whenStable();
     });
 
-    it('toont de uitnodiging om een wens toe te voegen', () => {
+    it('shows the invitation to add a wish', () => {
         expect(fixture.nativeElement.textContent).toContain('Voeg wens toe');
     });
 
-    it('opent de popup in create-modus en bewaart de wens op de lijst van de ontvanger', async () => {
+    it('opens the popup in create mode and saves the wish on the recipient\'s list', async () => {
         const draft: WishDraft = { title: 'Fiets', price: 250, url: '', color: '', size: '', description: '', image: null, copyOf: null };
         const wish = apiWish({ title: 'Fiets', price: { amount: 25000, currency: 'EUR' }, links: [] });
         wishService.create.mockReturnValue(of(wish));
         open(Promise.resolve(draft));
-        klik();
+        click();
         await popup.result;
         await Promise.resolve();
         expect(popup.componentInstance['mode']).toBe('create');
@@ -69,24 +69,24 @@ describe('WishCreateCard', () => {
         expect(notifications.showNotification).toHaveBeenCalledWith("De wens 'Fiets' werd toegevoegd aan deze lijst.", 'success', 'Wens toegevoegd');
     });
 
-    it('sluiten van de popup met ESC bewaart niets', async () => {
+    it('closing the popup with ESC saves nothing', async () => {
         open(Promise.reject(ModalDismissReasons.ESC));
-        klik();
+        click();
         await new Promise(r => setTimeout(r));
         expect(wishService.create).not.toHaveBeenCalled();
         expect(console.warn).toHaveBeenCalledWith('Wish Create popup is closed: ESC pressed');
     });
 
-    it('klikken naast de popup bewaart niets', async () => {
+    it('clicking next to the popup saves nothing', async () => {
         open(Promise.reject(ModalDismissReasons.BACKDROP_CLICK));
-        klik();
+        click();
         await new Promise(r => setTimeout(r));
         expect(console.warn).toHaveBeenCalledWith('Wish Create popup is closed: Backdrop click');
     });
 
-    it('een andere sluitreden wordt doorgegeven', async () => {
+    it('another dismiss reason is passed on', async () => {
         open(Promise.reject('Cancel'));
-        klik();
+        click();
         await new Promise(r => setTimeout(r));
         expect(console.warn).toHaveBeenCalledWith('Wish Create popup is closed: Cancel');
     });

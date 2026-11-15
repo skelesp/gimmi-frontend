@@ -1,7 +1,7 @@
 @if (preview) {
-  <img [src]="preview" [class]="class + ' beeld voorvertoning'" alt="Gekozen afbeelding" />
+  <img [src]="preview" [class]="class + ' image preview'" alt="Gekozen afbeelding" />
 } @else {
   <img [src]="src" [attr.srcset]="srcset" [attr.sizes]="srcset ? sizes : null"
-    [class]="class + ' beeld' + (geladen ? '' : ' laden')" alt="Afbeelding van de wens" loading="lazy" decoding="async"
-    (load)="geladen = true" (error)="nietGeladen()" />
+    [class]="class + ' image' + (loaded ? '' : ' loading')" alt="Afbeelding van de wens" loading="lazy" decoding="async"
+    (load)="loaded = true" (error)="notLoaded()" />
   }

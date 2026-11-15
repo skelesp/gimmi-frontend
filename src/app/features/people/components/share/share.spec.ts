@@ -12,7 +12,7 @@ describe('Share', () => {
     await TestBed.configureTestingModule({
     imports: [Share],
     schemas: [NO_ERRORS_SCHEMA],
-    // Zonder animatie is de popup meteen weg; anders verwijdert hij zijn elementen nog nadat de test is opgeruimd.
+    // Without animation the popup is gone right away; otherwise it removes its elements after the test has been cleaned up.
     providers: [{ provide: NgbConfig, useFactory: () => Object.assign(new NgbConfig(), { animation: false }) }]
 })
     .compileComponents();
@@ -28,7 +28,7 @@ describe('Share', () => {
     expect(component).toBeTruthy();
   });
 
-  it('activate: de popup krijgt de link en de persoon', async () => {
+  it('activate: the popup gets the link and the person', async () => {
     const ilse = { id: 'p1', firstName: 'Ilse', lastName: 'Janssens' };
     fixture.componentRef.setInput('personToShare', ilse);
     const open = vi.spyOn(TestBed.inject(NgbModal), 'open');

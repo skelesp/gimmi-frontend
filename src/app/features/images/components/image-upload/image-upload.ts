@@ -1,16 +1,16 @@
 import { Component, Input, OnDestroy, ChangeDetectionStrategy, inject, output } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { WishImage } from 'src/app/features/wishes/wish';
-import { IGekozenAfbeelding, ImagePicker } from '../image-picker/image-picker';
+import { ChosenImage, ImagePicker } from '../image-picker/image-picker';
 
 /**
- * Knop "Kies afbeelding": opent de afbeeldingskiezer als popup (sc-3028) en geeft de
- * opgeladen afbeelding door. Sluit de wens-popup (deze component verdwijnt), dan sluit
- * de kiezer mee en breekt een lopende upload af (was sc-1391). Wie de pagina verlaat,
- * sluit alle popups via de ModalsClosedGuard.
+ * "Choose image" button: opens the image picker as a popup (sc-3028) and passes on the
+ * uploaded image. If the wish popup closes (this component disappears), the picker
+ * closes too and a running upload is aborted (was sc-1391). Whoever leaves the page
+ * closes all popups via the ModalsClosedGuard.
  *
- * Sinds sc-2911 krijgt elke afbeelding een eigen sleutel in R2: geen tijdelijke naam
- * meer die achteraf hernoemd of opgeruimd moet worden.
+ * Since sc-2911 every image gets its own key in R2: no temporary name
+ * that has to be renamed or cleaned up afterwards.
  */
 @Component({
     selector: 'gimmi-image-upload',
@@ -23,25 +23,25 @@ export class ImageUpload implements OnDestroy {
   @Input() searchTerm = "";
 
   readonly imageUploaded = output<WishImage>();
-  /** Komt vlak vóór imageUploaded: een URL of data-URI die de browser meteen kan tonen. */
+  /** Fires just before imageUploaded: a URL or data URI the browser can show right away. */
   readonly previewChanged = output<string>();
 
-  private kiezer: NgbModalRef = null;
+  private picker: NgbModalRef = null;
 
-  openKiezer(): void {
-    this.kiezer = this.modalService.open(ImagePicker, { size: 'lg', scrollable: true, ariaLabelledBy: 'kiezer-titel' });
-    this.kiezer.componentInstance.searchTerm = this.searchTerm;
-    this.kiezer.result.then(
-      (gekozen: IGekozenAfbeelding) => {
-        this.kiezer = null;
-        this.previewChanged.emit(gekozen.voorvertoning);
-        this.imageUploaded.emit(gekozen.afbeelding);
+  openPicker(): void {
+    this.picker = this.modalService.open(ImagePicker, { size: 'lg', scrollable: true, ariaLabelledBy: 'picker-title' });
+    this.picker.componentInstance.searchTerm = this.searchTerm;
+    this.picker.result.then(
+      (chosen: ChosenImage) => {
+        this.picker = null;
+        this.previewChanged.emit(chosen.preview);
+        this.imageUploaded.emit(chosen.image);
       },
-      () => { this.kiezer = null; }   // geannuleerd of weggeklikt
+      () => { this.picker = null; }   // cancelled or dismissed
     );
   }
 
   ngOnDestroy(): void {
-    this.kiezer?.dismiss('Wens-popup gesloten');
+    this.picker?.dismiss('Wish popup closed');
   }
 }

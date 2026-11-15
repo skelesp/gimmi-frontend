@@ -1,19 +1,19 @@
-// Ruimt de testdata van de smoketests op in de testomgeving (sc-3283). Vangnet voor runs die halverwege stopten.
+// Cleans up the test data of the smoke tests in the test environment (sc-3283). Safety net for runs that stopped halfway.
 //
 //   npm run e2e:cleanup
 //
-// Via API v2, met het bekende wachtwoord van de smoke-accounts: de vaste accounts (Eigenaar, Gever) houden hun
-// account maar verliezen hun wensen; het wegwerpaccount van kernflows test 1 wordt verwijderd. Echte gebruikers
-// worden nooit geraakt: alleen deze adressen komen aan bod.
+// Via API v2, with the known password of the smoke accounts: the fixed accounts (owner, giver) keep their
+// account but lose their wishes; the throwaway account of core-flows test 1 is removed. Real users
+// are never touched: only these addresses are involved.
 import { apiUrl, clearWishes, newcomerEmail, removeAccount, smokeAccounts } from './helpers/api.ts';
 
 async function main(): Promise<void> {
-  console.log(`Opruimen tegen ${apiUrl}`);
+  console.log(`Cleaning up against ${apiUrl}`);
   for (const account of Object.values(smokeAccounts)) {
-    console.log(`${account.email}: ${await clearWishes(account)} wensen verwijderd`);
+    console.log(`${account.email}: ${await clearWishes(account)} wishes removed`);
   }
   await removeAccount(newcomerEmail);
-  console.log(`${newcomerEmail}: verwijderd als het bestond`);
+  console.log(`${newcomerEmail}: removed if it existed`);
 }
 
 main().catch(err => { console.error(err); process.exit(1); });

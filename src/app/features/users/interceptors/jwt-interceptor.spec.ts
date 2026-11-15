@@ -7,8 +7,8 @@ import { environment } from 'src/environments/environment';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { jwtInterceptor } from './jwt-interceptor';
 
-// Het token gaat alleen mee naar de eigen API, en alleen als iemand ingelogd is:
-// een externe bron (zoals de afbeeldingen op het beelddomein) krijgt het nooit te zien.
+// The token only goes to our own API, and only if someone is logged in:
+// an external source (such as the images on the image domain) never gets to see it.
 describe('jwtInterceptor', () => {
   let http: HttpClient;
   let backend: HttpTestingController;
@@ -37,17 +37,17 @@ describe('jwtInterceptor', () => {
 
   afterEach(() => backend.verify());
 
-  it('ingelogd, naar de API: het token als Bearer', () => {
+  it('logged in, to the API: the token as Bearer', () => {
     token.set('jwt-123');
     expect(header(environment.apiV2Url + 'me')).toBe('Bearer jwt-123');
   });
 
-  it('ingelogd, naar een ander adres: geen header', () => {
+  it('logged in, to another address: no header', () => {
     token.set('jwt-123');
     expect(header('https://img.gimmi.be/wishes/a.jpg')).toBeNull();
   });
 
-  it('niet ingelogd of zonder token: geen header', () => {
+  it('not logged in or without token: no header', () => {
     expect(header(environment.apiV2Url + 'people')).toBeNull();
     token.set('');
     expect(header(environment.apiV2Url + 'people')).toBeNull();

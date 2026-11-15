@@ -39,7 +39,7 @@ export class WishPopup implements OnInit {
   saving = false;
   readonly showWarningExistingCopy = signal(false);
   currentUser: CurrentUser;
-  /** Voorvertoning van een net gekozen afbeelding, tot de popup sluit (sc-3028). */
+  /** Preview of a just-chosen image, until the popup closes (sc-3028). */
   imagePreview: string = null;
 
   ngOnInit(): void {

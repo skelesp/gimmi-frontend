@@ -8,7 +8,7 @@ import { ProblemNotifier } from '../../../../core/api/problem-notifier';
 import { People, PersonRef } from '../../service/people';
 import { PeopleSearch, PersonResult } from './people-search';
 
-// Zoekveld voor wenslijsten van andere personen in de navigatiebalk.
+// Search field for wish lists of other people in the navigation bar.
 describe('PeopleSearch', () => {
     const ria: PersonRef = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     const riaResult: PersonResult = { ...ria, fullName: 'Ria Receiver' };
@@ -17,12 +17,12 @@ describe('PeopleSearch', () => {
     let problems: { show: ReturnType<typeof vi.fn> };
     let router: Record<string, Mock>;
 
-    function zoek(term: string): (PersonResult | null)[] {
-        let uitkomst: (PersonResult | null)[];
-        const tekst$ = new Subject<string>();
-        fixture.componentInstance.search(tekst$).subscribe(r => uitkomst = r);
+    function search(term: string): (PersonResult | null)[] {
+        let outcome: (PersonResult | null)[];
+        const text$ = new Subject<string>();
+        fixture.componentInstance.search(text$).subscribe(r => outcome = r);
         fixture.componentInstance.focus$.next(term);
-        return uitkomst;
+        return outcome;
     }
 
     beforeEach(async () => {
@@ -41,34 +41,34 @@ describe('PeopleSearch', () => {
         await fixture.whenStable();
     });
 
-    it('vraagt de server naar de zoekterm en toont de volledige naam', () => {
-        expect(zoek('ria')).toEqual([riaResult]);
+    it('asks the server for the search term and shows the full name', () => {
+        expect(search('ria')).toEqual([riaResult]);
         expect(people.search).toHaveBeenCalledWith('ria');
     });
 
-    it('geeft [null] als niemand past, zodat de sjabloon "niet gevonden" toont', () => {
+    it('returns [null] if nobody matches, so the template shows "niet gevonden"', () => {
         people.search.mockReturnValue(of([]));
-        expect(zoek('zzz')).toEqual([null]);
+        expect(search('zzz')).toEqual([null]);
     });
 
-    it('onder 2 tekens geen aanroep', () => {
-        expect(zoek('')).toEqual([]);
-        expect(zoek(' r ')).toEqual([]);
+    it('below 2 characters no call', () => {
+        expect(search('')).toEqual([]);
+        expect(search(' r ')).toEqual([]);
         expect(people.search).not.toHaveBeenCalled();
     });
 
-    it('een fout van de server wordt gemeld en geeft geen resultaten', () => {
+    it('an error from the server is reported and gives no results', () => {
         const problem = new ApiProblem({ status: 429, code: 'rate-limited' as never });
         people.search.mockReturnValue(throwError(() => problem));
-        expect(zoek('ria')).toEqual([]);
+        expect(search('ria')).toEqual([]);
         expect(problems.show).toHaveBeenCalledWith(problem);
     });
 
-    it('toont de volledige naam in het zoekveld', () => {
+    it('shows the full name in the search field', () => {
         expect(fixture.componentInstance.inputFormatter(riaResult)).toBe('Ria Receiver');
     });
 
-    it('een gekozen persoon opent diens lijst', () => {
+    it('a chosen person opens their list', () => {
         const event = { preventDefault: vi.fn(), item: riaResult };
         fixture.componentInstance.onPersonSelect(event);
         expect(event.preventDefault).toHaveBeenCalled();
@@ -76,7 +76,7 @@ describe('PeopleSearch', () => {
         expect(fixture.componentInstance.searchInput().nativeElement.value).toBe('');
     });
 
-    it('"niet gevonden" kiezen opent het uitnodigen', () => {
+    it('choosing "niet gevonden" opens the invitation', () => {
         fixture.componentInstance.onPersonSelect({ preventDefault: vi.fn(), item: null });
         expect(router.navigate).toHaveBeenCalledWith(['/people/invite']);
     });

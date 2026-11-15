@@ -9,7 +9,7 @@ import { Notifications } from 'src/app/core/notifications';
 import { PasswordReset } from '../../service/password-reset';
 import { ForgotPassword } from './forgot-password';
 
-// Wachtwoord vergeten: een link aanvragen (sc-2004, sc-3286).
+// Forgotten password: requesting a link (sc-2004, sc-3286).
 describe('ForgotPassword', () => {
     let fixture: ComponentFixture<ForgotPassword>;
     let passwordReset: { request: ReturnType<typeof vi.fn> };
@@ -39,15 +39,15 @@ describe('ForgotPassword', () => {
         await fixture.whenStable();
     });
 
-    it('knop pas actief met een geldig e-mailadres', async () => {
-        const knop: HTMLButtonElement = fixture.nativeElement.querySelector('button[type=submit]');
-        expect(knop.disabled).toBe(true);
+    it('button only active with a valid email address', async () => {
+        const button: HTMLButtonElement = fixture.nativeElement.querySelector('button[type=submit]');
+        expect(button.disabled).toBe(true);
         const field = await TestbedHarnessEnvironment.loader(fixture).getHarness(EmailFieldHarness);
         await field.setValue('ria@gimmi.be');
-        expect(knop.disabled).toBe(false);
+        expect(button.disabled).toBe(false);
     });
 
-    it('aanvragen: vraagt de link aan en toont de bevestiging', async () => {
+    it('request: requests the link and shows the confirmation', async () => {
         passwordReset.request.mockReturnValue(of(undefined));
         await submitWith('ria@gimmi.be');
         expect(passwordReset.request).toHaveBeenCalledWith('ria@gimmi.be');
@@ -55,7 +55,7 @@ describe('ForgotPassword', () => {
         expect(fixture.nativeElement.querySelector('ngb-alert').textContent).toContain('paswoord reset werd aangevraagd');
     });
 
-    it('een probleem van de API (te veel pogingen): een melding en geen bevestiging', async () => {
+    it('a problem from the API (too many attempts): a notice and no confirmation', async () => {
         const problem = new ApiProblem({ status: 429, code: 'rate-limited' });
         passwordReset.request.mockReturnValue(throwError(() => problem));
         await submitWith('ria@gimmi.be');
@@ -63,7 +63,7 @@ describe('ForgotPassword', () => {
         expect(fixture.componentInstance.requestSent()).toBe(false);
     });
 
-    it('een storing zonder probleemdocument: een algemene waarschuwing', async () => {
+    it('a failure without problem document: a generic warning', async () => {
         vi.spyOn(console, 'error').mockReturnValue(undefined);
         passwordReset.request.mockReturnValue(throwError(() => new Error('offline')));
         await submitWith('ria@gimmi.be');
