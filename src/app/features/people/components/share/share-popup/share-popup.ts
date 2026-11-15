@@ -1,6 +1,6 @@
 import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { PersonToShare } from 'src/app/features/people/models/person.model';
+import { PersonToShare } from 'src/app/features/people/person';
 import { AuthStore } from 'src/app/core/auth/auth-store';
 import { CursorPointer } from '../../../../../shared/directives/cursor-pointer';
 import { CopyToClipboardButton } from '../copy-to-clipboard-button/copy-to-clipboard-button';

@@ -2,11 +2,10 @@ import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angu
 import { IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ModalDismissReasons, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Person } from 'src/app/features/people/models/person.model';
 import { Notifications } from 'src/app/core/notifications';
 import { CurrentUser } from 'src/app/core/auth/auth-store';
 import { AuthStore } from 'src/app/core/auth/auth-store';
-import { Wish } from '../../models/wish.model';
+import { WishDraft } from '../../wish';
 import { WishesData } from '../../wishes-data';
 import { WishPopup } from '../wish-item/wish-popup/wish-popup';
 import { ImageView } from '../../../images/components/image-view/image-view';
@@ -26,7 +25,7 @@ export class WishCreateCard implements OnInit {
   private auth = inject(AuthStore);
   private notificationService = inject(Notifications);
 
-  @Input() receiver : Person;
+  @Input() receiver : { id: string };
   plusIcon : IconDefinition = faPlus;
   currentUser: CurrentUser;
 
@@ -38,11 +37,9 @@ export class WishCreateCard implements OnInit {
     const wishCreatePopup = this.modalService.open(WishPopup);
     wishCreatePopup.componentInstance.mode = 'create';
 
-    (wishCreatePopup.result as Promise<Wish>)
-      .then( wish => {
-        wish.createdBy = new Person(this.currentUser.id, this.currentUser.firstName, this.currentUser.lastName);
-        wish.receiver = this.receiver;
-        this.wishService.create(wish).subscribe(wish =>
+    (wishCreatePopup.result as Promise<WishDraft>)
+      .then( draft => {
+        this.wishService.create(draft, this.receiver.id).subscribe(wish =>
           this.notificationService.showNotification(
             `De wens '${wish.title}' werd toegevoegd aan deze lijst.`,
             'success',

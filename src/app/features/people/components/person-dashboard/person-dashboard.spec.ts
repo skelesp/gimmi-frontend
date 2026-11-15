@@ -63,7 +63,7 @@ describe('PersonDashboard', () => {
     it('toont de naam, deelknop en de wenslijst van de persoon', async () => {
         await toon(ria(), ilse);
         expect(el().querySelector('h1').textContent.trim()).toBe('Ria Receiver');
-        expect(kind('gimmi-share').nativeElement.personToShare).toMatchObject({ id: 'ria', fullName: 'Ria Receiver' });
+        expect(kind('gimmi-share').nativeElement.personToShare).toMatchObject({ id: 'ria', firstName: 'Ria', lastName: 'Receiver' });
         expect(kind('gimmi-wish-list').nativeElement.receiver).toMatchObject({ id: 'ria', firstName: 'Ria', lastName: 'Receiver' });
     });
 

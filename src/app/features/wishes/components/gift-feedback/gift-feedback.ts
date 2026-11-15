@@ -4,7 +4,8 @@ import { faThumbsUp } from '@fortawesome/free-regular-svg-icons';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import type { Schema } from 'src/app/core/api/api-types';
 
-import { Wish } from '../../models/wish.model';
+import { Wish } from '../../wish';
+import { FullNamePipe } from 'src/app/shared/pipes/full-name-pipe';
 import { CursorPointer } from '../../../../shared/directives/cursor-pointer';
 import { NgbRating } from '@ng-bootstrap/ng-bootstrap/rating';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -14,7 +15,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
     templateUrl: './gift-feedback.html',
     styleUrls: ['./gift-feedback.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CursorPointer, FormField, NgbRating, FaIconComponent]
+    imports: [CursorPointer, FormField, NgbRating, FaIconComponent, FullNamePipe]
 })
 export class GiftFeedback implements OnInit {
   activeModal = inject(NgbActiveModal);
@@ -34,7 +35,7 @@ export class GiftFeedback implements OnInit {
   protected readonly ratingIcon = faThumbsUp;
 
   ngOnInit(): void {
-    const defaultReceivedDate = new Date(this.wish.reservation.reservationDate).toISOString().slice(0, 10);
+    const defaultReceivedDate = new Date(this.wish.reservation.reservedAt).toISOString().slice(0, 10);
     this.feedback.update(feedback => ({ ...feedback, receivedOn: defaultReceivedDate }));
   }
 

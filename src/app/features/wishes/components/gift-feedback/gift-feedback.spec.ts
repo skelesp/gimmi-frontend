@@ -2,14 +2,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { NgbActiveModal, NgbRating } from '@ng-bootstrap/ng-bootstrap';
 
-import { Person } from 'src/app/features/people/models/person.model';
-import { Wish } from '../../models/wish.model';
+import { Wish } from 'src/app/features/wishes/wish';
 import { GiftFeedback } from './gift-feedback';
+import { apiWish } from 'src/app/features/wishes/wish.testing';
 
 // Feedbackpopup bij een ontvangen cadeau.
 describe('GiftFeedback', () => {
-    const ria = new Person('ria', 'Ria', 'Receiver');
-    const rob = new Person('rob', 'Rob', 'Reservator');
+    const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
+    const rob = { id: 'rob', firstName: 'Rob', lastName: 'Reservator' };
     let fixture: ComponentFixture<GiftFeedback>;
     let activeModal: Record<string, any>;
 
@@ -30,9 +30,10 @@ describe('GiftFeedback', () => {
             providers: [{ provide: NgbActiveModal, useValue: activeModal }]
         }).compileComponents();
         fixture = TestBed.createComponent(GiftFeedback);
-        const wish = new Wish('w1', 'Fiets', 250, null, ria, ria, null, null, null, 1);
-        wish.reservation = { reservedBy: rob, reservationDate: new Date('2026-03-05T12:00:00Z') } as any;
-        fixture.componentInstance.wish = wish;
+        fixture.componentInstance.wish = apiWish({
+            id: 'w1', title: 'Fiets', price: { amount: 25000, currency: 'EUR' }, links: [], receiver: ria, createdBy: ria,
+            reservation: { reservedBy: rob, reservedAt: '2026-03-05T12:00:00Z' }
+        });
         await fixture.whenStable();
     });
 

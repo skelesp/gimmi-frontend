@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { ResolveFn } from '@angular/router';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Wish } from '../models/wish.model';
+import { Wish } from '../wish';
 import { WishesData } from '../wishes-data';
 
 export const wishResolver: ResolveFn<Wish> = (route) => {

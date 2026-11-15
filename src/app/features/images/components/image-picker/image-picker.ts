@@ -4,7 +4,7 @@ import { ApiProblem } from 'src/app/core/api/api-problem';
 import { problemMessage } from 'src/app/core/api/error-messages';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { Subscription } from 'rxjs';
-import { IWishImage } from 'src/app/features/wishes/models/wish.model';
+import { WishImage } from 'src/app/features/wishes/wish';
 import { ImagesData } from '../../images-data';
 import { IImageSearchResult, ImageSearch } from '../../image-search';
 import { verkleinAfbeelding } from '../../utils/resize-image';
@@ -19,7 +19,7 @@ export type KiezerTab = 'zoeken' | 'bestand';
  * de nieuwe afbeelding meteen tonen, zonder te wachten tot ze opgehaald is.
  */
 export interface IGekozenAfbeelding {
-  afbeelding: IWishImage;
+  afbeelding: WishImage;
   voorvertoning: string;
 }
 
@@ -164,7 +164,7 @@ export class ImagePicker implements OnInit, OnDestroy {
     this.bezigMet.set(sleutel);
     this.uploadFout.set(null);
     this.uploadSub = this.imageService.uploadImage(image).subscribe({
-      next: (nieuweAfbeelding: IWishImage) => {
+      next: (nieuweAfbeelding: WishImage) => {
         this.bezigMet.set(null);
         this.activeModal.close({ afbeelding: nieuweAfbeelding, voorvertoning } as IGekozenAfbeelding);
       },

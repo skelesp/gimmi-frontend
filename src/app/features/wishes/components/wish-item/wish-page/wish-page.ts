@@ -11,19 +11,23 @@ import { WishBanner } from '../wish-banner/wish-banner';
 import { ImageView } from '../../../../images/components/image-view/image-view';
 import { WishCallToActionButton } from '../wish-call-to-action-button/wish-call-to-action-button';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { FullNamePipe } from 'src/app/shared/pipes/full-name-pipe';
+import { EurosPipe } from '../../../pipes/euros-pipe';
+import { wishUrl } from '../../../wish';
 
 @Component({
     selector: 'gimmi-wish-page',
     templateUrl: './wish-page.html',
     styleUrls: ['./wish-page.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CursorPointer, RouterLink, FaIconComponent, ActionList, WishBanner, ImageView, WishCallToActionButton, CurrencyPipe, DatePipe]
+    imports: [CursorPointer, RouterLink, FaIconComponent, ActionList, WishBanner, ImageView, WishCallToActionButton, CurrencyPipe, DatePipe, FullNamePipe, EurosPipe]
 })
 export class WishPage extends WishItem implements OnInit {
   protected route = inject(ActivatedRoute);
   private changeDetector = inject(ChangeDetectorRef);
 
   wishID: string;
+  get url(): string | null { return wishUrl(this.wish); }
   listIcon: IconDefinition = faListAlt;
   calendarIcon: IconDefinition = faCalendarPlus;
   userIcon: IconDefinition = faUser;

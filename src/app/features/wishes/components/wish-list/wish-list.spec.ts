@@ -4,8 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbAlertModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { Subject } from 'rxjs';
 
-import { Person } from 'src/app/features/people/models/person.model';
-import { Wish, wishStatus } from '../../models/wish.model';
+import { Wish, WishStatus } from 'src/app/features/wishes/wish';
 import { FilterOnStatePipe } from '../../pipes/filter-on-state-pipe';
 import { WishesData } from '../../wishes-data';
 import { ApiProblem } from 'src/app/core/api/api-problem';
@@ -13,10 +12,11 @@ import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
 import { WishList } from './wish-list';
 import { WishCreateCard } from '../wish-create-card/wish-create-card';
 import { WishCard } from '../wish-item/wish-card/wish-card';
+import { apiWish } from 'src/app/features/wishes/wish.testing';
 
 // Wenslijst (sc-2300) met de tab "Ontvangen cadeaus" in plaats van een popup (sc-1984).
 describe('WishList', () => {
-    const ria = new Person('ria', 'Ria', 'Receiver');
+    const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     let fixture: ComponentFixture<WishList>;
     let component: WishList;
     let wishes: WritableSignal<Wish[]>;
@@ -27,10 +27,8 @@ describe('WishList', () => {
         getWishlist: Mock;
     };
 
-    function wens(titel: string, status: wishStatus): Wish {
-        const w = new Wish(titel, titel, 10, null, ria, ria, null, null, null, 1);
-        w.status = status;
-        return w;
+    function wens(titel: string, status: WishStatus): Wish {
+        return apiWish({ id: titel, title: titel, price: { amount: 1000, currency: 'EUR' }, links: [], receiver: ria, createdBy: ria, status });
     }
 
     async function laad(lijst: Wish[]) {
@@ -72,7 +70,7 @@ describe('WishList', () => {
         component.receiver = ria;
         component.ngOnChanges({ receiver: new SimpleChange(null, ria, true) });
         await fixture.whenStable();
-        expect(wishService.getWishlist).toHaveBeenCalledWith(ria);
+        expect(wishService.getWishlist).toHaveBeenCalledWith('ria');
         expect(component.loading()).toBe(true);
         expect(fixture.nativeElement.querySelector('.spinner-border')).toBeTruthy();
 
@@ -98,15 +96,15 @@ describe('WishList', () => {
     });
 
     it('tab "Wensenlijst": open, gereserveerde en ontvangen (nog niet afgesloten) wensen', async () => {
-        await laad([wens('open', 'Open'), wens('gereserveerd', 'Reserved'), wens('ontvangen', 'Received'), wens('vervuld', 'Fulfilled')]);
-        expect(component.wishlistFilter()).toEqual(['Open', 'Received', 'Reserved']);
+        await laad([wens('open', 'open'), wens('gereserveerd', 'reserved'), wens('ontvangen', 'received'), wens('vervuld', 'fulfilled')]);
+        expect(component.wishlistFilter()).toEqual(['open', 'received', 'reserved']);
         expect(kaarten()).toEqual(['open', 'gereserveerd', 'ontvangen']);
     });
 
     it('tab "Ontvangen cadeaus": enkel de vervulde wensen (sc-1984)', async () => {
-        await laad([wens('open', 'Open'), wens('vervuld', 'Fulfilled'), wens('ook vervuld', 'Fulfilled')]);
+        await laad([wens('open', 'open'), wens('vervuld', 'fulfilled'), wens('ook vervuld', 'fulfilled')]);
         await klikTab('Ontvangen cadeaus');
-        expect(component.wishlistFilter()).toEqual(['Fulfilled']);
+        expect(component.wishlistFilter()).toEqual(['fulfilled']);
         expect(kaarten()).toEqual(['vervuld', 'ook vervuld']);
 
         await klikTab('Wensenlijst');
@@ -114,7 +112,7 @@ describe('WishList', () => {
     });
 
     it('de kaart om een wens toe te voegen staat altijd vooraan, met de ontvanger', async () => {
-        await laad([wens('open', 'Open')]);
+        await laad([wens('open', 'open')]);
         const create = fixture.debugElement.query(el => el.name === 'gimmi-wish-create-card');
         expect(create.nativeElement.receiver).toBe(ria);
     });
@@ -125,12 +123,12 @@ describe('WishList', () => {
     });
 
     it('lijst met wensen: geen melding', async () => {
-        await laad([wens('open', 'Open')]);
+        await laad([wens('open', 'open')]);
         expect(fixture.nativeElement.querySelector('ngb-alert')).toBeNull();
     });
 
     it('onbekende filternaam valt terug op de wensenlijst', () => {
         component.setWishlistFilter('iets anders');
-        expect(component.wishlistFilter()).toEqual(['Open', 'Received', 'Reserved']);
+        expect(component.wishlistFilter()).toEqual(['open', 'received', 'reserved']);
     });
 });

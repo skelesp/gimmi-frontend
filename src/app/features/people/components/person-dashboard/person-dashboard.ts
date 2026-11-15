@@ -3,7 +3,6 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStore } from 'src/app/core/auth/auth-store';
-import { Person } from '../../models/person.model';
 import { PersonProfile } from '../../service/people';
 
 import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
@@ -29,13 +28,10 @@ export class PersonDashboard {
   readonly profile = linkedSignal(() => this.routeProfile());
   readonly personIsUser = computed(() => this.profile()?.viewer.isSelf ?? false);
   readonly canEdit = computed(() => this.profile()?.viewer.can.update ?? false);
-  /**
-   * The person as the (v1) wish list wants it. The same object for the same person, so saving the likes
-   * does not reload the wishes. Goes away with sc-3288.
-   */
+  /** The person whose list is shown. The same object for the same person, so saving the likes does not reload the wishes. */
   readonly receiver = computed(() => {
     const profile = this.profile();
-    return profile ? new Person(profile.id, profile.firstName, profile.lastName) : null;
+    return profile ? { id: profile.id, firstName: profile.firstName, lastName: profile.lastName } : null;
   }, { equal: (a, b) => a?.id === b?.id });
 
   updateProfile(profile: PersonProfile) {

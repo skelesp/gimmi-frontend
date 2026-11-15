@@ -5,7 +5,7 @@
   </div>
   <div class="modal-body">
     <div class="alert alert-info" role="alert">
-      Je kreeg het cadeau "{{wish.title}}" van {{wish.reservation.reservedBy.fullName}}
+      Je kreeg het cadeau "{{wish.title}}" van {{wish.reservation.reservedBy | fullName}}
     </div>
     <div class="mb-2">
       <label for="satisfaction" class="form-control-label" ngbAutofocus>Hoe blij ben je met het cadeau?</label><br />
@@ -35,7 +35,7 @@
     </div>
     <div class="mb-3">
       <label for="message" class="form-control-label">Wil je nog een boodschap sturen naar
-      {{wish.reservation.reservedBy.fullName}}?</label>
+      {{wish.reservation.reservedBy | fullName}}?</label>
       <textarea class="form-control" id="message" aria-describedby="message"
         placeholder="Geef hier een bedankboodschap in die je wilt versturen"
         [formField]="feedbackForm.message"></textarea>

@@ -3,6 +3,7 @@ import { WishItem } from '../wish-item';
 
 import { ImageView } from '../../../../images/components/image-view/image-view';
 import { CurrencyPipe } from '@angular/common';
+import { EurosPipe } from '../../../pipes/euros-pipe';
 import { WishBanner } from '../wish-banner/wish-banner';
 import { CursorPointer } from '../../../../../shared/directives/cursor-pointer';
 import { RouterLink } from '@angular/router';
@@ -14,7 +15,7 @@ import { WishCallToActionButton } from '../wish-call-to-action-button/wish-call-
     templateUrl: './wish-card.html',
     styleUrls: ['./wish-card.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [ImageView, WishBanner, CursorPointer, RouterLink, ActionList, WishCallToActionButton, CurrencyPipe]
+    imports: [ImageView, WishBanner, CursorPointer, RouterLink, ActionList, WishCallToActionButton, CurrencyPipe, EurosPipe]
 })
 export class WishCard extends WishItem {
 }

@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, ChangeDetectionStrategy, inject } from '@angular/core';
-import { IWishImage } from 'src/app/features/wishes/models/wish.model';
+import { WishImage } from 'src/app/features/wishes/wish';
 import { ImagesData, STANDAARD_AFBEELDING } from '../../images-data';
 
 
@@ -20,7 +20,7 @@ import { ImagesData, STANDAARD_AFBEELDING } from '../../images-data';
 export class ImageView implements OnChanges {
   private imageService = inject(ImagesData);
 
-  @Input() image : IWishImage = null;
+  @Input() image : Partial<WishImage> | null = null;
   @Input() class  = "";
   /** Hoe breed het beeld getoond wordt, voor de keuze uit de srcset. */
   @Input() sizes  = "(max-width: 574px) 50vw, (max-width: 766px) 33vw, 25vw";

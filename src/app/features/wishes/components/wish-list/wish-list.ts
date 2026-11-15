@@ -1,8 +1,7 @@
 import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { ApiProblem } from 'src/app/core/api/api-problem';
 import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
-import { Person } from 'src/app/features/people/models/person.model';
-import { wishStatus } from '../../models/wish.model';
+import { WishStatus } from '../../wish';
 import { WishesData } from '../../wishes-data';
 import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 
@@ -21,16 +20,16 @@ export class WishList implements OnChanges {
   private wishService = inject(WishesData);
   private problems = inject(ProblemNotifier);
 
-  @Input() receiver : Person;
+  @Input() receiver : { id: string; firstName: string };
   readonly wishes = this.wishService.wishes;
-  readonly wishlistFilter = signal<wishStatus[]>(undefined);
+  readonly wishlistFilter = signal<WishStatus[]>(undefined);
   readonly loading = signal(false);
   readonly activeTab = signal("Open");
   
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.receiver) {
       this.loading.set(true);
-      this.wishService.getWishlist(this.receiver).subscribe({
+      this.wishService.getWishlist(this.receiver.id).subscribe({
         next: () => {
           this.loading.set(false);
           this.setWishlistFilter('Open');
@@ -48,11 +47,11 @@ export class WishList implements OnChanges {
     this.activeTab.set(filter === 'Received' ? 'Received' : 'Open');
     switch (filter) {
       case 'Received':
-        this.wishlistFilter.set(['Fulfilled']);
+        this.wishlistFilter.set(['fulfilled']);
         break;
       case 'Open':
       default:
-        this.wishlistFilter.set(['Open', 'Received', 'Reserved']);
+        this.wishlistFilter.set(['open', 'received', 'reserved']);
         break;
     }
   }
