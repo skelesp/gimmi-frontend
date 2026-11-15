@@ -1,3 +1,4 @@
+import { HttpResourceRef } from '@angular/common/http';
 import { Service, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -16,9 +17,15 @@ export class Registration {
     return this.api.post('/registrations', { body: { email } });
   }
 
-  /** The address a link confirms. 404 (`ApiProblem`) when the link is unknown, used or expired. */
-  get(registrationToken: string): Observable<Schema<'RegistrationInfo'>> {
-    return this.api.get('/registrations/{registrationToken}', { path: { registrationToken } });
+  /**
+   * The address a link confirms, as a resource that waits for a token. The error is a 404 (`ApiProblem`) when the
+   * link is unknown, used or expired.
+   */
+  get(registrationToken: () => string | null | undefined): HttpResourceRef<Schema<'RegistrationInfo'> | undefined> {
+    return this.api.resource('/registrations/{registrationToken}', () => {
+      const token = registrationToken();
+      return token ? { path: { registrationToken: token } } : undefined;
+    });
   }
 
   /** Step 2: creates the account and logs the person in. */

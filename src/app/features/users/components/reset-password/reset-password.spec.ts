@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { fakeResource } from 'src/app/core/api/resource.testing';
 
 import { ApiProblem } from 'src/app/core/api/api-problem';
 import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
@@ -10,20 +11,25 @@ import { Notifications } from 'src/app/core/notifications';
 import { PasswordReset } from '../../service/password-reset';
 import { ResetPassword } from './reset-password';
 
-// Wachtwoord resetten met de link uit de mail: /users/resetpassword/:token (sc-2004, sc-3286). De resolver
+// Wachtwoord resetten met de link uit de mail: /users/resetpassword/:token (sc-2004, sc-3286). De resource
 // zegt of het token geldig is; daarna kiest de gebruiker een nieuw wachtwoord en is meteen ingelogd.
 describe('ResetPassword', () => {
     let fixture: ComponentFixture<ResetPassword>;
-    let passwordReset: { complete: ReturnType<typeof vi.fn> };
+    let passwordReset: { get: ReturnType<typeof vi.fn>; complete: ReturnType<typeof vi.fn> };
+    let link: ReturnType<typeof fakeResource>;
     let auth: ReturnType<typeof fakeAuthStore>;
     let problems: { show: ReturnType<typeof vi.fn> };
     let notifications: { showNotification: ReturnType<typeof vi.fn> };
 
+    /** `info` null: the server says the link is unknown, used or expired (404). */
     async function open(info: object | null = { firstName: 'Ria', expiresAt: '2026-11-10T10:00:00Z' }) {
+        link = fakeResource(info ?? undefined);
+        if (info === null) link.error.set(new ApiProblem({ status: 404, code: 'not-found' }));
+        passwordReset.get.mockReturnValue(link.ref);
         TestBed.configureTestingModule({
             providers: [
                 provideRouter([]),
-                { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ token: 'abc123' }), data: { passwordReset: info } } } },
+                { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ token: 'abc123' })) } },
                 { provide: PasswordReset, useValue: passwordReset },
                 { provide: AuthStore, useValue: auth },
                 { provide: ProblemNotifier, useValue: problems },
@@ -52,7 +58,7 @@ describe('ResetPassword', () => {
     }
 
     beforeEach(() => {
-        passwordReset = { complete: vi.fn().mockName('PasswordReset.complete') };
+        passwordReset = { get: vi.fn().mockName('PasswordReset.get'), complete: vi.fn().mockName('PasswordReset.complete') };
         auth = fakeAuthStore();
         problems = { show: vi.fn() };
         notifications = { showNotification: vi.fn() };
@@ -63,6 +69,23 @@ describe('ResetPassword', () => {
         expect(el().querySelector('ngb-alert')!.textContent).toContain('Uw link is ofwel vervallen (= ouder dan 1u) of ongeldig.');
         expect(el().querySelector('gimmi-forgot-password-link')).toBeTruthy();
         expect(el().querySelector('form')).toBeNull();
+    });
+
+    it('terwijl de link gecontroleerd wordt: een spinner en nog niets anders', async () => {
+        await open();
+        link.loading.set(true);
+        await fixture.whenStable();
+        expect(el().querySelector('.spinner-border')).not.toBeNull();
+        expect(el().querySelector('form')).toBeNull();
+        expect(el().querySelector('ngb-alert')).toBeNull();
+    });
+
+    it('de link kan nu niet gecontroleerd worden (geen 404): een melding in plaats van "link vervallen"', async () => {
+        await open(null);
+        link.error.set(new ApiProblem({ status: 503, code: 'unavailable' }));
+        await fixture.whenStable();
+        expect(el().querySelector('ngb-alert')!.textContent).toContain('niet controleren');
+        expect(el().querySelector('gimmi-forgot-password-link')).toBeNull();
     });
 
     it('geldige link: formulier met twee wachtwoordvelden, knop pas actief als ze overeenkomen', async () => {
