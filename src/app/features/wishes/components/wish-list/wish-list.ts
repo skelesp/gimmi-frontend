@@ -30,9 +30,8 @@ export class WishList implements OnChanges {
     effect(() => {
       const error = this.wishService.listError();
       if (!error) return;
-      // A resource wraps what the request threw.
-      const cause = error instanceof ApiProblem ? error : (error as { cause?: unknown }).cause;
-      if (cause instanceof ApiProblem) this.problems.show(cause);
+      const problem = ApiProblem.of(error);
+      if (problem) this.problems.show(problem);
       else console.error(error);
     });
   }

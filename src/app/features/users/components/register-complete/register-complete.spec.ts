@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { fakeResource } from 'src/app/core/api/resource.testing';
 
 import { ApiProblem } from 'src/app/core/api/api-problem';
 import { ProblemNotifier } from 'src/app/core/api/problem-notifier';
@@ -13,7 +14,8 @@ import { RegisterComplete } from './register-complete';
 // sc-3285: stap 2 van 2, de link uit de mail.
 describe('RegisterComplete', () => {
     let fixture: ComponentFixture<RegisterComplete>;
-    let registration: { complete: ReturnType<typeof vi.fn> };
+    let registration: { get: ReturnType<typeof vi.fn>; complete: ReturnType<typeof vi.fn> };
+    let link: ReturnType<typeof fakeResource>;
     let auth: ReturnType<typeof fakeAuthStore>;
     let problems: { show: ReturnType<typeof vi.fn> };
     let notifications: { showNotification: ReturnType<typeof vi.fn> };
@@ -41,11 +43,15 @@ describe('RegisterComplete', () => {
         await fixture.whenStable();
     }
 
-    async function create(registrationInfo: object | null = { email: 'ria@gimmi.be', expiresAt: '2026-11-10T10:00:00Z' }) {
+    /** `info` null: the server says the link is unknown, used or expired (404). */
+    async function create(info: object | null = { email: 'ria@gimmi.be', expiresAt: '2026-11-10T10:00:00Z' }) {
+        link = fakeResource(info ?? undefined);
+        if (info === null) link.error.set(new ApiProblem({ status: 404, code: 'not-found' }));
+        registration.get.mockReturnValue(link.ref);
         TestBed.configureTestingModule({
             providers: [
                 provideRouter([]),
-                { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ token: 'tok1' }), data: { registration: registrationInfo } } } },
+                { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ token: 'tok1' })) } },
                 { provide: Registration, useValue: registration },
                 { provide: AuthStore, useValue: auth },
                 { provide: ProblemNotifier, useValue: problems },
@@ -57,7 +63,7 @@ describe('RegisterComplete', () => {
     }
 
     beforeEach(() => {
-        registration = { complete: vi.fn().mockName('Registration.complete') };
+        registration = { get: vi.fn().mockName('Registration.get'), complete: vi.fn().mockName('Registration.complete') };
         auth = fakeAuthStore();
         problems = { show: vi.fn() };
         notifications = { showNotification: vi.fn() };
@@ -73,6 +79,29 @@ describe('RegisterComplete', () => {
         expect(fixture.nativeElement.querySelector('#registrationExpired')).not.toBeNull();
         expect(fixture.nativeElement.querySelector('#registrationExpired a').getAttribute('href')).toBe('/users/register');
         expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    });
+
+    it('vraagt de gegevens van het token uit de route', async () => {
+        await create();
+        const token = registration.get.mock.calls[0][0] as () => string;
+        expect(token()).toBe('tok1');
+    });
+
+    it('terwijl de link gecontroleerd wordt: een spinner, geen formulier en geen melding', async () => {
+        await create();
+        link.loading.set(true);
+        await fixture.whenStable();
+        expect(fixture.nativeElement.querySelector('.spinner-border')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('form')).toBeNull();
+        expect(fixture.nativeElement.querySelector('#registrationExpired')).toBeNull();
+    });
+
+    it('de link kan nu niet gecontroleerd worden (geen 404): een melding in plaats van "link verlopen"', async () => {
+        await create(null);
+        link.error.set(new ApiProblem({ status: 503, code: 'unavailable' }));
+        await fixture.whenStable();
+        expect(fixture.nativeElement.querySelector('#registrationCheckFailed')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('#registrationExpired')).toBeNull();
     });
 
     it('registreerknop pas actief als alles ingevuld is en de wachtwoorden overeenkomen', async () => {
