@@ -1,9 +1,9 @@
-/* Volle breedte en de eigen hoogte van het beeld: zo blijft het raster van wenskaarten verspringen. */
-.beeld {
+/* Full width and the image's own height: this keeps the grid of wish cards staggered. */
+.image {
     width: 100%;
     background-color: #f8f9fa;
 }
-/* Tot het beeld er is: een vlak in de verhouding van de standaardafbeelding, geen kaart zonder hoogte. */
-.laden {
+/* Until the image is there: a block in the ratio of the default image, no card without height. */
+.loading {
     aspect-ratio: 3 / 2;
 }

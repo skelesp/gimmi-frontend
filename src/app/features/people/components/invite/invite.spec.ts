@@ -9,7 +9,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { People } from '../../service/people';
 import { Invite } from './invite';
 
-// Iemand uitnodigen die nog geen lijst heeft: de server verstuurt de mail (sc-3287).
+// Inviting someone who has no list yet: the server sends the mail (sc-3287).
 describe('Invite', () => {
     let fixture: ComponentFixture<Invite>;
     let people: { invite: ReturnType<typeof vi.fn> };
@@ -19,8 +19,8 @@ describe('Invite', () => {
 
     const button = () => fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement;
 
-    async function verstuur(adres: string) {
-        await email.setValue(adres);
+    async function submit(address: string) {
+        await email.setValue(address);
         await email.blur();
         button().click();
         await fixture.whenStable();
@@ -43,28 +43,28 @@ describe('Invite', () => {
         email = await TestbedHarnessEnvironment.harnessForFixture(fixture, EmailFieldHarness);
     });
 
-    it('heeft geen "hou mij op de hoogte"-vinkje meer', () => {
+    it('no longer has a "hou mij op de hoogte" checkbox', () => {
         expect(fixture.nativeElement.querySelector('input[type="checkbox"]')).toBeNull();
     });
 
-    it('een ongeldig adres: melding en geen aanroep', async () => {
-        await verstuur('geen-adres');
+    it('an invalid address: notice and no call', async () => {
+        await submit('geen-adres');
         expect(await email.getErrorText()).toContain('Geef een geldig emailadres in');
         expect(button().disabled).toBe(true);
         expect(people.invite).not.toHaveBeenCalled();
     });
 
-    it('een geldig adres: de server nodigt uit, melding van succes en het veld is weer leeg', async () => {
-        await verstuur('nieuw@gimmi.be');
+    it('a valid address: the server invites, success notice and the field is empty again', async () => {
+        await submit('nieuw@gimmi.be');
         expect(people.invite).toHaveBeenCalledWith('nieuw@gimmi.be');
         expect(notifications.showNotification).toHaveBeenCalledWith('De uitnodiging werd verzonden.', 'success');
         expect(await email.getValue()).toBe('');
     });
 
-    it('een fout van de server (bijv. te veel aanvragen) wordt gemeld en laat het adres staan', async () => {
+    it('an error from the server (e.g. too many requests) is reported and leaves the address', async () => {
         const problem = new ApiProblem({ status: 429, code: 'rate-limited' as never });
         people.invite.mockReturnValue(throwError(() => problem));
-        await verstuur('nieuw@gimmi.be');
+        await submit('nieuw@gimmi.be');
         expect(problems.show).toHaveBeenCalledWith(problem);
         expect(await email.getValue()).toBe('nieuw@gimmi.be');
     });

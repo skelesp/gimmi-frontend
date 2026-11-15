@@ -4,12 +4,12 @@ import { map } from 'rxjs/operators';
 import { ApiClient } from 'src/app/core/api/api-client';
 import type { Schema } from 'src/app/core/api/api-types';
 
-/** Eén zoekresultaat van API v2 (GET /image-search-results, sc-3290). */
+/** One search result from API v2 (GET /image-search-results, sc-3290). */
 export type IImageSearchResult = Schema<'ImageSearchResult'>;
 
 /**
- * Afbeeldingen zoeken via de backend, die Brave Search aanroept (sc-3028).
- * Vervangt het zoeken met Google in de Cloudinary-widget (die API stopt op 1-1-2027).
+ * Searching images via the backend, which calls Brave Search (sc-3028).
+ * Replaces the Google search in the Cloudinary widget (that API stops on 1-1-2027).
  */
 @Service()
 export class ImageSearch {

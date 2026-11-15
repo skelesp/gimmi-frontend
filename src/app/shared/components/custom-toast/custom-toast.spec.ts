@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CustomToast } from './custom-toast';
 
-// Notificatiepopup (sc-2000), ook met tekst over meerdere regels (sc-2187).
+// Notification popup (sc-2000), also with text over multiple lines (sc-2187).
 describe('CustomToast', () => {
     let fixture: ComponentFixture<CustomToast>;
     let toast: { close: Mock; text: string; caption: string; type: string };
@@ -23,18 +23,18 @@ describe('CustomToast', () => {
         await fixture.whenStable();
     });
 
-    it('toont titel en tekst, met de kleur van het type', () => {
+    it('shows title and text, with the colour of the type', () => {
         expect(fixture.nativeElement.querySelector('.toast-header strong').textContent).toBe('Welkom Ria');
         expect(fixture.nativeElement.querySelector('.custom-toast').classList).toContain('border-success');
     });
 
-    it('tekst met <br> staat op meerdere regels', () => {
+    it('text with <br> is on multiple lines', () => {
         const body: HTMLElement = fixture.nativeElement.querySelector('.toast-body div');
         expect(body.querySelectorAll('br').length).toBe(1);
         expect(body.textContent).toContain('Veel plezier gewenst!');
     });
 
-    it('kruisje sluit de toast', () => {
+    it('cross closes the toast', () => {
         fixture.nativeElement.querySelector('button.btn-close').click();
         expect(toast.close).toHaveBeenCalled();
     });

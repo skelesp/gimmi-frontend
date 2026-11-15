@@ -7,7 +7,7 @@ import { NgbActiveModal, NgbRating } from '@ng-bootstrap/ng-bootstrap';
 import { GiftFeedback } from './gift-feedback';
 import { apiWish } from 'src/app/features/wishes/wish.testing';
 
-// Feedbackpopup bij een ontvangen cadeau.
+// Feedback popup for a received gift.
 describe('GiftFeedback', () => {
     const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     const rob = { id: 'rob', firstName: 'Rob', lastName: 'Reservator' };
@@ -15,12 +15,12 @@ describe('GiftFeedback', () => {
     let activeModal: Record<string, Mock>;
 
     function el(): HTMLElement { return fixture.nativeElement; }
-    function opslaan(): HTMLButtonElement { return el().querySelector('.modal-footer .btn-danger'); }
-    function rate(waarde: number) { fixture.debugElement.query(By.directive(NgbRating)).triggerEventHandler('rateChange', waarde); }
-    async function typ(selector: string, waarde: string) {
-        const veld = el().querySelector<HTMLInputElement | HTMLTextAreaElement>(selector);
-        veld.value = waarde;
-        veld.dispatchEvent(new Event('input'));
+    function save(): HTMLButtonElement { return el().querySelector('.modal-footer .btn-danger'); }
+    function rate(value: number) { fixture.debugElement.query(By.directive(NgbRating)).triggerEventHandler('rateChange', value); }
+    async function typeInto(selector: string, value: string) {
+        const field = el().querySelector<HTMLInputElement | HTMLTextAreaElement>(selector);
+        field.value = value;
+        field.dispatchEvent(new Event('input'));
         await fixture.whenStable();
     }
 
@@ -38,12 +38,12 @@ describe('GiftFeedback', () => {
         await fixture.whenStable();
     });
 
-    it('vermeldt wie het cadeau gaf en vult de datum in met de reservatiedatum', () => {
+    it('mentions who gave the gift and fills in the date with the reservation date', () => {
         expect(el().querySelector('.alert').textContent).toContain('Je kreeg het cadeau "Fiets" van Rob Reservator');
         expect(el().querySelector<HTMLInputElement>('#receivedOn').value).toBe('2026-03-05');
     });
 
-    it('zonder reservatiedatum (de server toont die niet): de overhandigingsdatum, anders vandaag', async () => {
+    it('without reservation date (the server does not show it): the handover date, otherwise today', async () => {
         const open = async (reservation: Schema<'Reservation'>) => {
             fixture = TestBed.createComponent(GiftFeedback);
             fixture.componentInstance.wish = apiWish({ id: 'w1', title: 'Fiets', receiver: ria, createdBy: ria, reservation });
@@ -54,50 +54,50 @@ describe('GiftFeedback', () => {
         expect(await open({ reservedBy: rob })).toBe(new Date().toISOString().slice(0, 10));
     });
 
-    it('opslaan kan pas met een tevredenheid', async () => {
-        expect(opslaan().disabled).toBe(true);
+    it('saving is only possible with a satisfaction', async () => {
+        expect(save().disabled).toBe(true);
         rate(4);
         await fixture.whenStable();
-        expect(opslaan().disabled).toBe(false);
+        expect(save().disabled).toBe(false);
     });
 
-    it('zonder datum kan er niet opgeslagen worden en komt er een melding', async () => {
+    it('without a date it cannot be saved and a notice appears', async () => {
         rate(4);
-        await typ('#receivedOn', '');
+        await typeInto('#receivedOn', '');
         el().querySelector('#receivedOn').dispatchEvent(new Event('blur'));
         await fixture.whenStable();
-        expect(opslaan().disabled).toBe(true);
+        expect(save().disabled).toBe(true);
         expect(el().textContent).toContain('De afgiftedatum moet ingevuld worden.');
     });
 
-    it('een datum in de toekomst wordt geweigerd', async () => {
+    it('a date in the future is refused', async () => {
         rate(4);
-        await typ('#receivedOn', '2999-01-01');
+        await typeInto('#receivedOn', '2999-01-01');
         el().querySelector('#receivedOn').dispatchEvent(new Event('blur'));
         await fixture.whenStable();
-        expect(opslaan().disabled).toBe(true);
+        expect(save().disabled).toBe(true);
         expect(el().textContent).toContain('De afgiftedatum kan niet in de toekomst liggen.');
     });
 
-    it('opslaan sluit de popup met de feedback voor API v2 (tevredenheid als getal, datum als tekst)', async () => {
+    it('saving closes the popup with the feedback for API v2 (satisfaction as number, date as text)', async () => {
         rate(5);
-        await typ('#message', 'Dank!');
+        await typeInto('#message', 'Dank!');
         el().querySelector<HTMLInputElement>('#putBackOnList').click();
         await fixture.whenStable();
-        opslaan().click();
+        save().click();
         await fixture.whenStable();
         expect(activeModal.close).toHaveBeenCalledWith({ satisfaction: 5, receivedOn: '2026-03-05', message: 'Dank!', putBackOnList: true });
     });
 
-    it('een lege boodschap gaat als null mee', async () => {
+    it('an empty message is sent as null', async () => {
         rate(3);
         await fixture.whenStable();
-        opslaan().click();
+        save().click();
         await fixture.whenStable();
         expect(activeModal.close).toHaveBeenCalledWith({ satisfaction: 3, receivedOn: '2026-03-05', message: null, putBackOnList: false });
     });
 
-    it('annuleren en sluiten via het kruisje', () => {
+    it('cancelling and closing via the cross', () => {
         (el().querySelector('.btn-outline-danger') as HTMLButtonElement).click();
         expect(activeModal.dismiss).toHaveBeenCalledWith('Cancel');
         (el().querySelector('.btn-close') as HTMLButtonElement).click();

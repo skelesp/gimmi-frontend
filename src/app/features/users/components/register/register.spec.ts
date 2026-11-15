@@ -9,7 +9,7 @@ import { Notifications } from 'src/app/core/notifications';
 import { Registration } from '../../service/registration';
 import { Register } from './register';
 
-// sc-2006 (registratie), sc-3285 (stap 1 van 2: het e-mailadres bevestigen).
+// sc-2006 (registration), sc-3285 (step 1 of 2: confirming the email address).
 describe('Register', () => {
     let fixture: ComponentFixture<Register>;
     let registration: { start: ReturnType<typeof vi.fn> };
@@ -39,15 +39,15 @@ describe('Register', () => {
         await fixture.whenStable();
     });
 
-    it('registreerknop pas actief met een geldig e-mailadres', async () => {
-        const knop: HTMLButtonElement = fixture.nativeElement.querySelector('button[type=submit]');
-        expect(knop.disabled).toBe(true);
+    it('register button only active with a valid email address', async () => {
+        const button: HTMLButtonElement = fixture.nativeElement.querySelector('button[type=submit]');
+        expect(button.disabled).toBe(true);
         const field = await TestbedHarnessEnvironment.loader(fixture).getHarness(EmailFieldHarness);
         await field.setValue('ria@gimmi.be');
-        expect(knop.disabled).toBe(false);
+        expect(button.disabled).toBe(false);
     });
 
-    it('geslaagde aanvraag: vraagt de mail aan en toont "controleer je mail" in plaats van het formulier', async () => {
+    it('successful request: requests the mail and shows "controleer je mail" instead of the form', async () => {
         registration.start.mockReturnValue(of(undefined));
         await submitWith('ria@gimmi.be');
         expect(registration.start).toHaveBeenCalledWith('ria@gimmi.be');
@@ -55,7 +55,7 @@ describe('Register', () => {
         expect(fixture.nativeElement.querySelector('form')).toBeNull();
     });
 
-    it('een probleem van de API (te veel pogingen): een melding, het formulier blijft', async () => {
+    it('a problem from the API (too many attempts): a notice, the form stays', async () => {
         const problem = new ApiProblem({ status: 429, code: 'rate-limited' });
         registration.start.mockReturnValue(throwError(() => problem));
         await submitWith('ria@gimmi.be');
@@ -64,7 +64,7 @@ describe('Register', () => {
         expect(fixture.componentInstance.sentTo()).toBeNull();
     });
 
-    it('een storing zonder probleemdocument: een algemene melding', async () => {
+    it('a failure without problem document: a generic notice', async () => {
         vi.spyOn(console, 'error').mockReturnValue(undefined);
         registration.start.mockReturnValue(throwError(() => new Error('offline')));
         await submitWith('ria@gimmi.be');

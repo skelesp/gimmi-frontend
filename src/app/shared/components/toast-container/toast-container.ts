@@ -3,8 +3,8 @@ import { Toaster } from '../../../core/toaster';
 
 import { CustomToast } from '../custom-toast/custom-toast';
 
-// Zelfde plaatsing en schaduw als de vroegere ngx-toast-notifications: rechtsboven vanaf 576px,
-// op een kleiner scherm onderaan over de volle breedte.
+// Same placement and shadow as the former ngx-toast-notifications: top right from 576px,
+// on a smaller screen at the bottom across the full width.
 @Component({
     selector: 'gimmi-toast-container',
     template: `
@@ -26,6 +26,7 @@ import { CustomToast } from '../custom-toast/custom-toast';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CustomToast]
 })
-export class ToastContainer {  toaster = inject(Toaster);
+export class ToastContainer {
+  toaster = inject(Toaster);
 
 }

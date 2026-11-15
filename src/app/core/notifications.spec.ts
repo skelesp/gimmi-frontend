@@ -5,7 +5,7 @@ import { Toaster } from './toaster';
 
 import { Notifications } from './notifications';
 
-// sc-2000 (flash messages): type en titel van de toast.
+// sc-2000 (flash messages): type and title of the toast.
 describe('Notifications', () => {
     let service: Notifications;
     let toaster: Record<string, Mock>;
@@ -18,30 +18,30 @@ describe('Notifications', () => {
         service = TestBed.inject(Notifications);
     });
 
-    function laatsteToast() {
+    function lastToast() {
         return vi.mocked(toaster.open).mock.lastCall[0] as { type: string; caption: string; text: string };
     }
 
     it('success: type success, titel "Gelukt!!"', () => {
         service.showNotification('ok', 'success');
-        expect(laatsteToast()).toEqual({ text: 'ok', caption: 'Gelukt!!', type: 'success' });
+        expect(lastToast()).toEqual({ text: 'ok', caption: 'Gelukt!!', type: 'success' });
     });
 
     it('error: type danger, titel "Foutmelding"', () => {
         service.showNotification('mis', 'error');
-        expect(laatsteToast()).toEqual({ text: 'mis', caption: 'Foutmelding', type: 'danger' });
+        expect(lastToast()).toEqual({ text: 'mis', caption: 'Foutmelding', type: 'danger' });
     });
 
-    it('info en warning: eigen titels', () => {
+    it('info and warning: own titles', () => {
         service.showNotification('a', 'info');
-        expect(laatsteToast().caption).toBe('Info');
+        expect(lastToast().caption).toBe('Info');
         service.showNotification('b', 'warning');
-        expect(laatsteToast().caption).toBe('Waarschuwing');
-        expect(laatsteToast().type).toBe('warning');
+        expect(lastToast().caption).toBe('Waarschuwing');
+        expect(lastToast().type).toBe('warning');
     });
 
-    it('een meegegeven titel gaat voor', () => {
+    it('a given title takes precedence', () => {
         service.showNotification('x', 'success', 'Welkom');
-        expect(laatsteToast().caption).toBe('Welkom');
+        expect(lastToast().caption).toBe('Welkom');
     });
 });

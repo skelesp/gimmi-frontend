@@ -1,43 +1,43 @@
 /**
- * Verkleint een gekozen foto in de browser en geeft hem terug als JPEG-Blob (sc-3028, sc-3290).
+ * Resizes a chosen photo in the browser and returns it as a JPEG Blob (sc-3028, sc-3290).
  *
- * Een foto van een gsm is al snel 4-10 MB; verkleind tot 1600 px aan de langste kant
- * blijft daar enkele honderden kB van over. Dat past ruim binnen de limiet van de
- * backend (8 MB body) en laadt sneller op over mobiel netwerk.
+ * A phone photo is easily 4-10 MB; resized to 1600 px on the longest side
+ * it stays at a few hundred kB. That fits well within the backend limit
+ * (8 MB body) and uploads faster over a mobile network.
  *
- * Browsers draaien een foto bij het tekenen al volgens zijn EXIF-oriëntatie
- * (image-orientation: from-image is de standaard), dus dat hoeft hier niet.
+ * Browsers already rotate a photo to its EXIF orientation when drawing it
+ * (image-orientation: from-image is the default), so that is not needed here.
  */
-export const MAX_ZIJDE = 1600;
-export const JPEG_KWALITEIT = 0.85;
+export const MAX_SIDE = 1600;
+export const JPEG_QUALITY = 0.85;
 
-export function berekenAfmetingen(breedte: number, hoogte: number, max: number = MAX_ZIJDE): { breedte: number, hoogte: number } {
-  const schaal = Math.min(1, max / Math.max(breedte, hoogte));
-  return { breedte: Math.round(breedte * schaal), hoogte: Math.round(hoogte * schaal) };
+export function calculateDimensions(width: number, height: number, max: number = MAX_SIDE): { width: number, height: number } {
+  const scale = Math.min(1, max / Math.max(width, height));
+  return { width: Math.round(width * scale), height: Math.round(height * scale) };
 }
 
-export function laadAfbeelding(bestand: Blob): Promise<HTMLImageElement> {
+export function loadImage(file: Blob): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(bestand);
+    const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Geen leesbare afbeelding')); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Not a readable image')); };
     img.src = url;
   });
 }
 
-export async function verkleinAfbeelding(bestand: Blob, max: number = MAX_ZIJDE): Promise<Blob> {
-  const img = await laadAfbeelding(bestand);
-  const { breedte, hoogte } = berekenAfmetingen(img.naturalWidth, img.naturalHeight, max);
+export async function resizeImage(file: Blob, max: number = MAX_SIDE): Promise<Blob> {
+  const img = await loadImage(file);
+  const { width, height } = calculateDimensions(img.naturalWidth, img.naturalHeight, max);
 
   const canvas = document.createElement('canvas');
-  canvas.width = breedte;
-  canvas.height = hoogte;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d');
-  // JPEG kent geen transparantie: een doorzichtige PNG krijgt een witte achtergrond, geen zwarte.
+  // JPEG has no transparency: a transparent PNG gets a white background, not a black one.
   ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, breedte, hoogte);
-  ctx.drawImage(img, 0, 0, breedte, hoogte);
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(img, 0, 0, width, height);
   return new Promise((resolve, reject) =>
-    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Geen leesbare afbeelding')), 'image/jpeg', JPEG_KWALITEIT));
+    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Not a readable image')), 'image/jpeg', JPEG_QUALITY));
 }

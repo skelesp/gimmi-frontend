@@ -1,20 +1,20 @@
-import { berekenAfmetingen, laadAfbeelding, MAX_ZIJDE, verkleinAfbeelding } from './resize-image';
+import { calculateDimensions, loadImage, MAX_SIDE, resizeImage } from './resize-image';
 
-// Foto's verkleinen in de browser vóór het opladen (sc-3028).
+// Resizing photos in the browser before uploading (sc-3028).
 describe('resize-image', () => {
 
-    /** Maakt een echte PNG van de gevraagde grootte, met een doorzichtige helft. */
-    function maakPng(breedte: number, hoogte: number): Promise<Blob> {
+    /** Makes a real PNG of the requested size, with a transparent half. */
+    function makePng(width: number, height: number): Promise<Blob> {
         const canvas = document.createElement('canvas');
-        canvas.width = breedte;
-        canvas.height = hoogte;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#f00';
-        ctx.fillRect(0, 0, breedte / 2, hoogte); // rechterhelft blijft doorzichtig
+        ctx.fillRect(0, 0, width / 2, height); // right half stays transparent
         return new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/png'));
     }
 
-    function afmetingenVan(blob: Blob): Promise<{
+    function dimensionsOf(blob: Blob): Promise<{
         w: number;
         h: number;
     }> {
@@ -25,27 +25,27 @@ describe('resize-image', () => {
         });
     }
 
-    describe('berekenAfmetingen', () => {
-        it('liggend groter dan het maximum: langste kant wordt het maximum, verhouding blijft', () => {
-            expect(berekenAfmetingen(4000, 3000)).toEqual({ breedte: MAX_ZIJDE, hoogte: 1200 });
+    describe('calculateDimensions', () => {
+        it('landscape larger than the maximum: longest side becomes the maximum, ratio stays', () => {
+            expect(calculateDimensions(4000, 3000)).toEqual({ width: MAX_SIDE, height: 1200 });
         });
-        it('staand: de hoogte is de langste kant', () => {
-            expect(berekenAfmetingen(3000, 4000, 1000)).toEqual({ breedte: 750, hoogte: 1000 });
+        it('portrait: the height is the longest side', () => {
+            expect(calculateDimensions(3000, 4000, 1000)).toEqual({ width: 750, height: 1000 });
         });
-        it('kleiner dan het maximum: niet vergroten', () => {
-            expect(berekenAfmetingen(640, 480)).toEqual({ breedte: 640, hoogte: 480 });
+        it('smaller than the maximum: do not enlarge', () => {
+            expect(calculateDimensions(640, 480)).toEqual({ width: 640, height: 480 });
         });
     });
 
-    it('verkleinAfbeelding: geeft een JPEG-Blob op de verkleinde maat', async () => {
-        const jpeg = await verkleinAfbeelding(await maakPng(400, 200), 100);
+    it('resizeImage: returns a JPEG Blob at the reduced size', async () => {
+        const jpeg = await resizeImage(await makePng(400, 200), 100);
         expect(jpeg.type).toBe('image/jpeg');
-        expect(await afmetingenVan(jpeg)).toEqual({ w: 100, h: 50 });
+        expect(await dimensionsOf(jpeg)).toEqual({ w: 100, h: 50 });
     });
 
-    it('verkleinAfbeelding: een doorzichtig deel wordt wit, niet zwart', async () => {
-        const jpeg = await verkleinAfbeelding(await maakPng(20, 10), 20);
-        const img = await laadAfbeelding(jpeg);
+    it('resizeImage: a transparent part becomes white, not black', async () => {
+        const jpeg = await resizeImage(await makePng(20, 10), 20);
+        const img = await loadImage(jpeg);
         const canvas = document.createElement('canvas');
         canvas.width = 20;
         canvas.height = 10;
@@ -55,14 +55,14 @@ describe('resize-image', () => {
         expect(Math.min(r, g, b)).toBeGreaterThan(240);
     });
 
-    it('laadAfbeelding: een bestand dat geen afbeelding is, wordt geweigerd', async () => {
-        await expect(laadAfbeelding(new Blob(['geen afbeelding'], { type: 'image/png' }))).rejects.toThrowError('Geen leesbare afbeelding');
+    it('loadImage: a file that is not an image is rejected', async () => {
+        await expect(loadImage(new Blob(['not an image'], { type: 'image/png' }))).rejects.toThrowError('Not a readable image');
     });
 
-    it('verkleinAfbeelding: geeft de browser geen Blob terug, dan is de afbeelding onleesbaar', async () => {
-        const png = await maakPng(20, 10);
+    it('resizeImage: if the browser returns no Blob, the image is unreadable', async () => {
+        const png = await makePng(20, 10);
         vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation(callback => callback(null));
-        await expect(verkleinAfbeelding(png, 20)).rejects.toThrowError('Geen leesbare afbeelding');
+        await expect(resizeImage(png, 20)).rejects.toThrowError('Not a readable image');
         vi.restoreAllMocks();
     });
 });

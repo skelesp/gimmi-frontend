@@ -11,7 +11,7 @@ import { Notifications } from 'src/app/core/notifications';
 import { Registration } from '../../service/registration';
 import { RegisterComplete } from './register-complete';
 
-// sc-3285: stap 2 van 2, de link uit de mail.
+// sc-3285: step 2 of 2, the link from the mail.
 describe('RegisterComplete', () => {
     let fixture: ComponentFixture<RegisterComplete>;
     let registration: { get: ReturnType<typeof vi.fn>; complete: ReturnType<typeof vi.fn> };
@@ -69,25 +69,25 @@ describe('RegisterComplete', () => {
         notifications = { showNotification: vi.fn() };
     });
 
-    it('toont het bevestigde e-mailadres van de link', async () => {
+    it('shows the confirmed email address of the link', async () => {
         await create();
         expect(fixture.nativeElement.textContent).toContain('ria@gimmi.be');
     });
 
-    it('onbekende of verlopen link: uitleg en een link om opnieuw aan te vragen, geen formulier', async () => {
+    it('unknown or expired link: explanation and a link to request again, no form', async () => {
         await create(null);
         expect(fixture.nativeElement.querySelector('#registrationExpired')).not.toBeNull();
         expect(fixture.nativeElement.querySelector('#registrationExpired a').getAttribute('href')).toBe('/users/register');
         expect(fixture.nativeElement.querySelector('form')).toBeNull();
     });
 
-    it('vraagt de gegevens van het token uit de route', async () => {
+    it('requests the data of the token from the route', async () => {
         await create();
         const token = registration.get.mock.calls[0][0] as () => string;
         expect(token()).toBe('tok1');
     });
 
-    it('terwijl de link gecontroleerd wordt: een spinner, geen formulier en geen melding', async () => {
+    it('while the link is being checked: a spinner, no form and no notice', async () => {
         await create();
         link.loading.set(true);
         await fixture.whenStable();
@@ -96,7 +96,7 @@ describe('RegisterComplete', () => {
         expect(fixture.nativeElement.querySelector('#registrationExpired')).toBeNull();
     });
 
-    it('de link kan nu niet gecontroleerd worden (geen 404): een melding in plaats van "link verlopen"', async () => {
+    it('the link cannot be checked now (not a 404): a notice instead of "link verlopen"', async () => {
         await create(null);
         link.error.set(new ApiProblem({ status: 503, code: 'unavailable' }));
         await fixture.whenStable();
@@ -104,20 +104,20 @@ describe('RegisterComplete', () => {
         expect(fixture.nativeElement.querySelector('#registrationExpired')).toBeNull();
     });
 
-    it('registreerknop pas actief als alles ingevuld is en de wachtwoorden overeenkomen', async () => {
+    it('register button only active when everything is filled in and the passwords match', async () => {
         await create();
-        const knop: HTMLButtonElement = fixture.nativeElement.querySelector('button[type=submit]');
-        expect(knop.disabled).toBe(true);
+        const button: HTMLButtonElement = fixture.nativeElement.querySelector('button[type=submit]');
+        expect(button.disabled).toBe(true);
         await fillIn();
-        expect(knop.disabled).toBe(false);
+        expect(button.disabled).toBe(false);
         const check: HTMLInputElement = fixture.nativeElement.querySelectorAll('gimmi-password-field input')[1];
         check.value = 'iets-anders-1';
         check.dispatchEvent(new Event('input'));
         await fixture.whenStable();
-        expect(knop.disabled).toBe(true);
+        expect(button.disabled).toBe(true);
     });
 
-    it('geslaagde registratie: stuurt de gegevens met het token, voegt de persoon toe en gaat verder', async () => {
+    it('successful registration: sends the data with the token, adds the person and continues', async () => {
         const ria = testUser({ id: 'u1', firstName: 'Ria', lastName: 'Receiver' });
         registration.complete.mockReturnValue(of(ria));
         await create();
@@ -130,7 +130,7 @@ describe('RegisterComplete', () => {
         expect(auth.redirectAfterAuthentication).toHaveBeenCalled();
     });
 
-    it('email-taken: melding met een link naar het inloggen', async () => {
+    it('email-taken: notice with a link to logging in', async () => {
         registration.complete.mockReturnValue(throwError(() => new ApiProblem({ status: 409, code: 'email-taken' })));
         await create();
         await fillIn();
@@ -139,7 +139,7 @@ describe('RegisterComplete', () => {
         expect(link.getAttribute('href')).toBe('/users/login?e=ria@gimmi.be');
     });
 
-    it('wachtwoord te zwak voor de server: melding bij het wachtwoord', async () => {
+    it('password too weak for the server: notice at the password', async () => {
         registration.complete.mockReturnValue(throwError(() => new ApiProblem({ status: 422, code: 'password-too-weak' })));
         await create();
         await fillIn();
@@ -147,7 +147,7 @@ describe('RegisterComplete', () => {
         expect(fixture.nativeElement.textContent).toContain('minstens 8 tekens');
     });
 
-    it('validation met velden: de melding staat bij het veld', async () => {
+    it('validation with fields: the notice is at the field', async () => {
         registration.complete.mockReturnValue(throwError(() => new ApiProblem({
             status: 400, code: 'validation', errors: [{ pointer: '/firstName', code: 'maxLength' }]
         } as never)));
@@ -157,7 +157,7 @@ describe('RegisterComplete', () => {
         expect(fixture.nativeElement.textContent).toContain('Deze waarde is te lang.');
     });
 
-    it('404 bij het versturen: de link is intussen verlopen', async () => {
+    it('404 when sending: the link has expired in the meantime', async () => {
         registration.complete.mockReturnValue(throwError(() => new ApiProblem({ status: 404, code: 'not-found' })));
         await create();
         await fillIn();
@@ -165,7 +165,7 @@ describe('RegisterComplete', () => {
         expect(fixture.nativeElement.querySelector('#registrationExpired')).not.toBeNull();
     });
 
-    it('een ander probleem: een melding via de ProblemNotifier', async () => {
+    it('another problem: a notice via the ProblemNotifier', async () => {
         const problem = new ApiProblem({ status: 503, code: 'unavailable' });
         registration.complete.mockReturnValue(throwError(() => problem));
         await create();
@@ -174,7 +174,7 @@ describe('RegisterComplete', () => {
         expect(problems.show).toHaveBeenCalledWith(problem);
     });
 
-    it('een storing zonder probleemdocument: een algemene melding', async () => {
+    it('a failure without problem document: a generic notice', async () => {
         vi.spyOn(console, 'error').mockReturnValue(undefined);
         registration.complete.mockReturnValue(throwError(() => new Error('offline')));
         await create();

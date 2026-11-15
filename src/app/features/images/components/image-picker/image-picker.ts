@@ -7,45 +7,45 @@ import { Subscription } from 'rxjs';
 import { WishImage } from 'src/app/features/wishes/wish';
 import { ImagesData } from '../../images-data';
 import { IImageSearchResult, ImageSearch } from '../../image-search';
-import { verkleinAfbeelding } from '../../utils/resize-image';
+import { resizeImage } from '../../utils/resize-image';
 import { FormField, form, maxLength } from '@angular/forms/signals';
 
 
-export type KiezerTab = 'zoeken' | 'bestand';
+export type PickerTab = 'search' | 'file';
 
 /**
- * Resultaat van de kiezer: de opgeladen afbeelding, en een voorvertoning die de browser
- * al heeft (thumbnail van het zoekresultaat of de verkleinde foto). Zo kan de wens-popup
- * de nieuwe afbeelding meteen tonen, zonder te wachten tot ze opgehaald is.
+ * Result of the picker: the uploaded image, and a preview the browser already has
+ * (thumbnail of the search result or the resized photo). This way the wish popup
+ * can show the new image right away, without waiting until it has been fetched.
  */
-export interface IGekozenAfbeelding {
-  afbeelding: WishImage;
-  voorvertoning: string;
+export interface ChosenImage {
+  image: WishImage;
+  preview: string;
 }
 
-/** Grootste bestand dat we nog proberen te verkleinen; een foto van een gsm is zelden groter. */
-export const MAX_BESTAND_BYTES = 30 * 1024 * 1024;
+/** Largest file we still try to resize; a phone photo is rarely larger. */
+export const MAX_FILE_BYTES = 30 * 1024 * 1024;
 
-const BESTAND = 'bestand';
+const FILE = 'file';
 
-const ONGELDIGE_AFBEELDING = 'Dit bestand is geen bruikbare afbeelding.';
-const ALGEMENE_FOUT = 'Er ging iets mis. Probeer het opnieuw.';
+const INVALID_IMAGE = 'Dit bestand is geen bruikbare afbeelding.';
+const GENERIC_ERROR = 'Er ging iets mis. Probeer het opnieuw.';
 
-/** De melding voor een mislukte oproep: de tekst bij de foutcode van API v2 (sc-3290), anders een algemene. */
-export function boodschapVoor(err: unknown): string {
-  return err instanceof ApiProblem ? problemMessage(err) : ALGEMENE_FOUT;
+/** The message for a failed call: the text for the API v2 error code (sc-3290), otherwise a generic one. */
+export function messageFor(err: unknown): string {
+  return err instanceof ApiProblem ? problemMessage(err) : GENERIC_ERROR;
 }
 
 /**
- * Afbeeldingskiezer voor een wens (sc-3028), als popup boven de wens-popup.
- * Vervangt de Cloudinary-uploadwidget. Opladen gaat naar R2, via de backend (sc-3052, sc-2911).
+ * Image picker for a wish (sc-3028), as a popup above the wish popup.
+ * Replaces the Cloudinary upload widget. Uploading goes to R2, via the backend (sc-3052, sc-2911).
  *
- * - Zoeken: zoekterm = titel van de wens (was sc-1330), resultaten via Brave Search,
- *   klik = de backend haalt de afbeelding op en laadt ze op.
- * - Foto / bestand: camera (gsm) of bestand, in de browser verkleind, via de backend opgeladen.
+ * - Search: query = title of the wish (was sc-1330), results via Brave Search,
+ *   click = the backend fetches the image and uploads it.
+ * - Photo / file: camera (phone) or file, resized in the browser, uploaded via the backend.
  *
- * Geslaagd: de popup sluit met de nieuwe afbeelding (en een voorvertoning) als resultaat. Sluit de popup op een
- * andere manier, dan worden zoeken en opladen afgebroken (was sc-1391).
+ * On success the popup closes with the new image (and a preview) as its result. If the popup closes
+ * any other way, searching and uploading are aborted (was sc-1391).
  */
 @Component({
     selector: 'gimmi-image-picker',
@@ -62,123 +62,123 @@ export class ImagePicker implements OnInit, OnDestroy {
 
   @Input() searchTerm = "";
 
-  tab: KiezerTab = 'zoeken';
-  protected readonly zoekModel = signal({ term: '' });
-  protected readonly zoekForm = form(this.zoekModel, path => maxLength(path.term, 200));
-  get zoekterm(): string { return this.zoekModel().term; }
-  set zoekterm(term: string) { this.zoekModel.set({ term }); }
-  readonly resultaten = signal<IImageSearchResult[]>(null);   // null = nog niet gezocht
-  readonly zoeken = signal(false);
-  readonly zoekFout = signal<string>(null);
-  readonly bezigMet = signal<string>(null);                    // url van het gekozen resultaat, of 'bestand'
-  readonly uploadFout = signal<string>(null);
-  readonly mislukt = signal(new Set<string>());
-  toonCamera = false;
+  tab: PickerTab = 'search';
+  protected readonly searchModel = signal({ term: '' });
+  protected readonly searchForm = form(this.searchModel, path => maxLength(path.term, 200));
+  get query(): string { return this.searchModel().term; }
+  set query(term: string) { this.searchModel.set({ term }); }
+  readonly results = signal<IImageSearchResult[]>(null);   // null = not searched yet
+  readonly searching = signal(false);
+  readonly searchError = signal<string>(null);
+  readonly busyWith = signal<string>(null);                    // url of the chosen result, or 'file'
+  readonly uploadError = signal<string>(null);
+  readonly failed = signal(new Set<string>());
+  showCamera = false;
 
-  private zoekSub: Subscription;
+  private searchSub: Subscription;
   private uploadSub: Subscription;
-  private vernietigd = false;
+  private destroyed = false;
 
   ngOnInit(): void {
-    this.toonCamera = this.deviceService.isMobile() || this.deviceService.isTablet();
-    this.zoekterm = (this.searchTerm || '').trim();
-    if (this.zoekterm) this.zoek();
+    this.showCamera = this.deviceService.isMobile() || this.deviceService.isTablet();
+    this.query = (this.searchTerm || '').trim();
+    if (this.query) this.search();
   }
 
-  annuleer(): void {
+  cancel(): void {
     this.activeModal.dismiss('Cancel');
   }
 
-  kiesTab(): void {
-    this.uploadFout.set(null);
+  onTabChange(): void {
+    this.uploadError.set(null);
   }
 
-  zoek(): void {
-    const q = (this.zoekterm || '').trim();
-    if (!q || this.zoekForm().invalid()) return;
-    this.zoekSub?.unsubscribe();
-    this.zoeken.set(true);
-    this.zoekFout.set(null);
-    this.uploadFout.set(null);
-    this.mislukt.set(new Set());
-    this.zoekSub = this.imageSearchService.search(q).subscribe({
-      next: resultaten => {
-        this.resultaten.set(resultaten);
-        this.zoeken.set(false);
+  search(): void {
+    const q = (this.query || '').trim();
+    if (!q || this.searchForm().invalid()) return;
+    this.searchSub?.unsubscribe();
+    this.searching.set(true);
+    this.searchError.set(null);
+    this.uploadError.set(null);
+    this.failed.set(new Set());
+    this.searchSub = this.imageSearchService.search(q).subscribe({
+      next: results => {
+        this.results.set(results);
+        this.searching.set(false);
       },
       error: (err: unknown) => {
-        this.resultaten.set(null);
-        this.zoeken.set(false);
-        this.zoekFout.set(boodschapVoor(err));
+        this.results.set(null);
+        this.searching.set(false);
+        this.searchError.set(messageFor(err));
       }
     });
   }
 
-  /** Enter in het zoekveld zoekt, en mag niets anders indienen. */
-  zoekMetEnter(event: Event): void {
+  /** Enter in the search field searches, and must not submit anything else. */
+  searchOnEnter(event: Event): void {
     event.preventDefault();
-    this.zoek();
+    this.search();
   }
 
-  /** Een thumbnail die niet laadt, zou alleen zijn alt-tekst tonen: weg uit het raster. */
-  verwijderResultaat(resultaat: IImageSearchResult): void {
-    this.resultaten.set(this.resultaten().filter(r => r !== resultaat));
+  /** A thumbnail that does not load would only show its alt text: remove it from the grid. */
+  removeResult(result: IImageSearchResult): void {
+    this.results.set(this.results().filter(r => r !== result));
   }
 
-  kies(resultaat: IImageSearchResult): void {
-    if (this.bezigMet() || this.mislukt().has(resultaat.url)) return;
-    this.laadOp(resultaat.url, resultaat.url, resultaat.thumbnailUrl);
+  choose(result: IImageSearchResult): void {
+    if (this.busyWith() || this.failed().has(result.url)) return;
+    this.upload(result.url, result.url, result.thumbnailUrl);
   }
 
-  async bestandGekozen(event: Event): Promise<void> {
+  async fileChosen(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    const bestand = input.files && input.files[0];
-    input.value = '';   // zelfde bestand nog eens kiezen moet opnieuw een change geven
-    if (!bestand || this.bezigMet()) return;
+    const file = input.files && input.files[0];
+    input.value = '';   // choosing the same file again must fire a new change
+    if (!file || this.busyWith()) return;
 
-    this.uploadFout.set(null);
-    if (!bestand.type.startsWith('image/')) {
-      this.uploadFout.set(ONGELDIGE_AFBEELDING);
+    this.uploadError.set(null);
+    if (!file.type.startsWith('image/')) {
+      this.uploadError.set(INVALID_IMAGE);
       return;
     }
-    if (bestand.size > MAX_BESTAND_BYTES) {
-      this.uploadFout.set('Dit bestand is te groot (meer dan 30 MB).');
+    if (file.size > MAX_FILE_BYTES) {
+      this.uploadError.set('Dit bestand is te groot (meer dan 30 MB).');
       return;
     }
 
-    this.bezigMet.set(BESTAND);
-    let foto: Blob;
+    this.busyWith.set(FILE);
+    let photo: Blob;
     try {
-      foto = await verkleinAfbeelding(bestand);
+      photo = await resizeImage(file);
     } catch {
-      this.bezigMet.set(null);
-      this.uploadFout.set('Deze afbeelding kunnen we niet lezen. Kies een andere (jpg, png, webp of gif).');
+      this.busyWith.set(null);
+      this.uploadError.set('Deze afbeelding kunnen we niet lezen. Kies een andere (jpg, png, webp of gif).');
       return;
     }
-    // Popup gesloten tijdens het verkleinen: niets meer doen.
-    if (this.vernietigd) return;
-    this.laadOp(foto, BESTAND, URL.createObjectURL(foto));
+    // Popup closed while resizing: do nothing more.
+    if (this.destroyed) return;
+    this.upload(photo, FILE, URL.createObjectURL(photo));
   }
 
-  private laadOp(image: Blob | string, sleutel: string, voorvertoning: string): void {
-    this.bezigMet.set(sleutel);
-    this.uploadFout.set(null);
+  private upload(image: Blob | string, key: string, preview: string): void {
+    this.busyWith.set(key);
+    this.uploadError.set(null);
     this.uploadSub = this.imageService.uploadImage(image).subscribe({
-      next: (nieuweAfbeelding: WishImage) => {
-        this.bezigMet.set(null);
-        this.activeModal.close({ afbeelding: nieuweAfbeelding, voorvertoning } as IGekozenAfbeelding);
+      next: (newImage: WishImage) => {
+        this.busyWith.set(null);
+        this.activeModal.close({ image: newImage, preview } as ChosenImage);
       },
       error: (err: unknown) => {
-        this.bezigMet.set(null);
-        this.uploadFout.set(boodschapVoor(err));
-        if (sleutel !== BESTAND) this.mislukt.update(set => new Set(set).add(sleutel));
+        this.busyWith.set(null);
+        this.uploadError.set(messageFor(err));
+        if (key !== FILE) this.failed.update(set => new Set(set).add(key));
       }
     });
   }
 
   ngOnDestroy(): void {
-    this.vernietigd = true;
-    this.zoekSub?.unsubscribe();
-    this.uploadSub?.unsubscribe();   // breekt de HTTP-request af
+    this.destroyed = true;
+    this.searchSub?.unsubscribe();
+    this.uploadSub?.unsubscribe();   // aborts the HTTP request
   }
 }

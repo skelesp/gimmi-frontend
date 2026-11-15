@@ -11,8 +11,8 @@ import { Notifications } from 'src/app/core/notifications';
 import { PasswordReset } from '../../service/password-reset';
 import { ResetPassword } from './reset-password';
 
-// Wachtwoord resetten met de link uit de mail: /users/resetpassword/:token (sc-2004, sc-3286). De resource
-// zegt of het token geldig is; daarna kiest de gebruiker een nieuw wachtwoord en is meteen ingelogd.
+// Resetting the password with the link from the mail: /users/resetpassword/:token (sc-2004, sc-3286). The resource
+// says whether the token is valid; then the user chooses a new password and is logged in right away.
 describe('ResetPassword', () => {
     let fixture: ComponentFixture<ResetPassword>;
     let passwordReset: { get: ReturnType<typeof vi.fn>; complete: ReturnType<typeof vi.fn> };
@@ -41,19 +41,19 @@ describe('ResetPassword', () => {
     }
 
     function el(): HTMLElement { return fixture.nativeElement; }
-    function knop(): HTMLButtonElement { return el().querySelector('button[type="submit"]')!; }
+    function button(): HTMLButtonElement { return el().querySelector('button[type="submit"]')!; }
 
-    async function vulIn(wachtwoord: string, herhaling: string) {
+    async function fillIn(password: string, repeated: string) {
         const inputs: HTMLInputElement[] = Array.from(el().querySelectorAll('input'));
-        inputs[0].value = wachtwoord;
+        inputs[0].value = password;
         inputs[0].dispatchEvent(new Event('input'));
-        inputs[1].value = herhaling;
+        inputs[1].value = repeated;
         inputs[1].dispatchEvent(new Event('input'));
         await fixture.whenStable();
     }
 
-    async function verstuur() {
-        knop().click();
+    async function submit() {
+        button().click();
         await fixture.whenStable();
     }
 
@@ -64,14 +64,14 @@ describe('ResetPassword', () => {
         notifications = { showNotification: vi.fn() };
     });
 
-    it('ongeldige of vervallen link: uitleg en een link om opnieuw aan te vragen, geen formulier', async () => {
+    it('invalid or expired link: explanation and a link to request again, no form', async () => {
         await open(null);
         expect(el().querySelector('ngb-alert')!.textContent).toContain('Uw link is ofwel vervallen (= ouder dan 1u) of ongeldig.');
         expect(el().querySelector('gimmi-forgot-password-link')).toBeTruthy();
         expect(el().querySelector('form')).toBeNull();
     });
 
-    it('terwijl de link gecontroleerd wordt: een spinner en nog niets anders', async () => {
+    it('while the link is being checked: a spinner and nothing else yet', async () => {
         await open();
         link.loading.set(true);
         await fixture.whenStable();
@@ -80,7 +80,7 @@ describe('ResetPassword', () => {
         expect(el().querySelector('ngb-alert')).toBeNull();
     });
 
-    it('de link kan nu niet gecontroleerd worden (geen 404): een melding in plaats van "link vervallen"', async () => {
+    it('the link cannot be checked now (not a 404): a notice instead of "link vervallen"', async () => {
         await open(null);
         link.error.set(new ApiProblem({ status: 503, code: 'unavailable' }));
         await fixture.whenStable();
@@ -88,63 +88,63 @@ describe('ResetPassword', () => {
         expect(el().querySelector('gimmi-forgot-password-link')).toBeNull();
     });
 
-    it('geldige link: formulier met twee wachtwoordvelden, knop pas actief als ze overeenkomen', async () => {
+    it('valid link: form with two password fields, button only active when they match', async () => {
         await open();
         expect(el().querySelector('ngb-alert')).toBeNull();
         expect(el().querySelectorAll('input').length).toBe(2);
-        expect(knop().disabled).toBe(true);
+        expect(button().disabled).toBe(true);
 
-        await vulIn('Nieuw-geheim-1', 'Iets-anders-1');
-        expect(knop().disabled).toBe(true);
+        await fillIn('Nieuw-geheim-1', 'Iets-anders-1');
+        expect(button().disabled).toBe(true);
 
-        await vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
-        expect(knop().disabled).toBe(false);
+        await fillIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        expect(button().disabled).toBe(false);
     });
 
-    it('opslaan: nieuw wachtwoord met het token uit de link, melding en meteen ingelogd', async () => {
+    it('save: new password with the token from the link, notice and logged in right away', async () => {
         passwordReset.complete.mockReturnValue(of(testUser()));
         await open();
-        await vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
-        await verstuur();
+        await fillIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        await submit();
         expect(passwordReset.complete).toHaveBeenCalledWith('abc123', 'Nieuw-geheim-1');
         expect(notifications.showNotification).toHaveBeenCalledWith(expect.stringContaining('succesvol'), 'success', 'Wachtwoord aangepast');
         expect(auth.redirectAfterAuthentication).toHaveBeenCalled();
     });
 
-    it('link intussen verlopen (404): melding en uitleg in plaats van het formulier', async () => {
+    it('link expired in the meantime (404): notice and explanation instead of the form', async () => {
         passwordReset.complete.mockReturnValue(throwError(() => new ApiProblem({ status: 404, code: 'not-found' })));
         await open();
-        await vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
-        await verstuur();
+        await fillIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        await submit();
         expect(notifications.showNotification).toHaveBeenCalledWith(expect.stringContaining('gefaald'), 'error', 'Link vervallen');
         expect(el().querySelector('ngb-alert')).not.toBeNull();
         expect(el().querySelector('form')).toBeNull();
     });
 
-    it('wachtwoord te zwak voor de server: melding bij het wachtwoord', async () => {
+    it('password too weak for the server: notice at the password', async () => {
         passwordReset.complete.mockReturnValue(throwError(() => new ApiProblem({ status: 422, code: 'password-too-weak' })));
         await open();
-        await vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
-        await verstuur();
+        await fillIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        await submit();
         expect(el().querySelector('#serverError')!.textContent).toContain('minstens 8 tekens');
         expect(auth.redirectAfterAuthentication).not.toHaveBeenCalled();
     });
 
-    it('een ander probleem: een melding via de ProblemNotifier', async () => {
+    it('another problem: a notice via the ProblemNotifier', async () => {
         const problem = new ApiProblem({ status: 429, code: 'rate-limited' });
         passwordReset.complete.mockReturnValue(throwError(() => problem));
         await open();
-        await vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
-        await verstuur();
+        await fillIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        await submit();
         expect(problems.show).toHaveBeenCalledWith(problem);
     });
 
-    it('een storing zonder probleemdocument: een algemene melding', async () => {
+    it('a failure without problem document: a generic notice', async () => {
         vi.spyOn(console, 'error').mockReturnValue(undefined);
         passwordReset.complete.mockReturnValue(throwError(() => new Error('offline')));
         await open();
-        await vulIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
-        await verstuur();
+        await fillIn('Nieuw-geheim-1', 'Nieuw-geheim-1');
+        await submit();
         expect(notifications.showNotification).toHaveBeenCalledWith(expect.stringContaining('lukt nu niet'), 'error');
     });
 });

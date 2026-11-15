@@ -8,7 +8,7 @@ import { WishesData } from '../../wishes-data';
 import { WishDelete } from './wish-delete';
 import { apiWish } from 'src/app/features/wishes/wish.testing';
 
-// Bevestigingspopup om een wens te verwijderen.
+// Confirmation popup to delete a wish.
 describe('WishDelete', () => {
     const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     let fixture: ComponentFixture<WishDelete>;
@@ -36,18 +36,18 @@ describe('WishDelete', () => {
         await fixture.whenStable();
     });
 
-    it('vraagt bevestiging met de titel van de wens', () => {
+    it('asks for confirmation with the title of the wish', () => {
         expect(el().querySelector('.modal-body').textContent).toContain('"Fiets"');
     });
 
-    it('"Ja, verwijder" sluit de popup, verwijdert de wens en meldt dat', () => {
+    it('"Ja, verwijder" closes the popup, deletes the wish and reports that', () => {
         (el().querySelector('.btn-danger') as HTMLButtonElement).click();
         expect(activeModal.close).toHaveBeenCalled();
         expect(wishService.delete).toHaveBeenCalledWith(fixture.componentInstance.wish);
         expect(notifications.showNotification).toHaveBeenCalledWith('Wens "Fiets" is verwijderd.', 'success', 'Wens verwijderd');
     });
 
-    it('"Nee, wens behouden" annuleert zonder te verwijderen', () => {
+    it('"Nee, wens behouden" cancels without deleting', () => {
         (el().querySelector('.btn-outline-danger') as HTMLButtonElement).click();
         expect(activeModal.dismiss).toHaveBeenCalledWith('Cancel');
         expect(wishService.delete).not.toHaveBeenCalled();

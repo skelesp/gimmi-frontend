@@ -9,20 +9,20 @@ import { HowToUse } from './how-to-use/how-to-use';
 import { LandingPageBanner } from './landing-page-banner/landing-page-banner';
 import { LandingPage } from './landing-page';
 
-// Landingspagina (sc-1985): banner met call to action en "Hoe werkt het?".
-// De call to action navigeert naar registreren of naar de eigen lijst (sc-2381).
+// Landing page (sc-1985): banner with call to action and "Hoe werkt het?".
+// The call to action navigates to registering or to the own list (sc-2381).
 describe('LandingPage', () => {
     let fixture: ComponentFixture<LandingPage>;
     let auth: ReturnType<typeof fakeAuthStore>;
     const ilse = testUser({ id: 'u1', firstName: 'Ilse', lastName: 'Ingelogd', fullName: 'Ilse Ingelogd', email: 'ilse@gimmi.be' });
 
-    async function toon(user: CurrentUser) {
+    async function show(user: CurrentUser) {
         auth.user.set(user);
         fixture = TestBed.createComponent(LandingPage);
         await fixture.whenStable();
     }
 
-    /** Zichtbare call-to-actionknoppen in de banner (groot en klein scherm), [tekst, href]. */
+    /** Visible call-to-action buttons in the banner (large and small screen), [text, href]. */
     function ctas(): [
         string,
         string
@@ -41,15 +41,15 @@ describe('LandingPage', () => {
 }).compileComponents();
     });
 
-    it('toont de banner en "Hoe werkt het?" met de vier stappen', async () => {
-        await toon(null);
+    it('shows the banner and "Hoe werkt het?" with the four steps', async () => {
+        await show(null);
         expect(fixture.nativeElement.querySelector('gimmi-landing-page-banner')).toBeTruthy();
-        const stappen = Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('gimmi-how-to-use h3')).map((h: HTMLElement) => h.textContent.trim());
-        expect(stappen).toEqual(['Registreer', 'Voeg wensen toe', 'Verspreid je lijst', 'Krijg cadeaus!']);
+        const steps = Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('gimmi-how-to-use h3')).map((h: HTMLElement) => h.textContent.trim());
+        expect(steps).toEqual(['Registreer', 'Voeg wensen toe', 'Verspreid je lijst', 'Krijg cadeaus!']);
     });
 
-    it('banner heeft een versie voor grote en voor kleine schermen', async () => {
-        await toon(null);
+    it('banner has a version for large and for small screens', async () => {
+        await show(null);
         const jumbotrons: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.jumbotron'));
         expect(jumbotrons.map(j => j.className)).toEqual([
             expect.stringMatching(/d-none d-md-block/),
@@ -58,7 +58,7 @@ describe('LandingPage', () => {
     });
 
     it('niet ingelogd: de call to action gaat naar registreren (sc-2381)', async () => {
-        await toon(null);
+        await show(null);
         expect(ctas()).toEqual([
             ['Start nu met Gimmi en ontdek het zelf!', '/users/register'],
             ['Start nu met Gimmi en ontdek het zelf!', '/users/register']
@@ -66,22 +66,22 @@ describe('LandingPage', () => {
     });
 
     it('ingelogd: de call to action gaat naar de eigen overzichtspagina (sc-2381)', async () => {
-        await toon(ilse);
+        await show(ilse);
         expect(ctas()).toEqual([
             ['Ga naar je overzichtspagina, Ilse!', '/people/u1'],
             ['Ga naar je overzichtspagina, Ilse!', '/people/u1']
         ]);
     });
 
-    it('"Hoe werkt het?": niet ingelogd leidt de lijst-stap naar registreren en is er niets te delen', async () => {
-        await toon(null);
-        const iconen = fixture.debugElement.query(sel => sel.name === 'gimmi-how-to-use').componentInstance as HowToUse;
-        expect(iconen.currentUser()).toBeNull();
+    it('"Hoe werkt het?": not logged in, the list step leads to registering and there is nothing to share', async () => {
+        await show(null);
+        const howToUse = fixture.debugElement.query(sel => sel.name === 'gimmi-how-to-use').componentInstance as HowToUse;
+        expect(howToUse.currentUser()).toBeNull();
         expect(fixture.nativeElement.querySelector('gimmi-how-to-use gimmi-share')).toBeNull();
     });
 
-    it('"Hoe werkt het?": ingelogd verschijnt de deelknop met de eigen persoon', async () => {
-        await toon(ilse);
+    it('"Hoe werkt het?": logged in, the share button appears with the own person', async () => {
+        await show(ilse);
         const share = fixture.debugElement.query(el => el.name === 'gimmi-share');
         expect(share).toBeTruthy();
         expect(share.nativeElement.personToShare).toBe(ilse);

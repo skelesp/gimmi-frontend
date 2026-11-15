@@ -12,8 +12,8 @@ import { Share } from '../share/share';
 import { ExtraInfo } from '../extra-info/extra-info';
 import { WishList } from '../../../wishes/components/wish-list/wish-list';
 
-// Overzichtspagina van een persoon op /people/:personId (sc-1959): naam, delen, extra info en
-// de wenslijst.
+// Overview page of a person on /people/:personId (sc-1959): name, sharing, extra info and
+// the wish list.
 describe('PersonDashboard', () => {
     let fixture: ComponentFixture<PersonDashboard>;
     let auth: ReturnType<typeof fakeAuthStore>;
@@ -29,7 +29,7 @@ describe('PersonDashboard', () => {
         };
     }
 
-    async function toon(person: PersonProfile | null, user: CurrentUser | null) {
+    async function show(person: PersonProfile | null, user: CurrentUser | null) {
         auth.user.set(user);
         profile.set(person ?? undefined);
         fixture = TestBed.createComponent(PersonDashboard);
@@ -38,8 +38,8 @@ describe('PersonDashboard', () => {
 
     function el(): HTMLElement { return fixture.nativeElement; }
 
-    function kind(naam: string): DebugElement {
-        return fixture.debugElement.query(e => e.name === naam);
+    function kind(name: string): DebugElement {
+        return fixture.debugElement.query(e => e.name === name);
     }
 
     beforeEach(async () => {
@@ -59,28 +59,28 @@ describe('PersonDashboard', () => {
 }).compileComponents();
     });
 
-    it('terwijl het profiel laadt: een spinner en geen melding', async () => {
+    it('while the profile loads: a spinner and no notice', async () => {
         loading.set(true);
-        await toon(null, ilse);
+        await show(null, ilse);
         expect(el().querySelector('.spinner-border')).toBeTruthy();
         expect(el().querySelector('ngb-alert')).toBeNull();
     });
 
-    it('onbekende persoon: "geen lijst gevonden"', async () => {
-        await toon(null, ilse);
+    it('unknown person: "geen lijst gevonden"', async () => {
+        await show(null, ilse);
         expect(el().querySelector('ngb-alert').textContent).toContain('Sorry, geen lijst gevonden.');
         expect(kind('gimmi-wish-list')).toBeNull();
     });
 
-    it('toont de naam, deelknop en de wenslijst van de persoon', async () => {
-        await toon(ria(), ilse);
+    it('shows the name, share button and the wish list of the person', async () => {
+        await show(ria(), ilse);
         expect(el().querySelector('h1').textContent.trim()).toBe('Ria Receiver');
         expect(kind('gimmi-share').nativeElement.personToShare).toMatchObject({ id: 'ria', firstName: 'Ria', lastName: 'Receiver' });
         expect(kind('gimmi-wish-list').nativeElement.receiver).toMatchObject({ id: 'ria', firstName: 'Ria', lastName: 'Receiver' });
     });
 
-    it('lijst van een ander: link "Ga naar mijn lijst"; extra info alleen-lezen', async () => {
-        await toon(ria(), ilse);
+    it('list of someone else: link "Ga naar mijn lijst"; extra info read-only', async () => {
+        await show(ria(), ilse);
         const link: HTMLAnchorElement = el().querySelector('a.badge');
         expect(link.textContent.trim()).toBe('Ga naar mijn lijst');
         expect(link.hidden).toBe(false);
@@ -89,30 +89,30 @@ describe('PersonDashboard', () => {
         expect(kind('gimmi-extra-info').nativeElement.canEdit).toBe(false);
     });
 
-    it('eigen lijst (viewer.isSelf): link verborgen en extra info bewerkbaar (viewer.can.update)', async () => {
-        await toon(ria(true), testUser({ id: 'ria', firstName: 'Ria', lastName: 'Receiver', fullName: 'Ria Receiver', email: 'ria@gimmi.be' }));
+    it('own list (viewer.isSelf): link hidden and extra info editable (viewer.can.update)', async () => {
+        await show(ria(true), testUser({ id: 'ria', firstName: 'Ria', lastName: 'Receiver', fullName: 'Ria Receiver', email: 'ria@gimmi.be' }));
         expect((el().querySelector('a.badge') as HTMLElement).hidden).toBe(true);
         expect(fixture.componentInstance.personIsUser()).toBe(true);
         expect(kind('gimmi-extra-info').nativeElement.canEdit).toBe(true);
     });
 
-    it('niet ingelogd: geen link naar een eigen lijst', async () => {
-        await toon(ria(), null);
+    it('not logged in: no link to an own list', async () => {
+        await show(ria(), null);
         expect(el().querySelector('a.badge')).toBeNull();
     });
 
-    it('geeft id, voornaam en extra info door, en neemt het bewaarde profiel over zonder de wenslijst te herladen', async () => {
-        await toon(ria(true), ilse);
+    it('passes on id, first name and extra info, and takes over the saved profile without reloading the wish list', async () => {
+        await show(ria(true), ilse);
         const extra = kind('gimmi-extra-info');
         expect(extra.nativeElement.personId).toBe('ria');
         expect(extra.nativeElement.firstName).toBe('Ria');
         expect(extra.nativeElement.likes).toEqual([{ text: 'Boeken', url: null }]);
         const receiver = fixture.componentInstance.receiver();
 
-        const bijgewerkt: PersonProfile = { ...ria(true), likes: [{ text: 'Puzzels', url: null }], dislikes: [{ text: 'Sokken', url: null }] };
-        extra.triggerEventHandler('saved', bijgewerkt);
+        const updated: PersonProfile = { ...ria(true), likes: [{ text: 'Puzzels', url: null }], dislikes: [{ text: 'Sokken', url: null }] };
+        extra.triggerEventHandler('saved', updated);
         await fixture.whenStable();
-        expect(fixture.componentInstance.profile()).toBe(bijgewerkt);
+        expect(fixture.componentInstance.profile()).toBe(updated);
         expect(extra.nativeElement.dislikes).toEqual([{ text: 'Sokken', url: null }]);
         expect(fixture.componentInstance.receiver()).toBe(receiver);
     });

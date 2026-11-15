@@ -29,8 +29,8 @@ import { WishCard } from './wish-card';
 import { ImageView } from '../../../../images/components/image-view/image-view';
 import { apiWish } from 'src/app/features/wishes/wish.testing';
 
-// Wat een wenskaart toont per scenario (sc-1955, sc-1960, sc-2446, sc-2453, sc-2558, sc-2566) en
-// welke acties ze aanbiedt (sc-1978, sc-1982). Logica komt uit WishItem.
+// What a wish card shows per scenario (sc-1955, sc-1960, sc-2446, sc-2453, sc-2558, sc-2566) and
+// which actions it offers (sc-1978, sc-1982). Logic comes from WishItem.
 describe('WishCard', () => {
     beforeEach(() => {
         vi.useFakeTimers({ advanceTimeDelta: 1, shouldAdvanceTime: true });
@@ -53,7 +53,7 @@ describe('WishCard', () => {
         result: Promise<unknown>;
     };
 
-    function maakWens(opties: {
+    function makeWish(options: {
         status: WishStatus;
         createdBy?: PersonRef;
         reservedBy?: PersonRef;
@@ -61,17 +61,17 @@ describe('WishCard', () => {
         viewer: string;
     }): Wish {
         const w = apiWish({
-            id: 'w1', title: 'Boek', price: { amount: 2000, currency: 'EUR' }, links: opties.url ? [{ url: opties.url }] : [],
-            receiver: ria, createdBy: opties.createdBy ?? ria, status: opties.status,
-            reservation: opties.reservedBy ? { reservedBy: opties.reservedBy } : null
+            id: 'w1', title: 'Boek', price: { amount: 2000, currency: 'EUR' }, links: options.url ? [{ url: options.url }] : [],
+            receiver: ria, createdBy: options.createdBy ?? ria, status: options.status,
+            reservation: options.reservedBy ? { reservedBy: options.reservedBy } : null
         });
-        return viewWishAs(w, opties.viewer);
+        return viewWishAs(w, options.viewer);
     }
 
-    async function toon(wens: Wish) {
+    async function show(wish: Wish) {
         fixture = TestBed.createComponent(WishCard);
         component = fixture.componentInstance;
-        component.wish = wens;
+        component.wish = wish;
         await fixture.whenStable();
     }
 
@@ -83,11 +83,11 @@ describe('WishCard', () => {
         return fixture.nativeElement.querySelector('gimmi-wish-call-to-action-button button');
     }
 
-    function geblurd(): boolean {
+    function isBlurred(): boolean {
         return fixture.nativeElement.querySelector('.card-img-overlay').classList.contains('blurred-card-overlay');
     }
 
-    function acties(): string[] {
+    function actions(): string[] {
         return component.wishActionItems.map(a => a.text);
     }
 
@@ -104,7 +104,7 @@ describe('WishCard', () => {
         };
         images = {
             uploadImage: vi.fn().mockName("ImagesData.uploadImage"),
-            heeftBeeld: vi.fn().mockName("ImagesData.heeftBeeld")
+            hasImage: vi.fn().mockName("ImagesData.heeftBeeld")
         };
         notifications = {
             showNotification: vi.fn().mockName("Notifications.showNotification")
@@ -125,134 +125,134 @@ describe('WishCard', () => {
 }).compileComponents();
     });
 
-    describe('banner, knop en vervaging per scenario', () => {
-        const gevallen: {
-            naam: string;
-            wens: () => Wish;
+    describe('banner, button and blurring per scenario', () => {
+        const cases: {
+            name: string;
+            wish: () => Wish;
             banner: string;
-            knop: string | null;
+            button: string | null;
             blur: boolean;
         }[] = [
-            { naam: 'open wens van een ander', wens: () => maakWens({ status: 'open', viewer: 'rob' }), banner: '', knop: 'Reserveer', blur: false },
-            { naam: 'open wens, jouw idee voor iemand anders', wens: () => maakWens({ status: 'open', createdBy: carl, viewer: 'carl' }), banner: 'Jouw idee', knop: 'Reserveer', blur: false },
-            { naam: 'gereserveerd door een ander', wens: () => maakWens({ status: 'reserved', reservedBy: rob, viewer: 'iemand' }), banner: 'Gereserveerd', knop: null, blur: true },
-            { naam: 'gereserveerd door jou', wens: () => maakWens({ status: 'reserved', reservedBy: rob, viewer: 'rob' }), banner: 'Gereserveerd door jou', knop: 'Verwijder reservatie', blur: true },
-            { naam: 'gereserveerd, bekeken door de ontvanger (incognito)', wens: () => maakWens({ status: 'reserved', reservedBy: rob, viewer: 'ria' }), banner: '', knop: 'Reserveer', blur: false },
-            { naam: 'ontvangen, bekeken door de ontvanger', wens: () => maakWens({ status: 'received', reservedBy: rob, viewer: 'ria' }), banner: 'Ontvangen', knop: 'Geef feedback', blur: true },
-            { naam: 'ontvangen, gegeven door jou', wens: () => maakWens({ status: 'received', reservedBy: rob, viewer: 'rob' }), banner: 'Gegeven door jou', knop: null, blur: true },
-            { naam: 'ontvangen, bekeken door een derde', wens: () => maakWens({ status: 'received', reservedBy: rob, viewer: 'iemand' }), banner: 'Ontvangen', knop: null, blur: true },
-            { naam: 'vervuld', wens: () => maakWens({ status: 'fulfilled', reservedBy: rob, viewer: 'ria' }), banner: 'Wens vervuld', knop: null, blur: true },
-            { naam: 'vervuld door jou', wens: () => maakWens({ status: 'fulfilled', reservedBy: rob, viewer: 'rob' }), banner: 'Wens vervuld door jou', knop: null, blur: true }
+            { name: 'open wens van een ander', wish: () => makeWish({ status: 'open', viewer: 'rob' }), banner: '', button: 'Reserveer', blur: false },
+            { name: 'open wens, jouw idee voor iemand anders', wish: () => makeWish({ status: 'open', createdBy: carl, viewer: 'carl' }), banner: 'Jouw idee', button: 'Reserveer', blur: false },
+            { name: 'gereserveerd door een ander', wish: () => makeWish({ status: 'reserved', reservedBy: rob, viewer: 'iemand' }), banner: 'Gereserveerd', button: null, blur: true },
+            { name: 'gereserveerd door jou', wish: () => makeWish({ status: 'reserved', reservedBy: rob, viewer: 'rob' }), banner: 'Gereserveerd door jou', button: 'Verwijder reservatie', blur: true },
+            { name: 'gereserveerd, bekeken door de ontvanger (incognito)', wish: () => makeWish({ status: 'reserved', reservedBy: rob, viewer: 'ria' }), banner: '', button: 'Reserveer', blur: false },
+            { name: 'ontvangen, bekeken door de ontvanger', wish: () => makeWish({ status: 'received', reservedBy: rob, viewer: 'ria' }), banner: 'Ontvangen', button: 'Geef feedback', blur: true },
+            { name: 'ontvangen, gegeven door jou', wish: () => makeWish({ status: 'received', reservedBy: rob, viewer: 'rob' }), banner: 'Gegeven door jou', button: null, blur: true },
+            { name: 'ontvangen, bekeken door een derde', wish: () => makeWish({ status: 'received', reservedBy: rob, viewer: 'iemand' }), banner: 'Ontvangen', button: null, blur: true },
+            { name: 'vervuld', wish: () => makeWish({ status: 'fulfilled', reservedBy: rob, viewer: 'ria' }), banner: 'Wens vervuld', button: null, blur: true },
+            { name: 'vervuld door jou', wish: () => makeWish({ status: 'fulfilled', reservedBy: rob, viewer: 'rob' }), banner: 'Wens vervuld door jou', button: null, blur: true }
         ];
 
-        gevallen.forEach(g => {
-            it(g.naam, async () => {
-                await toon(g.wens());
+        cases.forEach(g => {
+            it(g.name, async () => {
+                await show(g.wish());
                 expect(banner()).toBe(g.banner);
-                if (g.knop)
-                    expect(cta().textContent.trim()).toBe(g.knop);
+                if (g.button)
+                    expect(cta().textContent.trim()).toBe(g.button);
                 else
                     expect(cta()).toBeNull();
-                expect(geblurd()).toBe(g.blur);
+                expect(isBlurred()).toBe(g.blur);
             });
         });
     });
 
-    describe('acties in het menu', () => {
-        it('eigen wens: aanpassen en verwijderen, niet kopiëren', async () => {
-            await toon(maakWens({ status: 'open', viewer: 'ria' }));
-            expect(acties()).toEqual(['Aanpassen', 'Verwijderen']);
+    describe('actions in the menu', () => {
+        it('own wish: edit and delete, not copy', async () => {
+            await show(makeWish({ status: 'open', viewer: 'ria' }));
+            expect(actions()).toEqual(['Aanpassen', 'Verwijderen']);
         });
 
-        it('wens van een ander: enkel op eigen lijst zetten', async () => {
-            await toon(maakWens({ status: 'open', viewer: 'rob' }));
-            expect(acties()).toEqual(['Zet op eigen lijst']);
+        it('wish of someone else: only put on own list', async () => {
+            await show(makeWish({ status: 'open', viewer: 'rob' }));
+            expect(actions()).toEqual(['Zet op eigen lijst']);
         });
 
-        it('idee dat je voor een ander aanmaakte: aanpassen, kopiëren en verwijderen', async () => {
-            await toon(maakWens({ status: 'open', createdBy: carl, viewer: 'carl' }));
-            expect(acties()).toEqual(['Aanpassen', 'Zet op eigen lijst', 'Verwijderen']);
+        it('idea you created for someone else: edit, copy and delete', async () => {
+            await show(makeWish({ status: 'open', createdBy: carl, viewer: 'carl' }));
+            expect(actions()).toEqual(['Aanpassen', 'Zet op eigen lijst', 'Verwijderen']);
         });
 
-        it('met een url: "Externe website" bovenaan, met die url', async () => {
-            await toon(maakWens({ status: 'open', viewer: 'rob', url: 'www.winkel.be' }));
-            expect(acties()[0]).toBe('Externe website');
+        it('with a url: "Externe website" at the top, with that url', async () => {
+            await show(makeWish({ status: 'open', viewer: 'rob', url: 'www.winkel.be' }));
+            expect(actions()[0]).toBe('Externe website');
             expect(component.wishActionItems[0].url).toBe('http://www.winkel.be');
         });
 
-        it('"Toegevoegd door" enkel als iemand anders de wens aanmaakte', async () => {
-            await toon(maakWens({ status: 'open', createdBy: carl, viewer: 'rob' }));
+        it('"Toegevoegd door" only if someone else created the wish', async () => {
+            await show(makeWish({ status: 'open', createdBy: carl, viewer: 'rob' }));
             expect(fixture.nativeElement.textContent).toContain('Toegevoegd door Carl C.');
-            await toon(maakWens({ status: 'open', viewer: 'rob' }));
+            await show(makeWish({ status: 'open', viewer: 'rob' }));
             expect(fixture.nativeElement.textContent).not.toContain('Toegevoegd door');
         });
     });
 
     describe('popups', () => {
-        it('Reserveer opent de reservatiepopup met deze wens', async () => {
-            await toon(maakWens({ status: 'open', viewer: 'rob' }));
+        it('Reserveer opens the reservation popup with this wish', async () => {
+            await show(makeWish({ status: 'open', viewer: 'rob' }));
             cta().click();
             expect(modal.open).toHaveBeenCalledWith(WishReservation);
             expect(popup.componentInstance.wish).toBe(component.wish);
         });
 
-        it('Verwijder reservatie opent de popup om de reservatie te wijzigen', async () => {
-            await toon(maakWens({ status: 'reserved', reservedBy: rob, viewer: 'rob' }));
+        it('Verwijder reservatie opens the popup to change the reservation', async () => {
+            await show(makeWish({ status: 'reserved', reservedBy: rob, viewer: 'rob' }));
             cta().click();
             expect(modal.open).toHaveBeenCalledWith(ChangeWishReservation);
         });
 
-        it('verwijderen opent de bevestiging', async () => {
-            await toon(maakWens({ status: 'open', viewer: 'ria' }));
+        it('delete opens the confirmation', async () => {
+            await show(makeWish({ status: 'open', viewer: 'ria' }));
             component.delete();
             expect(modal.open).toHaveBeenCalledWith(WishDelete);
         });
 
-        it('aanpassen: popup in edit-modus, en na opslaan wordt de wens bijgewerkt', async () => {
+        it('edit: popup in edit mode, and after saving the wish is updated', async () => {
             vi.spyOn(console, 'info').mockReturnValue(undefined);
-            const wens = maakWens({ status: 'open', viewer: 'ria' });
-            const draft = toDraft(wens);
+            const wish = makeWish({ status: 'open', viewer: 'ria' });
+            const draft = toDraft(wish);
             popup.result = Promise.resolve(draft);
-            wishService.update.mockReturnValue(of(wens));
-            await toon(wens);
+            wishService.update.mockReturnValue(of(wish));
+            await show(wish);
             component.edit();
             await vi.advanceTimersByTimeAsync(0);
             expect(modal.open).toHaveBeenCalledWith(WishPopup);
             expect(popup.componentInstance.mode).toBe('edit');
-            expect(wishService.update).toHaveBeenCalledWith(wens, draft);
+            expect(wishService.update).toHaveBeenCalledWith(wish, draft);
         });
 
-        it('kopiëren: popup in copy-modus met deze wens, daarna aangemaakt op de lijst van de ingelogde gebruiker', async () => {
-            const origineel = maakWens({ status: 'open', viewer: 'rob' });
-            const draft = { ...toDraft(origineel), copyOf: 'w1' };
+        it('copy: popup in copy mode with this wish, then created on the list of the logged-in user', async () => {
+            const original = makeWish({ status: 'open', viewer: 'rob' });
+            const draft = { ...toDraft(original), copyOf: 'w1' };
             popup.result = Promise.resolve(draft);
-            wishService.create.mockReturnValue(of(maakWens({ status: 'open', viewer: 'rob' })));
-            await toon(origineel);
+            wishService.create.mockReturnValue(of(makeWish({ status: 'open', viewer: 'rob' })));
+            await show(original);
             component.copy();
             await vi.advanceTimersByTimeAsync(0);
             expect(popup.componentInstance.mode).toBe('copy');
-            expect(popup.componentInstance.wish).toBe(origineel);
+            expect(popup.componentInstance.wish).toBe(original);
             expect(wishService.create).toHaveBeenCalledWith(draft, 'rob');
             expect(notifications.showNotification).toHaveBeenCalledWith("De wens 'Boek' werd toegevoegd aan je lijst.", 'success', 'Wens gekopieerd');
         });
 
-        it('feedback: bevestigt het cadeau in één oproep; de server mailt de gever en zet de wens terug op de lijst', async () => {
-            const wens = maakWens({ status: 'received', reservedBy: rob, viewer: 'ria' });
+        it('feedback: confirms the gift in one call; the server mails the giver and puts the wish back on the list', async () => {
+            const wish = makeWish({ status: 'received', reservedBy: rob, viewer: 'ria' });
             const feedback = { satisfaction: 5, receivedOn: '2026-12-25', message: 'Merci!', putBackOnList: true };
             popup.result = Promise.resolve(feedback);
-            wishService.fulfill.mockReturnValue(of(wens));
-            await toon(wens);
+            wishService.fulfill.mockReturnValue(of(wish));
+            await show(wish);
             cta().click();
             await vi.advanceTimersByTimeAsync(0);
             expect(modal.open).toHaveBeenCalledWith(GiftFeedback);
-            expect(wishService.fulfill).toHaveBeenCalledWith(wens, feedback);
+            expect(wishService.fulfill).toHaveBeenCalledWith(wish, feedback);
         });
 
         it('feedback-popup weggeklikt: niets bevestigd', async () => {
-            const wens = maakWens({ status: 'received', reservedBy: rob, viewer: 'ria' });
+            const wish = makeWish({ status: 'received', reservedBy: rob, viewer: 'ria' });
             popup.result = Promise.reject('Cancel');
-            popup.result.catch((): void => undefined);   // geen unhandled rejection vóór de component luistert
-            await toon(wens);
+            popup.result.catch((): void => undefined);   // no unhandled rejection before the component listens
+            await show(wish);
             cta().click();
             await vi.advanceTimersByTimeAsync(0);
             expect(wishService.fulfill).not.toHaveBeenCalled();

@@ -6,50 +6,50 @@ import { ProblemNotifier } from '../../../../core/api/problem-notifier';
 import { People, PersonPreference, PersonProfile } from '../../service/people';
 import { ExtraInfo } from './extra-info';
 
-// Extra info over een persoon: wat je graag en liever niet krijgt. Leesmodus (sc-1989) en
-// bewerkmodus (sc-2375), enkel voor de persoon zelf (`viewer.can.update`).
+// Extra info about a person: what they like and would rather not get. Read mode (sc-1989) and
+// edit mode (sc-2375), only for the person themselves (`viewer.can.update`).
 describe('ExtraInfo', () => {
     let fixture: ComponentFixture<ExtraInfo>;
     let people: { updatePreferences: ReturnType<typeof vi.fn> };
     let problems: { show: ReturnType<typeof vi.fn> };
-    const boeken: PersonPreference = { text: 'Boeken', url: null };
-    const thee: PersonPreference = { text: 'Thee', url: 'https://thee.be' };
-    const sokken: PersonPreference = { text: 'Sokken', url: null };
+    const books: PersonPreference = { text: 'Boeken', url: null };
+    const tea: PersonPreference = { text: 'Thee', url: 'https://thee.be' };
+    const socks: PersonPreference = { text: 'Sokken', url: null };
 
-    async function toon(opties: { likes?: PersonPreference[]; dislikes?: PersonPreference[]; canEdit: boolean }) {
+    async function show(options: { likes?: PersonPreference[]; dislikes?: PersonPreference[]; canEdit: boolean }) {
         fixture = TestBed.createComponent(ExtraInfo);
         fixture.componentRef.setInput('personId', 'ria');
         fixture.componentRef.setInput('firstName', 'Ria');
-        fixture.componentRef.setInput('likes', opties.likes ?? []);
-        fixture.componentRef.setInput('dislikes', opties.dislikes ?? []);
-        fixture.componentRef.setInput('canEdit', opties.canEdit);
+        fixture.componentRef.setInput('likes', options.likes ?? []);
+        fixture.componentRef.setInput('dislikes', options.dislikes ?? []);
+        fixture.componentRef.setInput('canEdit', options.canEdit);
         await fixture.whenStable();
     }
 
     function el(): HTMLElement { return fixture.nativeElement; }
 
-    function potlood(): HTMLElement {
+    function pencil(): HTMLElement {
         // The hidden container of the pencil button.
         return el().querySelector<HTMLElement>('button[aria-label="Extra info aanpassen"]').parentElement;
     }
 
-    async function bewerk() {
+    async function startEdit() {
         el().querySelector<HTMLElement>('button[aria-label="Extra info aanpassen"]').click();
         await fixture.whenStable();
     }
 
-    function rijen(type: 'likes' | 'dislikes'): HTMLInputElement[][] {
+    function rows(type: 'likes' | 'dislikes'): HTMLInputElement[][] {
         const edit = el().querySelectorAll('gimmi-extra-info-edit')[type === 'likes' ? 0 : 1];
         return Array.from(edit.querySelectorAll('.row')).map(r => Array.from(r.querySelectorAll('input')) as HTMLInputElement[]);
     }
 
-    async function typ(input: HTMLInputElement, waarde: string) {
-        input.value = waarde;
+    async function typeInto(input: HTMLInputElement, value: string) {
+        input.value = value;
         input.dispatchEvent(new Event('input'));
         await fixture.whenStable();
     }
 
-    function bewaarKnop(): HTMLButtonElement { return el().querySelector('button[type="submit"]'); }
+    function saveButton(): HTMLButtonElement { return el().querySelector('button[type="submit"]'); }
 
     beforeEach(async () => {
         people = { updatePreferences: vi.fn().mockName('People.updatePreferences') };
@@ -64,8 +64,8 @@ describe('ExtraInfo', () => {
     });
 
     describe('leesmodus (sc-1989)', () => {
-        it('toont wat de persoon graag en liever niet krijgt, met een link waar er een url is', async () => {
-            await toon({ likes: [boeken, thee], dislikes: [sokken], canEdit: false });
+        it('shows what the person likes and would rather not get, with a link where there is a url', async () => {
+            await show({ likes: [books, tea], dislikes: [socks], canEdit: false });
             const views = el().querySelectorAll('gimmi-extra-info-view');
             expect(views[0].textContent).toContain('Waarmee kan je Ria een plezier doen?');
             expect(views[1].textContent).toContain('Wat krijgt Ria liever niet?');
@@ -75,114 +75,114 @@ describe('ExtraInfo', () => {
             expect(views[1].querySelector('li').textContent.trim()).toBe('Sokken');
         });
 
-        it('een lege lijst toont niets, ook geen kop', async () => {
-            await toon({ likes: [boeken], dislikes: [], canEdit: false });
+        it('an empty list shows nothing, not even a heading', async () => {
+            await show({ likes: [books], dislikes: [], canEdit: false });
             expect(el().querySelectorAll('gimmi-extra-info-view')[1].textContent.trim()).toBe('');
         });
 
-        it('een ander ziet geen potlood en geen uitnodiging om info toe te voegen', async () => {
-            await toon({ canEdit: false });
-            const verborgen = Array.from(el().querySelectorAll('div[hidden]')).map(d => d.textContent.trim());
-            expect(verborgen).toContain('Voeg extra info over jezelf toe...');
-            expect(potlood().hidden).toBe(true);
+        it('someone else sees no pencil and no invitation to add info', async () => {
+            await show({ canEdit: false });
+            const hiddenTexts = Array.from(el().querySelectorAll('div[hidden]')).map(d => d.textContent.trim());
+            expect(hiddenTexts).toContain('Voeg extra info over jezelf toe...');
+            expect(pencil().hidden).toBe(true);
         });
 
-        it('de persoon zelf zonder info: uitnodiging en potlood zichtbaar', async () => {
-            await toon({ canEdit: true });
+        it('the person themselves without info: invitation and pencil visible', async () => {
+            await show({ canEdit: true });
             const hint = Array.from(el().querySelectorAll('div')).find(d => d.textContent.trim() === 'Voeg extra info over jezelf toe...');
             expect(hint.hidden).toBe(false);
-            expect(potlood().hidden).toBe(false);
+            expect(pencil().hidden).toBe(false);
         });
 
-        it('de persoon zelf met info: geen uitnodiging meer', async () => {
-            await toon({ likes: [boeken], canEdit: true });
+        it('the person themselves with info: no invitation any more', async () => {
+            await show({ likes: [books], canEdit: true });
             const hint = Array.from(el().querySelectorAll('div')).find(d => d.textContent.trim() === 'Voeg extra info over jezelf toe...');
             expect(hint.hidden).toBe(true);
         });
     });
 
     describe('bewerkmodus (sc-2375)', () => {
-        it('het potlood opent een formulier met de bestaande items', async () => {
-            await toon({ likes: [boeken, thee], dislikes: [sokken], canEdit: true });
-            await bewerk();
-            expect(rijen('likes').map(r => r.map(i => i.value))).toEqual([['Boeken', ''], ['Thee', 'https://thee.be']]);
-            expect(rijen('dislikes').map(r => r.map(i => i.value))).toEqual([['Sokken', '']]);
+        it('the pencil opens a form with the existing items', async () => {
+            await show({ likes: [books, tea], dislikes: [socks], canEdit: true });
+            await startEdit();
+            expect(rows('likes').map(r => r.map(i => i.value))).toEqual([['Boeken', ''], ['Thee', 'https://thee.be']]);
+            expect(rows('dislikes').map(r => r.map(i => i.value))).toEqual([['Sokken', '']]);
             expect(el().textContent).toContain('Waarmee kan men je een plezier doen?');
             expect(el().textContent).toContain('Wat krijgt je liever niet?');
         });
 
-        it('een lege lijn is ongeldig: melding, geen nieuwe lijn en niet bewaren', async () => {
-            await toon({ likes: [boeken], canEdit: true });
-            await bewerk();
+        it('an empty line is invalid: notice, no new line and do not save', async () => {
+            await show({ likes: [books], canEdit: true });
+            await startEdit();
             const plus = el().querySelector('gimmi-extra-info-edit button[aria-label="Voeg een lijn toe"]') as HTMLButtonElement;
             plus.click();
             await fixture.whenStable();
-            expect(rijen('likes').length).toBe(2);
+            expect(rows('likes').length).toBe(2);
             expect(el().textContent).toContain('Beschrijving moet ingevuld worden (of verwijder lege lijn)');
             expect(plus.disabled).toBe(true);
-            expect(bewaarKnop().disabled).toBe(true);
+            expect(saveButton().disabled).toBe(true);
 
-            await typ(rijen('likes')[1][0], 'Puzzels');
+            await typeInto(rows('likes')[1][0], 'Puzzels');
             expect(plus.disabled).toBe(false);
-            expect(bewaarKnop().disabled).toBe(false);
+            expect(saveButton().disabled).toBe(false);
         });
 
-        it('een link zonder http(s):// is ongeldig', async () => {
-            await toon({ likes: [boeken], canEdit: true });
-            await bewerk();
-            await typ(rijen('likes')[0][1], 'thee.be');
-            expect(bewaarKnop().disabled).toBe(true);
+        it('a link without http(s):// is invalid', async () => {
+            await show({ likes: [books], canEdit: true });
+            await startEdit();
+            await typeInto(rows('likes')[0][1], 'thee.be');
+            expect(saveButton().disabled).toBe(true);
             expect(el().textContent).toContain('Geef een volledige link in');
-            await typ(rijen('likes')[0][1], 'https://thee.be');
-            expect(bewaarKnop().disabled).toBe(false);
+            await typeInto(rows('likes')[0][1], 'https://thee.be');
+            expect(saveButton().disabled).toBe(false);
         });
 
-        it('een lijn verwijderen met het vuilbakje', async () => {
-            await toon({ likes: [boeken, thee], canEdit: true });
-            await bewerk();
+        it('deleting a line with the bin', async () => {
+            await show({ likes: [books, tea], canEdit: true });
+            await startEdit();
             el().querySelector<HTMLElement>('gimmi-extra-info-edit .col-1 button').click();
             await fixture.whenStable();
-            expect(rijen('likes').map(r => r[0].value)).toEqual(['Thee']);
+            expect(rows('likes').map(r => r[0].value)).toEqual(['Thee']);
         });
 
-        it('bewaren stuurt beide lijsten (lege link als null) en geeft het profiel door', async () => {
-            const bijgewerkt = { id: 'ria' } as PersonProfile;
-            people.updatePreferences.mockReturnValue(of(bijgewerkt));
-            await toon({ likes: [boeken], dislikes: [sokken], canEdit: true });
-            const opgeslagen = vi.fn().mockName('saved');
-            fixture.componentInstance.saved.subscribe(opgeslagen);
-            await bewerk();
-            await typ(rijen('likes')[0][0], ' Puzzels ');
-            bewaarKnop().click();
+        it('saving sends both lists (empty link as null) and passes on the profile', async () => {
+            const updated = { id: 'ria' } as PersonProfile;
+            people.updatePreferences.mockReturnValue(of(updated));
+            await show({ likes: [books], dislikes: [socks], canEdit: true });
+            const saved = vi.fn().mockName('saved');
+            fixture.componentInstance.saved.subscribe(saved);
+            await startEdit();
+            await typeInto(rows('likes')[0][0], ' Puzzels ');
+            saveButton().click();
             await fixture.whenStable();
 
-            expect(people.updatePreferences).toHaveBeenCalledWith('ria', { likes: [{ text: 'Puzzels', url: null }], dislikes: [sokken] });
-            expect(opgeslagen).toHaveBeenCalledWith(bijgewerkt);
+            expect(people.updatePreferences).toHaveBeenCalledWith('ria', { likes: [{ text: 'Puzzels', url: null }], dislikes: [socks] });
+            expect(saved).toHaveBeenCalledWith(updated);
             expect(el().querySelector('gimmi-extra-info-edit')).toBeNull();
         });
 
-        it('een fout van de server wordt gemeld en laat het formulier open', async () => {
+        it('an error from the server is reported and leaves the form open', async () => {
             const problem = new ApiProblem({ status: 403, code: 'forbidden' as never });
             people.updatePreferences.mockReturnValue(throwError(() => problem));
-            await toon({ likes: [boeken], canEdit: true });
-            await bewerk();
-            bewaarKnop().click();
+            await show({ likes: [books], canEdit: true });
+            await startEdit();
+            saveButton().click();
             await fixture.whenStable();
             expect(problems.show).toHaveBeenCalledWith(problem);
             expect(el().querySelector('gimmi-extra-info-edit')).not.toBeNull();
         });
 
-        it('annuleren sluit het formulier zonder te bewaren; opnieuw openen begint van de bestaande items', async () => {
-            await toon({ likes: [boeken], canEdit: true });
-            await bewerk();
-            await typ(rijen('likes')[0][0], 'Iets anders');
+        it('cancelling closes the form without saving; reopening starts from the existing items', async () => {
+            await show({ likes: [books], canEdit: true });
+            await startEdit();
+            await typeInto(rows('likes')[0][0], 'Iets anders');
             el().querySelector<HTMLElement>('button[aria-label="Wijzigingen annuleren"]').click();
             await fixture.whenStable();
             expect(el().querySelector('gimmi-extra-info-edit')).toBeNull();
             expect(people.updatePreferences).not.toHaveBeenCalled();
 
-            await bewerk();
-            expect(rijen('likes').map(r => r[0].value)).toEqual(['Boeken']);
+            await startEdit();
+            expect(rows('likes').map(r => r[0].value)).toEqual(['Boeken']);
         });
     });
 });

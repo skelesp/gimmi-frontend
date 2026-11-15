@@ -24,7 +24,7 @@ export class Toast implements ToastConfig {
   }
 }
 
-// Vervangt ngx-toast-notifications (niet meer onderhouden, past niet op Angular 16+, sc-2913).
+// Replaces ngx-toast-notifications (no longer maintained, does not fit Angular 16+, sc-2913).
 @Service()
 export class Toaster {
   static readonly duration = 4000;

@@ -22,8 +22,8 @@ import { ImageView } from '../../../../images/components/image-view/image-view';
 import { WishCallToActionButton } from '../wish-call-to-action-button/wish-call-to-action-button';
 import { apiWish } from 'src/app/features/wishes/wish.testing';
 
-// Detailpagina van een wens op /wishes/:wishId (sc-1958): toont de geselecteerde wens uit de
-// WishesData, hergebruikt banner, knop en actielijst van de wenskaart, en volgt wijzigingen.
+// Detail page of a wish on /wishes/:wishId (sc-1958): shows the selected wish from
+// WishesData, reuses banner, button and action list of the wish card, and follows changes.
 describe('WishPage', () => {
     const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     const rob = { id: 'rob', firstName: 'Rob', lastName: 'Reservator' };
@@ -35,7 +35,7 @@ describe('WishPage', () => {
     let loading: WritableSignal<boolean>;
     let wishService: { selectedWish: Signal<Wish | null>; selectedLoading: Signal<boolean>; select: Mock };
 
-    function maakWens(opties: {
+    function makeWish(options: {
         status?: WishStatus;
         viewer: string;
         reservedBy?: PersonRef;
@@ -43,23 +43,23 @@ describe('WishPage', () => {
         extra?: Partial<Wish>;
     }): Wish {
         const w = apiWish({
-            id: 'w1', title: 'Fiets', price: { amount: 25000, currency: 'EUR' }, links: opties.url ? [{ url: opties.url }] : [],
-            receiver: ria, createdBy: carl, status: opties.status ?? 'open', createdAt: new Date(2026, 9, 3).toISOString(),
-            reservation: opties.reservedBy ? { reservedBy: opties.reservedBy, reservedAt: new Date().toISOString(), occasion: 'birthday' } : null,
-            ...opties.extra
+            id: 'w1', title: 'Fiets', price: { amount: 25000, currency: 'EUR' }, links: options.url ? [{ url: options.url }] : [],
+            receiver: ria, createdBy: carl, status: options.status ?? 'open', createdAt: new Date(2026, 9, 3).toISOString(),
+            reservation: options.reservedBy ? { reservedBy: options.reservedBy, reservedAt: new Date().toISOString(), occasion: 'birthday' } : null,
+            ...options.extra
         });
-        return viewWishAs(w, opties.viewer);
+        return viewWishAs(w, options.viewer);
     }
 
-    async function toon(wens: Wish) {
-        selectedWish.set(wens);
+    async function show(wish: Wish) {
+        selectedWish.set(wish);
         fixture = TestBed.createComponent(WishPage);
         component = fixture.componentInstance;
         await fixture.whenStable();
     }
 
-    /** Tekst van de zichtbare regels in de detaillijst. */
-    function regels(): string[] {
+    /** Text of the visible rows in the detail list. */
+    function lines(): string[] {
         return Array.from(fixture.nativeElement.querySelectorAll('li.list-group-item') as NodeListOf<HTMLElement>)
             .filter(li => !li.hidden)
             .map(li => li.textContent.replace(/\s+/g, ' ').trim());
@@ -87,69 +87,69 @@ describe('WishPage', () => {
 }).compileComponents();
     });
 
-    it('toont titel, ontvanger, prijs en een link terug naar de lijst', async () => {
-        await toon(maakWens({ viewer: 'rob' }));
+    it('shows title, recipient, price and a link back to the list', async () => {
+        await show(makeWish({ viewer: 'rob' }));
         const el: HTMLElement = fixture.nativeElement;
         expect(el.querySelector('h2').textContent).toBe('Fiets');
         expect(el.querySelector('h6').textContent).toContain('voor Ria Receiver');
         expect(el.querySelector('.text-bg-warning').textContent).toContain('250.00');
-        const terug = el.querySelector('a.text-bg-secondary');
-        expect(terug.textContent).toContain('Terug naar lijst');
-        expect(terug.getAttribute('href')).toBe('/people/ria');
+        const back = el.querySelector('a.text-bg-secondary');
+        expect(back.textContent).toContain('Terug naar lijst');
+        expect(back.getAttribute('href')).toBe('/people/ria');
     });
 
-    it('open wens bij een ander: datum, maker, nog niet gereserveerd; lege velden verborgen', async () => {
-        await toon(maakWens({ viewer: 'rob' }));
-        expect(regels()).toEqual(['Toegevoegd op: 03/10/26', 'Idee van: Carl Creator', 'Nog niet gereserveerd']);
+    it('open wish of someone else: date, creator, not reserved yet; empty fields hidden', async () => {
+        await show(makeWish({ viewer: 'rob' }));
+        expect(lines()).toEqual(['Toegevoegd op: 03/10/26', 'Idee van: Carl Creator', 'Nog niet gereserveerd']);
     });
 
-    it('kleur, maat, beschrijving en externe website verschijnen als ze ingevuld zijn', async () => {
-        await toon(maakWens({ viewer: 'rob', url: 'www.voorbeeld.be', extra: { color: 'rood', size: 'L', description: 'Met bel' } }));
-        expect(regels()).toEqual(expect.arrayContaining(['Externe website', 'rood', 'L', 'Met bel']));
+    it('colour, size, description and external website appear when they are filled in', async () => {
+        await show(makeWish({ viewer: 'rob', url: 'www.voorbeeld.be', extra: { color: 'rood', size: 'L', description: 'Met bel' } }));
+        expect(lines()).toEqual(expect.arrayContaining(['Externe website', 'rood', 'L', 'Met bel']));
         expect(fixture.nativeElement.querySelector('a[target="_blank"]').getAttribute('href')).toBe('http://www.voorbeeld.be');
     });
 
-    it('gereserveerd door een ander: wie reserveerde, zonder knop', async () => {
-        await toon(maakWens({ viewer: 'carl', status: 'reserved', reservedBy: rob }));
+    it('reserved by someone else: who reserved, without button', async () => {
+        await show(makeWish({ viewer: 'carl', status: 'reserved', reservedBy: rob }));
         expect(component.presentation().bannerConfig.text).toBe('Gereserveerd');
-        expect(regels()).toContain('Gereserveerd door: Rob Reservator');
-        expect(regels()).not.toContain('Nog niet gereserveerd');
+        expect(lines()).toContain('Gereserveerd door: Rob Reservator');
+        expect(lines()).not.toContain('Nog niet gereserveerd');
     });
 
-    it('gereserveerd, bekeken door de ontvanger: incognito, de reservatie blijft verborgen', async () => {
-        await toon(maakWens({ viewer: 'ria', status: 'reserved', reservedBy: rob }));
+    it('reserved, viewed by the recipient: incognito, the reservation stays hidden', async () => {
+        await show(makeWish({ viewer: 'ria', status: 'reserved', reservedBy: rob }));
         expect(component.presentation().bannerConfig.text).toBeNull();
-        expect(regels()).toContain('Nog niet gereserveerd');
-        expect(regels().join()).not.toContain('Rob');
+        expect(lines()).toContain('Nog niet gereserveerd');
+        expect(lines().join()).not.toContain('Rob');
     });
 
-    it('afgesloten wens: afsluitdatum', async () => {
-        await toon(maakWens({ viewer: 'rob', status: 'fulfilled', reservedBy: rob,
+    it('closed wish: closing date', async () => {
+        await show(makeWish({ viewer: 'rob', status: 'fulfilled', reservedBy: rob,
             extra: { fulfillment: { receivedOn: '2026-10-05', givenBy: null, satisfaction: 5, message: null, relistedWishId: null, fulfilledAt: new Date(2026, 9, 5).toISOString() } } }));
-        expect(regels()).toContain('Afgesloten op: 05 / 10 / 26');
+        expect(lines()).toContain('Afgesloten op: 05 / 10 / 26');
     });
 
-    it('geeft banner en knop van het scenario door, zoals op de wenskaart', async () => {
-        await toon(maakWens({ viewer: 'rob', status: 'reserved', reservedBy: rob }));
+    it('passes on banner and button of the scenario, as on the wish card', async () => {
+        await show(makeWish({ viewer: 'rob', status: 'reserved', reservedBy: rob }));
         const banner = fixture.debugElement.query(el => el.name === 'gimmi-wish-banner').nativeElement;
         const cta = fixture.debugElement.query(el => el.name === 'gimmi-wish-call-to-action-button').nativeElement;
         expect(banner.bannerConfig.text).toBe('Gereserveerd door jou');
         expect(cta.CTAconfig.text).toBe('Verwijder reservatie');
     });
 
-    it('actielijst voor de ontvanger: aanpassen en verwijderen, niet kopiëren', async () => {
-        await toon(maakWens({ viewer: 'ria' }));
+    it('action list for the recipient: edit and delete, not copy', async () => {
+        await show(makeWish({ viewer: 'ria' }));
         expect(component.wishActionItems.map(a => a.text)).toEqual(['Aanpassen', 'Verwijderen']);
         expect(fixture.debugElement.query(el => el.name === 'gimmi-action-list').nativeElement.actionListItems)
             .toBe(component.wishActionItems);
     });
 
-    it('vraagt de wens uit de route', async () => {
-        await toon(maakWens({ viewer: 'rob' }));
+    it('requests the wish from the route', async () => {
+        await show(makeWish({ viewer: 'rob' }));
         expect(wishService.select).toHaveBeenCalledWith('w1');
     });
 
-    it('terwijl de wens laadt: een spinner, geen wens', async () => {
+    it('while the wish loads: a spinner, no wish', async () => {
         loading.set(true);
         fixture = TestBed.createComponent(WishPage);
         await fixture.whenStable();
@@ -157,19 +157,19 @@ describe('WishPage', () => {
         expect(fixture.nativeElement.querySelector('h2')).toBeNull();
     });
 
-    it('een wens die niet bestaat: een melding', async () => {
+    it('a wish that does not exist: a notice', async () => {
         fixture = TestBed.createComponent(WishPage);
         await fixture.whenStable();
         expect(fixture.nativeElement.textContent).toContain('deze wens werd niet gevonden');
         expect(fixture.nativeElement.querySelector('.spinner-border')).toBeNull();
     });
 
-    it('volgt de geselecteerde wens: een wijziging (bv. een reservatie) is meteen zichtbaar', async () => {
-        await toon(maakWens({ viewer: 'rob' }));
-        const gewijzigd = maakWens({ viewer: 'rob', extra: { title: 'Fiets met mand' } });
-        selectedWish.set(gewijzigd);
+    it('follows the selected wish: a change (e.g. a reservation) is visible right away', async () => {
+        await show(makeWish({ viewer: 'rob' }));
+        const changed = makeWish({ viewer: 'rob', extra: { title: 'Fiets met mand' } });
+        selectedWish.set(changed);
         await fixture.whenStable();
-        expect(component.wish).toBe(gewijzigd);
+        expect(component.wish).toBe(changed);
         expect(fixture.nativeElement.querySelector('h2').textContent).toBe('Fiets met mand');
     });
 });
