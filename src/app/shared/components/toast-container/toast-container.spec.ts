@@ -22,7 +22,7 @@ describe('ToastContainer', () => {
         fixture = TestBed.createComponent(ToastContainer);
     });
 
-    it('toont een geopende toast en sluit hem met het kruisje', async () => {
+    it('shows an opened toast and closes it with the cross', async () => {
         toaster.open({ text: 'ok', caption: 'Gelukt!!', type: 'success' });
         await fixture.whenStable();
         expect(fixture.nativeElement.querySelectorAll('.custom-toast').length).toBe(1);
@@ -31,7 +31,7 @@ describe('ToastContainer', () => {
         expect(fixture.nativeElement.querySelectorAll('.custom-toast').length).toBe(0);
     });
 
-    it('sluit de toast vanzelf na vier seconden', async () => {
+    it('closes the toast by itself after four seconds', async () => {
         toaster.open({ text: 'ok', caption: 'Info', type: 'info' });
         expect(toaster.toasts().length).toBe(1);
         await vi.advanceTimersByTimeAsync(Toaster.duration);

@@ -2,66 +2,66 @@ import { test, expect } from '@playwright/test';
 import { clearWishes, newcomerEmail, smokeAccounts, smokePassword } from './helpers/api';
 import { Account, login, newUserPage, requestRegistration, submitLogin, wishCard } from './helpers/flows';
 
-// Smoketests voor de zes kernflows. De tests bouwen op elkaar (de wens die in
-// test 3 wordt aangemaakt, wordt in test 4 gereserveerd), dus ze draaien serieel
-// en delen de gebruikers hieronder. Eigenaar en gever zijn vaste accounts in de testdatabase (sc-3283, `npm run e2e:seed`);
-// test 1 doorloopt stap 1 van de registratie in de UI (het verzoek wordt niet echt verstuurd, zie `requestRegistration`).
-// Na afloop wist afterAll de wensen van beide accounts. Blijft er toch iets staan (run afgebroken): npm run e2e:cleanup.
+// Smoke tests for the six core flows. The tests build on each other (the wish created in
+// test 3 is reserved in test 4), so they run serially and share the users below.
+// Owner and giver are fixed accounts in the test database (sc-3283, `npm run e2e:seed`);
+// test 1 goes through step 1 of the registration in the UI (the request is not really sent, see `requestRegistration`).
+// Afterwards afterAll erases the wishes of both accounts. If something is left anyway (run aborted): npm run e2e:cleanup.
 
 const runId = Date.now().toString(36);
 const password = smokePassword;
 const owner: Account = { ...smokeAccounts.owner };
 const giver: Account = { ...smokeAccounts.giver };
-const wishTitle = `Smoke wens ${runId}`;
+const wishTitle = `Smoke wish ${runId}`;
 
 test.describe.configure({ mode: 'serial' });
 
-test.describe('kernflows', () => {
+test.describe('core flows', () => {
   test.beforeAll(async () => {
-    // Vaste accounts (sc-3283): begin met lege lijsten, ook na een afgebroken run.
+    // Fixed accounts (sc-3283): start with empty lists, also after an aborted run.
     await clearWishes(owner);
     await clearWishes(giver);
   });
 
   test.afterAll(async () => {
-    // Ook opruimen als een test halverwege faalde. Wie nooit geregistreerd werd (geen id), slaan we over.
-    const fouten: string[] = [];
+    // Also clean up if a test failed halfway. Whoever was never registered (no id) is skipped.
+    const errors: string[] = [];
     for (const account of [giver, owner]) {
       try {
         await clearWishes(account);
       } catch (err) {
-        fouten.push(`${account.email}: ${(err as Error).message}`);
+        errors.push(`${account.email}: ${(err as Error).message}`);
       }
     }
-    if (fouten.length) throw new Error(['Opruimen mislukt, draai npm run e2e:cleanup:', ...fouten].join('\n'));
+    if (errors.length) throw new Error(['Cleanup failed, run npm run e2e:cleanup:', ...errors].join('\n'));
   });
 
-  test('1. registreren: het adres opgeven en de bevestigingsmail afwachten', async ({ browser }) => {
+  test('1. register: enter the address and wait for the confirmation mail', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
     await requestRegistration(page, newcomerEmail);
     await context.close();
   });
 
-  test('2. inloggen', async ({ browser }) => {
+  test('2. log in', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
     await login(page, owner);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(`${owner.firstName} ${owner.lastName}`);
     await context.close();
   });
 
-  test('2b. inloggen na een fout wachtwoord', async ({ browser }) => {
-    // Een mislukte poging mag de terugkeer-URL niet op het loginscherm zetten; anders bleef je
-    // na de geslaagde tweede poging op /users/login staan.
+  test('2b. log in after a wrong password', async ({ browser }) => {
+    // A failed attempt must not set the return URL to the login screen; otherwise you stayed
+    // on /users/login after the successful second attempt.
     const { context, page } = await newUserPage(browser);
     await page.goto('/users/login');
-    await submitLogin(page, { ...owner, password: `${owner.password}-fout` });
+    await submitLogin(page, { ...owner, password: `${owner.password}-wrong` });
     await expect(page.getByText('De combinatie emailadres / wachtwoord is niet correct.')).toBeVisible();
     await submitLogin(page, owner);
     await expect(page).toHaveURL(`/people/${owner.id}`);
     await context.close();
   });
 
-  test('3. wens aanmaken', async ({ browser }) => {
+  test('3. create a wish', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
     await login(page, owner);
     await page.getByText('Voeg wens toe').click();
@@ -74,7 +74,7 @@ test.describe('kernflows', () => {
     await context.close();
   });
 
-  test('4. reserveren', async ({ browser }) => {
+  test('4. reserve', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
     await login(page, giver);
     await page.goto(`/people/${owner.id}`);
@@ -84,13 +84,13 @@ test.describe('kernflows', () => {
     await dialog.locator('#reservationReason').selectOption({ label: 'Verjaardag' });
     await dialog.getByRole('button', { name: 'Reserveer', exact: true }).click();
     await expect(dialog).toBeHidden();
-    // De overhandigingsdatum staat standaard op vandaag, dus de wens geldt meteen als ontvangen
-    // (en de eigenaar kan in test 5 feedback geven).
+    // The handover date defaults to today, so the wish counts as received right away
+    // (and the owner can give feedback in test 5).
     await expect(card).toContainText('Gegeven door jou');
     await context.close();
   });
 
-  test('5. feedback geven', async ({ browser }) => {
+  test('5. give feedback', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
     await login(page, owner);
     const card = wishCard(page, wishTitle);
@@ -106,7 +106,7 @@ test.describe('kernflows', () => {
     await context.close();
   });
 
-  test('6. wenslijst delen', async ({ browser }) => {
+  test('6. share the wish list', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
     await login(page, owner);
     await page.locator('gimmi-share fa-icon').click();

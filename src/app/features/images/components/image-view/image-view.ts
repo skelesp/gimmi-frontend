@@ -1,14 +1,14 @@
 import { Component, Input, OnChanges, ChangeDetectionStrategy, inject } from '@angular/core';
 import { WishImage } from 'src/app/features/wishes/wish';
-import { ImagesData, STANDAARD_AFBEELDING } from '../../images-data';
+import { ImagesData, DEFAULT_IMAGE } from '../../images-data';
 
 
 /**
- * Toont de afbeelding van een wens (sc-2911): een gewone <img> met srcset, zodat de browser
- * een passende breedte haalt (Cloudflare Image Transformations op het beelddomein van R2).
- * Het beeld houdt zijn eigen hoogte (het raster van wenskaarten verspringt
- * bewust); alleen tijdens het laden staat er een lichtgrijs vlak in 3:2 (was sc-2632). Laadt het beeld
- * niet, dan de standaardafbeelding.
+ * Shows the image of a wish (sc-2911): a plain <img> with srcset, so the browser
+ * fetches a suitable width (Cloudflare Image Transformations on the image domain of R2).
+ * The image keeps its own height (the grid of wish cards is deliberately
+ * staggered); only while loading is there a light grey block at 3:2 (was sc-2632). If the image
+ * does not load, the default image is shown.
  */
 @Component({
     selector: 'gimmi-image-view',
@@ -22,30 +22,30 @@ export class ImageView implements OnChanges {
 
   @Input() image : Partial<WishImage> | null = null;
   @Input() class  = "";
-  /** Hoe breed het beeld getoond wordt, voor de keuze uit de srcset. */
+  /** How wide the image is shown, for the choice from the srcset. */
   @Input() sizes  = "(max-width: 574px) 50vw, (max-width: 766px) 33vw, 25vw";
   /**
-   * Toon deze URL of data-URI in plaats van het opgeslagen beeld (sc-3028): net na het
-   * kiezen heeft de browser de nieuwe afbeelding al.
+   * Show this URL or data URI instead of the stored image (sc-3028): right after
+   * choosing, the browser already has the new image.
    */
   @Input() preview : string = null;
 
-  src: string = STANDAARD_AFBEELDING;
+  src: string = DEFAULT_IMAGE;
   srcset: string = null;
-  /** Pas true als het beeld getoond is; tot dan houdt `.laden` de plaats vrij. */
-  geladen = false;
+  /** Only true once the image is shown; until then `.loading` keeps the place free. */
+  loaded = false;
 
   ngOnChanges(): void {
     const src = this.imageService.src(this.image, 640);
-    if (src !== this.src) this.geladen = false;
+    if (src !== this.src) this.loaded = false;
     this.src = src;
     this.srcset = this.imageService.srcset(this.image);
   }
 
-  /** Beeld weg of transformatie geweigerd: liever de standaardafbeelding dan een fouticoon. */
-  nietGeladen(): void {
-    if (this.src === STANDAARD_AFBEELDING) return;
-    this.src = STANDAARD_AFBEELDING;
+  /** Image gone or transformation refused: better the default image than a broken-image icon. */
+  notLoaded(): void {
+    if (this.src === DEFAULT_IMAGE) return;
+    this.src = DEFAULT_IMAGE;
     this.srcset = null;
   }
 }

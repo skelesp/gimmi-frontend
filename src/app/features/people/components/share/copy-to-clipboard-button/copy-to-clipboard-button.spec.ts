@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Notifications } from 'src/app/core/notifications';
 import { CopyToClipboardButton } from './copy-to-clipboard-button';
 
-// Knop "Kopieer naar klembord" in de deelpopup.
+// "Kopieer naar klembord" button in the share popup.
 describe('CopyToClipboardButton', () => {
     let fixture: ComponentFixture<CopyToClipboardButton>;
     let notifications: Record<string, Mock>;
@@ -20,16 +20,16 @@ describe('CopyToClipboardButton', () => {
         await fixture.whenStable();
     });
 
-    it('toont de knop', () => {
+    it('shows the button', () => {
         expect(fixture.nativeElement.querySelector('button').textContent).toContain('Kopieer naar klembord');
     });
 
-    it('meldt een geslaagde kopie', () => {
+    it('reports a successful copy', () => {
         fixture.componentInstance.handleSuccess();
         expect(notifications.showNotification).toHaveBeenCalledWith(expect.stringContaining('gekopieerd'), 'success', 'Link gekopieerd');
     });
 
-    it('meldt een mislukte kopie', () => {
+    it('reports a failed copy', () => {
         fixture.componentInstance.handleError();
         expect(notifications.showNotification).toHaveBeenCalledWith(expect.stringContaining('niet gekopieerd'), 'error', 'Link niet gekopieerd');
     });

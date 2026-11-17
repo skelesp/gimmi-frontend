@@ -35,11 +35,11 @@ describe('WhatsappButton', () => {
     expect(component).toBeTruthy();
   });
 
-  it('desktop: link naar WhatsApp Web met het bericht', () => {
+  it('desktop: link to WhatsApp Web with the message', () => {
     expect(url()).toBe('https://web.whatsapp.com/send?text=hallo');
   });
 
-  it('gsm: link naar de WhatsApp-app met het bericht', () => {
+  it('phone: link to the WhatsApp app with the message', () => {
     device.isMobile.mockReturnValue(true);
     expect(url()).toBe('whatsapp://send?text=hallo');
   });

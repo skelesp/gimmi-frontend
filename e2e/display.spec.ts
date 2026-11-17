@@ -1,51 +1,51 @@
 import { test, expect, Browser, Page } from '@playwright/test';
 import { input, newUserPage } from './helpers/flows';
 
-// Weergave en de resetlink, zonder testaccounts (sc-2979):
-// layout op grote en kleine schermen (sc-2326), pointer op klikbare elementen (sc-2038),
-// cookiebeleid van iubenda (sc-2030), zoekveld vast in de navigatiebalk (sc-41) en
-// wachtwoord resetten met de link uit de mail (sc-2004).
+// Display and the reset link, without test accounts (sc-2979):
+// layout on large and small screens (sc-2326), pointer on clickable elements (sc-2038),
+// iubenda cookie policy (sc-2030), search field fixed in the navigation bar (sc-41) and
+// resetting the password with the link from the mail (sc-2004).
 
-async function pagina(browser: Browser, breedte: number, hoogte = 900): Promise<Page> {
+async function openPage(browser: Browser, width: number, height = 900): Promise<Page> {
   const { context, page } = await newUserPage(browser);
-  await page.setViewportSize({ width: breedte, height: hoogte });
-  test.info().annotations.push({ type: 'viewport', description: `${breedte}x${hoogte}` });
+  await page.setViewportSize({ width, height });
+  test.info().annotations.push({ type: 'viewport', description: `${width}x${height}` });
   page.on('close', () => context.close());
   return page;
 }
 
-/** Breedte van de inhoud tegenover de vensterbreedte, en of de pagina zijwaarts scrolt. */
-async function maten(page: Page) {
+/** Width of the content versus the window width, and whether the page scrolls sideways. */
+async function measure(page: Page) {
   return page.evaluate(() => ({
-    venster: window.innerWidth,
-    inhoud: document.querySelector('gimmi-root > .container-fluid').getBoundingClientRect().width,
-    zijwaarts: document.documentElement.scrollWidth > window.innerWidth
+    windowWidth: window.innerWidth,
+    content: document.querySelector('gimmi-root > .container-fluid').getBoundingClientRect().width,
+    sideways: document.documentElement.scrollWidth > window.innerWidth
   }));
 }
 
-test.describe('weergave', () => {
-  test('groot scherm: de inhoud gebruikt de volle breedte, banner voor grote schermen (sc-2326)', async ({ browser }) => {
-    const page = await pagina(browser, 1920, 1080);
+test.describe('display', () => {
+  test('large screen: the content uses the full width, banner for large screens (sc-2326)', async ({ browser }) => {
+    const page = await openPage(browser, 1920, 1080);
     await page.goto('/');
     await expect(page.locator('.jumbotron.d-md-block')).toBeVisible();
     await expect(page.locator('.jumbotron.d-md-none')).toBeHidden();
-    const m = await maten(page);
-    expect(m.inhoud).toBeGreaterThan(m.venster * 0.95);
-    expect(m.zijwaarts).toBe(false);
+    const m = await measure(page);
+    expect(m.content).toBeGreaterThan(m.windowWidth * 0.95);
+    expect(m.sideways).toBe(false);
     await page.close();
   });
 
-  test('klein scherm: banner voor kleine schermen, niets loopt zijwaarts uit beeld (sc-2326)', async ({ browser }) => {
-    const page = await pagina(browser, 375, 812);
+  test('small screen: banner for small screens, nothing runs off sideways (sc-2326)', async ({ browser }) => {
+    const page = await openPage(browser, 375, 812);
     await page.goto('/');
     await expect(page.locator('.jumbotron.d-md-none')).toBeVisible();
     await expect(page.locator('.jumbotron.d-md-block')).toBeHidden();
-    expect((await maten(page)).zijwaarts).toBe(false);
+    expect((await measure(page)).sideways).toBe(false);
     await page.close();
   });
 
-  test('klein scherm: zoekveld blijft in de balk, menu ingeklapt, zoekicoon weg (sc-41)', async ({ browser }) => {
-    const page = await pagina(browser, 375, 812);
+  test('small screen: search field stays in the bar, menu collapsed, search icon gone (sc-41)', async ({ browser }) => {
+    const page = await openPage(browser, 375, 812);
     await page.goto('/');
     await expect(input(page, 'Zoek wensenlijst van...')).toBeVisible();
     await expect(page.locator('gimmi-people-search .input-group-text')).toBeHidden();
@@ -56,16 +56,16 @@ test.describe('weergave', () => {
     await page.close();
   });
 
-  test('groot scherm: zoekveld met zoekicoon, geen menuknop (sc-41)', async ({ browser }) => {
-    const page = await pagina(browser, 1280);
+  test('large screen: search field with search icon, no menu button (sc-41)', async ({ browser }) => {
+    const page = await openPage(browser, 1280);
     await page.goto('/');
     await expect(page.locator('gimmi-people-search .input-group-text')).toBeVisible();
     await expect(page.locator('button.navbar-toggler')).toBeHidden();
     await page.close();
   });
 
-  test('pointer op klikbare elementen, niet op gewone tekst (sc-2038)', async ({ browser }) => {
-    const page = await pagina(browser, 375, 812);
+  test('pointer on clickable elements, not on plain text (sc-2038)', async ({ browser }) => {
+    const page = await openPage(browser, 375, 812);
     await page.goto('/');
     const cursor = (selector: string) => page.locator(selector).first().evaluate(e => getComputedStyle(e).cursor);
     expect(await cursor('button.navbar-toggler')).toBe('pointer');                 // (click)
@@ -75,19 +75,19 @@ test.describe('weergave', () => {
   });
 });
 
-test.describe('cookiebeleid (sc-2030)', () => {
-  test('de iubenda-cookiebanner wordt geladen met het cookiebeleid van Gimmi', async ({ browser }) => {
-    // Eigen context: newUserPage blokkeert iubenda net. Het script wordt hier wel opgevraagd,
-    // maar niet echt uitgevoerd: de test kijkt na dat het geladen wordt en hoe het ingesteld is.
+test.describe('cookie policy (sc-2030)', () => {
+  test('the iubenda cookie banner is loaded with the Gimmi cookie policy', async ({ browser }) => {
+    // Own context: newUserPage blocks iubenda. The script is requested here,
+    // but not really executed: the test checks that it is loaded and how it is configured.
     const context = await browser.newContext();
-    const gevraagd: string[] = [];
+    const requested: string[] = [];
     await context.route(/iubenda\.com/, route => {
-      gevraagd.push(route.request().url());
+      requested.push(route.request().url());
       return route.fulfill({ status: 200, contentType: 'text/javascript', body: '' });
     });
     const page = await context.newPage();
     await page.goto('/');
-    await expect.poll(() => gevraagd.some(u => u.endsWith('/cs/iubenda_cs.js'))).toBe(true);
+    await expect.poll(() => requested.some(u => u.endsWith('/cs/iubenda_cs.js'))).toBe(true);
     const config = await page.evaluate(() => (window as any)._iub.csConfiguration);
     expect(config).toMatchObject({
       lang: 'nl',
@@ -100,11 +100,11 @@ test.describe('cookiebeleid (sc-2030)', () => {
   });
 });
 
-test.describe('wachtwoord resetten met de link uit de mail (sc-2004)', () => {
-  test('ongeldige link: uitleg en een link om een nieuwe aan te vragen', async ({ browser }) => {
+test.describe('resetting the password with the link from the mail (sc-2004)', () => {
+  test('invalid link: explanation and a link to request a new one', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
-    // Echte API: een verzonnen token bestaat niet en geeft 404.
-    await page.goto(`/users/resetpassword/bestaat-niet-${Date.now().toString(36)}`);
+    // Real API: a made-up token does not exist and gives 404.
+    await page.goto(`/users/resetpassword/does-not-exist-${Date.now().toString(36)}`);
     await expect(page.locator('ngb-alert')).toContainText('Uw link is ofwel vervallen (= ouder dan 1u) of ongeldig.');
     await expect(page.locator('gimmi-reset-password form')).toHaveCount(0);
     await page.locator('ngb-alert gimmi-forgot-password-link a').click();
@@ -112,41 +112,41 @@ test.describe('wachtwoord resetten met de link uit de mail (sc-2004)', () => {
     await context.close();
   });
 
-  test('geldige link: nieuw wachtwoord kiezen en meteen ingelogd', async ({ browser }) => {
+  test('valid link: choose a new password and be logged in right away', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
-    // Het token uit de mail is alleen in de mail (of de database) te vinden. De API-antwoorden
-    // voor dat token worden daarom nagebootst; de echte resetflow zit in de backendtests.
+    // The token from the mail can only be found in the mail (or the database). The API responses
+    // for that token are therefore mocked; the real reset flow is in the backend tests.
     const token = 'e2e-token-' + Date.now().toString(36);
     const api = '/api/v2/';
-    let nieuwWachtwoord: string;
+    let newPassword: string;
     await context.route(new RegExp(api + 'password-resets/' + token + '$'), async route => {
       if (route.request().method() === 'GET') {
         return route.fulfill({ status: 200, contentType: 'application/json',
           body: JSON.stringify({ firstName: 'Smoke', expiresAt: new Date(Date.now() + 3600_000).toISOString() }) });
       }
-      nieuwWachtwoord = route.request().postDataJSON().password;
+      newPassword = route.request().postDataJSON().password;
       return route.fulfill({ status: 200, contentType: 'application/json',
         body: JSON.stringify({ token: 'e2e-session', tokenType: 'Bearer', expiresAt: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() }) });
     });
     await context.route(new RegExp(api + 'me$'), route => route.fulfill({ status: 200, contentType: 'application/json',
       body: JSON.stringify({ id: '5e2e00000000000000000009', email: 'smoke+reset@gimmi.be', firstName: 'Smoke', lastName: 'Reset', createdAt: '2026-01-01T00:00:00Z' }) }));
-    // De lijst van de nieuwe sessie hoeft niet echt te bestaan; het gaat om de doorverwijzing.
+    // The list of the new session need not really exist; what matters is the redirect.
     await context.route(new RegExp(api + 'people/5e2e00000000000000000009'),route => route.fulfill({ status: 404, body: '{}' }));
 
     await page.goto('/users/resetpassword/' + token);
     await expect(page.getByRole('heading', { name: 'Vervang je vergeten paswoord' })).toBeVisible();
-    const knop = page.getByRole('button', { name: 'Wijzig wachtwoord' });
+    const button = page.getByRole('button', { name: 'Wijzig wachtwoord' });
     await input(page, 'Wachtwoord').fill('Nieuw-geheim-1');
     await input(page, 'Geef wachtwoord nogmaals in').fill('Iets-anders-1');
     await input(page, 'Geef wachtwoord nogmaals in').blur();
-    await expect(knop).toBeDisabled();
+    await expect(button).toBeDisabled();
     await input(page, 'Geef wachtwoord nogmaals in').fill('Nieuw-geheim-1');
     await input(page, 'Geef wachtwoord nogmaals in').blur();
-    await knop.click();
+    await button.click();
 
     await expect(page.getByText('Wachtwoord aangepast')).toBeVisible();
     await expect(page).toHaveURL(/\/people\/5e2e00000000000000000009$/);
-    expect(nieuwWachtwoord).toBe('Nieuw-geheim-1');
+    expect(newPassword).toBe('Nieuw-geheim-1');
     await context.close();
   });
 });

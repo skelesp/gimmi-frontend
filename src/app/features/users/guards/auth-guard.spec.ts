@@ -10,7 +10,7 @@ import { authGuard } from './auth-guard';
 @Component({ template: '' })
 class DummyComponent { }
 
-// sc-2041: niet ingelogd -> naar login, en onthouden waar de gebruiker heen wilde.
+// sc-2041: not logged in -> to login, and remember where the user wanted to go.
 describe('authGuard', () => {
     let auth: ReturnType<typeof fakeAuthStore>;
 
@@ -34,7 +34,7 @@ describe('authGuard', () => {
         expect(auth.attemptedUrl).toBeNull();
     });
 
-    it('niet ingelogd: naar login en de gevraagde url onthouden', async () => {
+    it('not logged in: to login and remember the requested url', async () => {
         vi.spyOn(console, 'error').mockReturnValue(undefined);
         await RouterTestingHarness.create('/people/p9');
         expect(TestBed.inject(Router).url).toBe('/users/login');

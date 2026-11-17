@@ -8,7 +8,7 @@ import { WishesData } from '../../../wishes-data';
 import { ChangeWishReservation } from './change-wish-reservation';
 import { apiWish } from 'src/app/features/wishes/wish.testing';
 
-// Popup om je eigen reservatie weer te verwijderen.
+// Popup to remove your own reservation again.
 describe('ChangeWishReservation', () => {
     const ria = { id: 'ria', firstName: 'Ria', lastName: 'Receiver' };
     let fixture: ComponentFixture<ChangeWishReservation>;
@@ -36,18 +36,18 @@ describe('ChangeWishReservation', () => {
         await fixture.whenStable();
     });
 
-    it('toont de wens en de voornaam van de ontvanger', () => {
+    it('shows the wish and the first name of the recipient', () => {
         expect(el().querySelector('.modal-body p').textContent).toContain('Fiets van Ria');
     });
 
-    it('"Verwijder reservatie" verwijdert de reservatie, sluit de popup en meldt dat', () => {
+    it('"Verwijder reservatie" removes the reservation, closes the popup and reports that', () => {
         (el().querySelector('.btn-outline-danger') as HTMLButtonElement).click();
         expect(wishService.deleteReservation).toHaveBeenCalledWith(fixture.componentInstance.wish);
         expect(notifications.showNotification).toHaveBeenCalledWith('Je reservatie van Fiets voor Ria is verwijderd.', 'info', 'Reservatie geannuleerd');
         expect(activeModal.close).toHaveBeenCalled();
     });
 
-    it('"Behoud reservatie" sluit zonder te verwijderen', () => {
+    it('"Behoud reservatie" closes without removing', () => {
         (el().querySelector('.modal-footer .btn-danger') as HTMLButtonElement).click();
         expect(activeModal.dismiss).toHaveBeenCalledWith('Cancel');
         expect(wishService.deleteReservation).not.toHaveBeenCalled();

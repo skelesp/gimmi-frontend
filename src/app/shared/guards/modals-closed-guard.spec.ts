@@ -6,7 +6,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { modalsClosedGuard } from './modals-closed-guard';
 
-// Navigeren terwijl er een modal open staat sluit eerst de modal (sc-2693).
+// Navigating while a modal is open closes the modal first (sc-2693).
 describe('modalsClosedGuard', () => {
     let modal: Record<string, Mock>;
     const route = {} as ActivatedRouteSnapshot;
@@ -24,13 +24,13 @@ describe('modalsClosedGuard', () => {
         return TestBed.runInInjectionContext(() => modalsClosedGuard(route, state));
     }
 
-    it('zonder open modal: navigatie gaat door', () => {
+    it('without an open modal: navigation continues', () => {
         modal.hasOpenModals.mockReturnValue(false);
         expect(check()).toBe(true);
         expect(modal.dismissAll).not.toHaveBeenCalled();
     });
 
-    it('met een open modal: modal sluit en de navigatie wordt geannuleerd', () => {
+    it('with an open modal: the modal closes and the navigation is cancelled', () => {
         modal.hasOpenModals.mockReturnValue(true);
         vi.spyOn(console, 'info').mockReturnValue(undefined);
         expect(check()).toBe(false);

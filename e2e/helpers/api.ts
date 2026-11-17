@@ -1,23 +1,23 @@
-// Rechtstreekse aanroepen van API v2 voor de testdata van de smoketests. De tests zelf gaan via de UI.
+// Direct calls to API v2 for the test data of the smoke tests. The tests themselves go through the UI.
 
-// Gedeelde testomgeving; overschrijfbaar met E2E_API_URL (basis van v2, met /api/v2/).
+// Shared test environment; overridable with E2E_API_URL (base of v2, with /api/v2/).
 export const apiUrl = (process.env.E2E_API_URL || 'https://api-test.gimmi.be/api/v2/').replace(/\/?$/, '/');
 
 export const smokePassword = 'Smoke-test-1!';
 
-// Alleen accounts met dit adres en deze naam mogen door de scripts aangeraakt worden.
+// Only accounts with this address and name may be touched by the scripts.
 export const smokeEmail = /^smoke\+[a-z]+-[a-z0-9]+@gimmi\.be$/;
 
 export interface SmokeAccount { firstName: string; lastName: string; email: string; password: string; id: string; }
 
-// Vaste accounts (sc-3283): eenmalig in de testdatabase gezet met `npm run e2e:seed`. De specs loggen erin
-// en ruimen alleen de wensen op. Wachtwoord en id's staan in de repo en gelden alleen op test.
+// Fixed accounts (sc-3283): set up once in the test database with `npm run e2e:seed`. The specs log in with them
+// and only clean up the wishes. Password and ids are in the repo and only apply on test.
 export const smokeAccounts: Record<'owner' | 'giver', SmokeAccount> = {
   owner: { firstName: 'Smoke', lastName: 'Eigenaar', email: 'smoke+owner-vast@gimmi.be', password: smokePassword, id: '5e2e00000000000000000001' },
   giver: { firstName: 'Smoke', lastName: 'Gever', email: 'smoke+giver-vast@gimmi.be', password: smokePassword, id: '5e2e00000000000000000002' }
 };
 
-// Het account dat test 1 van kernflows in de UI registreert; het wordt voor en na de run verwijderd.
+// The account that test 1 of core-flows registers in the UI; it is removed before and after the run.
 export const newcomerEmail = 'smoke+newcomer-vast@gimmi.be';
 
 export async function call(method: string, path: string, token?: string, body?: unknown): Promise<any> {
@@ -35,7 +35,7 @@ export async function login(email: string, password: string): Promise<string> {
   return (await call('POST', 'auth/token', undefined, { email, password })).token;
 }
 
-/** Verwijdert alle wensen van het account (ook de reserveringen en ideeën van anderen erop). Geeft het aantal terug. */
+/** Removes all wishes of the account (including the reservations and ideas of others on them). Returns the count. */
 export async function clearWishes(account: SmokeAccount): Promise<number> {
   const token = await login(account.email, account.password);
   const ids: string[] = [];
@@ -50,7 +50,7 @@ export async function clearWishes(account: SmokeAccount): Promise<number> {
   return ids.length;
 }
 
-/** Verwijdert een wegwerpaccount (met zijn wensen) via `DELETE /me`; bestaat het niet, dan gebeurt er niets. */
+/** Removes a throwaway account (with its wishes) via `DELETE /me`; if it does not exist, nothing happens. */
 export async function removeAccount(email: string, password = smokePassword): Promise<void> {
   let token: string;
   try {

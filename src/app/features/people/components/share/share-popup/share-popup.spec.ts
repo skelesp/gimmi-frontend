@@ -7,7 +7,7 @@ import { AuthStore } from 'src/app/core/auth/auth-store';
 import { fakeAuthStore, testUser } from 'src/app/core/auth/auth-store.testing';
 import { SharePopup } from './share-popup';
 
-// Deelpopup met link, klembord, mail en whatsapp.
+// Share popup with link, clipboard, mail and whatsapp.
 describe('SharePopup', () => {
     let fixture: ComponentFixture<SharePopup>;
     let auth: ReturnType<typeof fakeAuthStore>;
@@ -30,16 +30,16 @@ describe('SharePopup', () => {
         await fixture.whenStable();
     });
 
-    it('toont de link en volgt de ingelogde gebruiker', () => {
+    it('shows the link and follows the logged-in user', () => {
         expect((fixture.nativeElement.querySelector('input') as HTMLInputElement).value).toBe('https://www.gimmi.be/people/ilse');
         expect(fixture.componentInstance.currentUser()).toBe(ilse);
     });
 
-    it('de boodschap bevat de link, url-gecodeerd', () => {
+    it('the message contains the link, url-encoded', () => {
         expect(fixture.componentInstance.generateMessage()).toBe(encodeURIComponent(`${fixture.componentInstance.message} https://www.gimmi.be/people/ilse`));
     });
 
-    it('sluiten via het kruisje', () => {
+    it('closing via the cross', () => {
         (fixture.nativeElement.querySelector('.btn-close') as HTMLButtonElement).click();
         expect(activeModal.dismiss).toHaveBeenCalledWith('Cross click');
     });

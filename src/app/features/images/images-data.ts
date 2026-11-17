@@ -3,16 +3,16 @@ import { Observable, of } from 'rxjs';
 import { WishImage } from 'src/app/features/wishes/wish';
 import { ApiClient } from 'src/app/core/api/api-client';
 
-/** Standaardafbeelding van een wens zonder eigen beeld; vroeger wish_images/default op Cloudinary. */
-export const STANDAARD_AFBEELDING = 'assets/standaard-wens.jpg';
+/** Default image of a wish without its own image; used to be wish_images/default on Cloudinary. */
+export const DEFAULT_IMAGE = 'assets/default-wish.jpg';
 
-/** Breedtes voor de srcset; de browser kiest er zelf één op basis van `sizes`. */
-export const BREEDTES = [160, 320, 480, 640, 960];
+/** Widths for the srcset; the browser picks one based on `sizes`. */
+export const WIDTHS = [160, 320, 480, 640, 960];
 
 /**
- * Afbeeldingen van wensen (sc-2911). Opslaan gebeurt in Cloudflare R2, via de backend
- * (sc-3052): de wens bewaart enkel de sleutel, de backend ruimt oude beelden zelf op.
- * Cloudinary is weg sinds sc-3070.
+ * Wish images (sc-2911). They are stored in Cloudflare R2, via the backend (sc-3052):
+ * the wish only keeps the key, and the backend cleans up old images itself.
+ * Cloudinary has been gone since sc-3070.
  */
 @Service()
 export class ImagesData {
@@ -20,42 +20,42 @@ export class ImagesData {
 
 
   /**
-   * Laadt een afbeelding op naar R2 (POST /images, sc-3290): een verkleinde foto als Blob
-   * (het Content-Type van de Blob gaat mee) of een http(s)-URL als string, die de backend zelf ophaalt.
-   * Geeft {key, url} terug.
+   * Uploads an image to R2 (POST /images, sc-3290): a resized photo as Blob
+   * (the Blob's Content-Type is sent along) or an http(s) URL as string, which the backend fetches itself.
+   * Returns {key, url}.
    */
   public uploadImage(image: Blob | string): Observable<WishImage> {
     if (!image) return of(null);
-    // Het contract typeert de ruwe bytes als string; HttpClient stuurt een Blob zoals hij is.
+    // The contract types the raw bytes as string; HttpClient sends a Blob as it is.
     const body = typeof image === 'string' ? { sourceUrl: image } : image as unknown as string;
     return this.api.post('/images', { body });
   }
 
-  /** Heeft de wens een eigen beeld? */
-  public heeftBeeld(image: Partial<WishImage> | null | undefined): boolean {
+  /** Does the wish have an image of its own? */
+  public hasImage(image: Partial<WishImage> | null | undefined): boolean {
     return !!(image?.key && image?.url);
   }
 
   /**
-   * Kan Image Transformations dit beeld als bron gebruiken? Een AVIF niet (415, sc-3231):
-   * dat tonen we als origineel, zonder andere breedtes.
+   * Can Image Transformations use this image as a source? An AVIF cannot (415, sc-3231):
+   * we show that as the original, without other widths.
    */
-  public transformeerbaar(image: Partial<WishImage> | null | undefined): boolean {
-    return this.heeftBeeld(image) && !/\.avif$/i.test(image.key);
+  public transformable(image: Partial<WishImage> | null | undefined): boolean {
+    return this.hasImage(image) && !/\.avif$/i.test(image.key);
   }
 
-  /** URL van het beeld in de gevraagde breedte, als webp/avif waar de browser dat kan. */
-  public src(image: Partial<WishImage> | null | undefined, breedte: number): string {
-    if (!this.heeftBeeld(image)) return STANDAARD_AFBEELDING;
-    if (!this.transformeerbaar(image)) return image.url;
-    // Cloudflare Image Transformations op het eigen beelddomein (img.gimmi.be / img-test.gimmi.be).
-    const basis = image.url.slice(0, image.url.length - image.key.length);
-    return `${basis}cdn-cgi/image/width=${breedte},fit=scale-down,format=auto/${image.key}`;
+  /** URL of the image at the requested width, as webp/avif where the browser supports it. */
+  public src(image: Partial<WishImage> | null | undefined, width: number): string {
+    if (!this.hasImage(image)) return DEFAULT_IMAGE;
+    if (!this.transformable(image)) return image.url;
+    // Cloudflare Image Transformations on our own image domain (img.gimmi.be / img-test.gimmi.be).
+    const base = image.url.slice(0, image.url.length - image.key.length);
+    return `${base}cdn-cgi/image/width=${width},fit=scale-down,format=auto/${image.key}`;
   }
 
-  /** srcset met alle BREEDTES, of null voor één vast bestand (standaardafbeelding of AVIF). */
+  /** srcset with all WIDTHS, or null for one fixed file (default image or AVIF). */
   public srcset(image: Partial<WishImage> | null | undefined): string {
-    if (!this.transformeerbaar(image)) return null;
-    return BREEDTES.map(b => `${this.src(image, b)} ${b}w`).join(', ');
+    if (!this.transformable(image)) return null;
+    return WIDTHS.map(w => `${this.src(image, w)} ${w}w`).join(', ');
   }
 }

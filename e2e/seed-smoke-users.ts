@@ -1,9 +1,9 @@
-// Zet de vaste smoke-accounts (Eigenaar en Gever, zie helpers/api.ts) eenmalig in de testdatabase (sc-3283).
-// Draait alleen op een database met "test" in de naam; bestaat een account al, dan wordt het opnieuw gezet.
+// Sets up the fixed smoke accounts (owner and giver, see helpers/api.ts) once in the test database (sc-3283).
+// Only runs on a database with "test" in its name; if an account already exists, it is set again.
 //
-//   E2E_DB_URI="<verbinding met testdatabase>" npm run e2e:seed      (E2E_DRY_RUN=1: alleen tonen)
+//   E2E_DB_URI="<connection to test database>" npm run e2e:seed      (E2E_DRY_RUN=1: only show)
 //
-// Het document heeft de vorm die de backend voor een gewone registratie schrijft, dus v1 en v2 loggen er allebei mee in.
+// The document has the shape the backend writes for a regular registration, so both v1 and v2 log in with it.
 import { MongoClient, ObjectId } from 'mongodb';
 import { smokeAccounts, smokeEmail } from './helpers/api.ts';
 
@@ -12,23 +12,25 @@ const passwordHash = '$2b$10$dQF8EvURtl6uTw8gH2rNdOCzBNAAHfhNTpXwlCoGkxQ7OI4brrf
 
 async function main(): Promise<void> {
   const uri = process.env.E2E_DB_URI;
-  if (!uri) throw new Error('E2E_DB_URI ontbreekt.');
+  if (!uri) throw new Error('E2E_DB_URI is missing.');
   const client = new MongoClient(uri);
   try {
     await client.connect();
     const db = client.db();
     if (!/test/i.test(db.databaseName) || /prod/i.test(db.databaseName)) {
-      throw new Error(`Database "${db.databaseName}" lijkt geen testdatabase: geen "test" in de naam, of "prod" erin.`);
+      throw new Error(`Database "${db.databaseName}" does not look like a test database: no "test" in the name, or "prod" in it.`);
     }
     console.log(`Database: ${db.databaseName}`);
     const now = new Date();
     for (const account of Object.values(smokeAccounts)) {
-      if (!smokeEmail.test(account.email)) throw new Error(`Geen smoke-adres: ${account.email}`);
+      if (!smokeEmail.test(account.email)) throw new Error(`Not a smoke address: ${account.email}`);
       const doc = {
         firstName: account.firstName,
         lastName: account.lastName,
         email: account.email,
         birthday: new Date(1990, 4, 17),
+        likes: [],
+        dislikes: [],
         accounts: { local: { password: passwordHash } },
         tokenVersion: 0,
         birthdayVisibility: 'day-month',
@@ -36,10 +38,10 @@ async function main(): Promise<void> {
         updatedAt: now
       };
       if (process.env.E2E_DRY_RUN) {
-        console.log(`Droog: zou zetten ${doc.firstName} ${doc.lastName} <${doc.email}> (${account.id})`);
+        console.log(`Dry run: would set ${doc.firstName} ${doc.lastName} <${doc.email}> (${account.id})`);
       } else {
         await db.collection('people').replaceOne({ _id: new ObjectId(account.id) }, doc, { upsert: true });
-        console.log(`Gezet: ${doc.firstName} ${doc.lastName} <${doc.email}> (${account.id})`);
+        console.log(`Set: ${doc.firstName} ${doc.lastName} <${doc.email}> (${account.id})`);
       }
     }
   } finally {
