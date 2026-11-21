@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { modalsClosedGuard } from './shared/guards/modals-closed-guard';
 
 export const routes: Routes = [
+  { path: 'privacy', loadComponent: () => import('./features/privacy/privacy').then(m => m.Privacy) },
   { path: 'people', loadChildren: () => import('./features/people/people.routes').then(m => m.routes) },
   { path: 'users', loadChildren: () => import('./features/users/users.routes').then(m => m.routes) },
   { path: 'wishes', loadChildren: () => import('./features/wishes/wishes.routes').then(m => m.routes) },
