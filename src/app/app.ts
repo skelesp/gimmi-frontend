@@ -1,10 +1,9 @@
 import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { NavigationError, Router, RouterOutlet } from '@angular/router';
+import { NavigationError, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { NavigationBar } from './shared/components/navigation-bar/navigation-bar';
 import { ToastContainer } from './shared/components/toast-container/toast-container';
 import { SocialButtons } from './shared/components/social-buttons/social-buttons';
-import { PrivacyPolicy } from './shared/components/privacy-policy/privacy-policy';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -12,7 +11,7 @@ import { environment } from 'src/environments/environment';
     templateUrl: './app.html',
     styleUrls: ['./app.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [NavigationBar, ToastContainer, RouterOutlet, SocialButtons, PrivacyPolicy]
+    imports: [NavigationBar, ToastContainer, RouterOutlet, SocialButtons, RouterLink]
 })
 export class App implements OnInit {
   private titleService = inject(Title);
