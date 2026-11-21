@@ -3,7 +3,7 @@ import { input, newUserPage } from './helpers/flows';
 
 // Display and the reset link, without test accounts (sc-2979):
 // layout on large and small screens (sc-2326), pointer on clickable elements (sc-2038),
-// iubenda cookie policy (sc-2030), search field fixed in the navigation bar (sc-41) and
+// privacy policy (sc-3541), search field fixed in the navigation bar (sc-41) and
 // resetting the password with the link from the mail (sc-2004).
 
 async function openPage(browser: Browser, width: number, height = 900): Promise<Page> {
@@ -75,78 +75,15 @@ test.describe('display', () => {
   });
 });
 
-test.describe('cookie policy (sc-2030)', () => {
-  test('the iubenda cookie banner is loaded with the Gimmi cookie policy', async ({ browser }) => {
-    // Own context: newUserPage blocks iubenda. The script is requested here,
-    // but not really executed: the test checks that it is loaded and how it is configured.
+test.describe('privacy policy (sc-3541)', () => {
+  test('the footer links to the own privacy policy, without third-party scripts', async ({ browser }) => {
     const context = await browser.newContext();
-    const requested: string[] = [];
-    await context.route(/iubenda\.com/, route => {
-      requested.push(route.request().url());
-      return route.fulfill({ status: 200, contentType: 'text/javascript', body: '' });
-    });
     const page = await context.newPage();
     await page.goto('/');
-    await expect.poll(() => requested.some(u => u.endsWith('/cs/iubenda_cs.js'))).toBe(true);
-    const config = await page.evaluate(() => (window as any)._iub.csConfiguration);
-    expect(config).toMatchObject({
-      lang: 'nl',
-      siteId: 929007,
-      cookiePolicyId: 8245579,
-      askConsentAtCookiePolicyUpdate: true,
-      banner: { acceptButtonDisplay: true, customizeButtonDisplay: true, listPurposes: true }
-    });
-    await context.close();
-  });
-});
-
-test.describe('resetting the password with the link from the mail (sc-2004)', () => {
-  test('invalid link: explanation and a link to request a new one', async ({ browser }) => {
-    const { context, page } = await newUserPage(browser);
-    // Real API: a made-up token does not exist and gives 404.
-    await page.goto(`/users/resetpassword/does-not-exist-${Date.now().toString(36)}`);
-    await expect(page.locator('ngb-alert')).toContainText('Uw link is ofwel vervallen (= ouder dan 1u) of ongeldig.');
-    await expect(page.locator('gimmi-reset-password form')).toHaveCount(0);
-    await page.locator('ngb-alert gimmi-forgot-password-link a').click();
-    await expect(page).toHaveURL(/\/users\/forgotpassword/);
-    await context.close();
-  });
-
-  test('valid link: choose a new password and be logged in right away', async ({ browser }) => {
-    const { context, page } = await newUserPage(browser);
-    // The token from the mail can only be found in the mail (or the database). The API responses
-    // for that token are therefore mocked; the real reset flow is in the backend tests.
-    const token = 'e2e-token-' + Date.now().toString(36);
-    const api = '/api/v2/';
-    let newPassword: string;
-    await context.route(new RegExp(api + 'password-resets/' + token + '$'), async route => {
-      if (route.request().method() === 'GET') {
-        return route.fulfill({ status: 200, contentType: 'application/json',
-          body: JSON.stringify({ firstName: 'Smoke', expiresAt: new Date(Date.now() + 3600_000).toISOString() }) });
-      }
-      newPassword = route.request().postDataJSON().password;
-      return route.fulfill({ status: 200, contentType: 'application/json',
-        body: JSON.stringify({ token: 'e2e-session', tokenType: 'Bearer', expiresAt: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() }) });
-    });
-    await context.route(new RegExp(api + 'me$'), route => route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ id: '5e2e00000000000000000009', email: 'smoke+reset@gimmi.be', firstName: 'Smoke', lastName: 'Reset', createdAt: '2026-01-01T00:00:00Z' }) }));
-    // The list of the new session need not really exist; what matters is the redirect.
-    await context.route(new RegExp(api + 'people/5e2e00000000000000000009'),route => route.fulfill({ status: 404, body: '{}' }));
-
-    await page.goto('/users/resetpassword/' + token);
-    await expect(page.getByRole('heading', { name: 'Vervang je vergeten paswoord' })).toBeVisible();
-    const button = page.getByRole('button', { name: 'Wijzig wachtwoord' });
-    await input(page, 'Wachtwoord').fill('Nieuw-geheim-1');
-    await input(page, 'Geef wachtwoord nogmaals in').fill('Iets-anders-1');
-    await input(page, 'Geef wachtwoord nogmaals in').blur();
-    await expect(button).toBeDisabled();
-    await input(page, 'Geef wachtwoord nogmaals in').fill('Nieuw-geheim-1');
-    await input(page, 'Geef wachtwoord nogmaals in').blur();
-    await button.click();
-
-    await expect(page.getByText('Wachtwoord aangepast')).toBeVisible();
-    await expect(page).toHaveURL(/\/people\/5e2e00000000000000000009$/);
-    expect(newPassword).toBe('Nieuw-geheim-1');
+    await page.getByRole('link', { name: 'Privacybeleid' }).click();
+    await expect(page).toHaveURL(/\/privacy$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Privacybeleid van Gimmi' })).toBeVisible();
+    expect(await page.locator('script[src*="iubenda"]').count()).toBe(0);
     await context.close();
   });
 });

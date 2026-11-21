@@ -1,0 +1,81 @@
+<article>
+  <h1>Privacybeleid van Gimmi</h1>
+  <p class="text-muted">Laatst bijgewerkt: {{ updated }}</p>
+
+  <p>
+    Gimmi (www.gimmi.be) is een wenslijstapp. Hieronder lees je welke gegevens we bewaren, waarom, bij wie ze
+    terechtkomen en wat je zelf kunt doen.
+  </p>
+
+  <h2>Wie is verantwoordelijk?</h2>
+  <p>
+    Stijn Beeckmans, Pilorijnstraat 26, 9000 Gent, <a [href]="'mailto:' + contact">{{ contact }}</a>.
+    Gimmi is een privéproject en geen bedrijf.
+  </p>
+
+  <h2>Welke gegevens bewaren we?</h2>
+  <ul>
+    <li><strong>Account:</strong> voornaam, achternaam, e-mailadres en wachtwoord. Het wachtwoord bewaren we niet leesbaar maar als hash.</li>
+    <li><strong>Profiel (optioneel):</strong> geboortedatum, wat je graag of niet graag hebt, en wie je profiel mag zien.</li>
+    <li><strong>Wenslijst:</strong> je wensen met titel, omschrijving, link, prijs en afbeelding, en wie wat reserveert of schenkt.</li>
+    <li><strong>Technische gegevens:</strong> je IP-adres en de gegevens van je verzoek (tijdstip, pagina, browser) komen kort in de serverlogs en in foutmeldingen terecht.</li>
+  </ul>
+  <p>We vragen geen gegevens die we niet nodig hebben, en we verkopen of delen niets voor reclame.</p>
+
+  <h2>Waarom en op welke grond?</h2>
+  <ul>
+    <li>Om je account en wenslijst te laten werken, wensen te laten reserveren en je mails te sturen (registratie, wachtwoord vergeten): uitvoering van de dienst die je gebruikt.</li>
+    <li>Om de dienst veilig en beschikbaar te houden en fouten op te sporen: ons gerechtvaardigd belang.</li>
+  </ul>
+
+  <h2>Cookies en tracking</h2>
+  <p>
+    Gimmi gebruikt <strong>geen cookies</strong> en geen analyse- of advertentietracking. Alleen je inlogtoken
+    staat in de lokale opslag van je browser (<em>localStorage</em>), zodat je ingelogd blijft. Dat is
+    strikt noodzakelijk en wordt verwijderd als je uitlogt. Daarom vragen we geen toestemming met een banner.
+  </p>
+  <p>
+    Gimmi laadt geen lettertypes, scripts of widgets van derden. Het Facebook-icoon onderaan is een gewone link:
+    pas als je erop klikt, kom je bij Facebook terecht, en dan geldt hun beleid.
+  </p>
+
+  <h2>Wie verwerkt gegevens voor ons?</h2>
+  <p>We gebruiken de volgende diensten. Zij verwerken gegevens enkel om hun dienst te leveren.</p>
+  <ul>
+    <li><strong>MongoDB Atlas</strong>: de database met accounts, profielen en wensen.</li>
+    <li><strong>Railway</strong>: draait de server (API).</li>
+    <li><strong>Cloudflare</strong>: levert de website, beheert het domein en de inkomende mail, en bewaart en toont afbeeldingen van wensen.</li>
+    <li><strong>Resend</strong>: verstuurt de mails van Gimmi (e-mailadres en inhoud van het bericht).</li>
+    <li><strong>Sentry</strong> (EU-regio): ontvangt foutmeldingen van de server, met technische gegevens over het verzoek.</li>
+    <li><strong>Better Stack</strong>: controleert of de dienst bereikbaar is; er gaan geen persoonsgegevens naartoe.</li>
+    <li><strong>Brave Search</strong>: als je bij een wens een afbeelding zoekt, gaat je zoekterm via onze server naar Brave, zonder je naam of e-mailadres.</li>
+  </ul>
+  <p>
+    Sommige van deze diensten zitten buiten de EU, vooral in de Verenigde Staten. Ze steunen dan op
+    standaardcontractbepalingen of het Europees-Amerikaanse Data Privacy Framework. De privacyverklaring van elke
+    dienst vind je op hun eigen website.
+  </p>
+
+  <h2>Wie ziet wat?</h2>
+  <p>
+    Wie ingelogd is, kan profielen en wenslijsten van anderen zien. Je e-mailadres zien anderen niet. Je geboortedatum
+    is enkel zichtbaar zoals je dat in je profiel instelde.
+  </p>
+
+  <h2>Hoe lang bewaren we gegevens?</h2>
+  <p>
+    Zolang je account bestaat. Verwijder je je account, dan verwijderen we je gegevens. Back-ups van de database worden
+    versleuteld bewaard en verlopen na een beperkte tijd. Serverlogs en foutmeldingen bewaren we kort.
+  </p>
+
+  <h2>Je rechten</h2>
+  <p>
+    Je kunt je gegevens inkijken, laten verbeteren, laten verwijderen, overdragen of de verwerking laten beperken, en
+    bezwaar maken. Stuur daarvoor een mail naar <a [href]="'mailto:' + contact">{{ contact }}</a>; we antwoorden binnen
+    een maand. Je kunt je ook wenden tot de Gegevensbeschermingsautoriteit
+    (<a href="https://www.gegevensbeschermingsautoriteit.be" target="_blank" rel="noopener">gegevensbeschermingsautoriteit.be</a>).
+  </p>
+
+  <h2>Wijzigingen</h2>
+  <p>Wijzigt er iets aan dit beleid, dan passen we deze pagina aan en zetten we bovenaan de datum.</p>
+</article>

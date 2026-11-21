@@ -160,9 +160,9 @@ test.describe('wish management and navigation', () => {
     const { context, page } = await newUserPage(browser);
     await page.goto('/');
     await expect(page).toHaveTitle(/Gimmi/);
-    await expect(page.locator('footer gimmi-privacy-policy a')).toHaveText('Privacy Policy');
+    await expect(page.locator('footer a[href="/privacy"]')).toHaveText('Privacybeleid');
     await page.goto('/users/login');
-    await expect(page.locator('footer gimmi-privacy-policy a')).toBeVisible();
+    await expect(page.locator('footer a[href="/privacy"]')).toBeVisible();
     await context.close();
   });
 

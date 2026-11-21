@@ -15,8 +15,6 @@ export function wishCard(page: Page, title: string) {
 
 export async function newUserPage(browser: Browser): Promise<{ context: BrowserContext; page: Page }> {
   const context = await browser.newContext();
-  // The iubenda cookie banner covers the page and intercepts clicks; it is not part of these flows.
-  await context.route(/iubenda\.com/, route => route.abort());
   return { context, page: await context.newPage() };
 }
 
