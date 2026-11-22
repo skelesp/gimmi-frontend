@@ -1,8 +1,9 @@
-import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStore } from 'src/app/core/auth/auth-store';
+import { PageTitle } from 'src/app/core/page-title';
 import { People, PersonProfile } from '../../service/people';
 
 import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
@@ -35,6 +36,16 @@ export class PersonDashboard {
     const profile = this.profile();
     return profile ? { id: profile.id, firstName: profile.firstName, lastName: profile.lastName } : null;
   }, { equal: (a, b) => a?.id === b?.id });
+
+  constructor() {
+    const pageTitle = inject(PageTitle);
+    effect(() => {
+      const profile = this.profile();
+      if (profile) {
+        pageTitle.set(this.personIsUser() ? 'Mijn wensenlijst' : `Wensenlijst van ${profile.firstName} ${profile.lastName}`);
+      }
+    });
+  }
 
   /** Shows the answer of saving the likes and dislikes, without reading the profile again. */
   updateProfile(profile: PersonProfile) {
