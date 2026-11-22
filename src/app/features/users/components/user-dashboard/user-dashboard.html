@@ -1,0 +1,66 @@
+<h1>Mijn gegevens</h1>
+
+@if (loading()) {
+  <div class="spinner-border text-danger" role="status">
+    <span class="visually-hidden">Laden...</span>
+  </div>
+} @else if (!profile()) {
+  <ngb-alert type="warning">We kunnen je gegevens nu niet laden. Probeer het straks opnieuw.</ngb-alert>
+} @else {
+  <section class="mb-5">
+    <h2>Gegevens</h2>
+    <p class="text-muted">Je e-mailadres: {{ user()?.email }}</p>
+    <form (submit)="saveDetails($event)" novalidate>
+      <div class="mb-3 required">
+        <label for="firstName" class="form-control-label">Voornaam</label>
+        <input type="text" class="form-control" id="firstName" [formField]="detailsForm.firstName" />
+        @if (detailsForm.firstName().touched() && detailsForm.firstName().invalid()) {
+          <small class="text-danger">{{ detailsForm.firstName().errors()[0].message }}</small>
+        }
+      </div>
+      <div class="mb-3 required">
+        <label for="lastName" class="form-control-label">Achternaam</label>
+        <input type="text" class="form-control" id="lastName" [formField]="detailsForm.lastName" />
+        @if (detailsForm.lastName().touched() && detailsForm.lastName().invalid()) {
+          <small class="text-danger">{{ detailsForm.lastName().errors()[0].message }}</small>
+        }
+      </div>
+      <div class="mb-3">
+        <label for="birthday" class="form-control-label">Verjaardag</label>
+        <input type="date" class="form-control" id="birthday" [formField]="detailsForm.birthday" />
+        @if (detailsForm.birthday().invalid()) {
+          <small class="text-danger">{{ detailsForm.birthday().errors()[0].message }}</small>
+        }
+      </div>
+      <div class="mb-3">
+        <label for="birthdayVisibility" class="form-control-label">Wat zien anderen van je verjaardag?</label>
+        <select class="form-select" id="birthdayVisibility" [formField]="detailsForm.birthdayVisibility">
+          @for (option of visibilityOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+      <button type="submit" class="btn btn-danger" [disabled]="detailsForm().invalid()">Bewaar</button>
+    </form>
+  </section>
+
+  <section class="mb-5">
+    <h2>Wachtwoord wijzigen</h2>
+    <form (submit)="savePassword($event)" novalidate>
+      <gimmi-password-field [field]="passwordForm.currentPassword" label="Huidig wachtwoord" placeholder="Huidig wachtwoord" />
+      <gimmi-password-field [field]="passwordForm.password" label="Nieuw wachtwoord" placeholder="Nieuw wachtwoord" />
+      @if (passwordError()) {
+        <div id="passwordError" class="form-text text-danger"><small>{{ passwordError() }}</small></div>
+      }
+      <gimmi-password-field [field]="passwordForm.passwordCheck" label="Nieuw wachtwoord nogmaals"
+        placeholder="Geef het nieuwe wachtwoord nogmaals in" />
+      <button type="submit" class="btn btn-danger mt-3" [disabled]="passwordForm().invalid()">Wijzig wachtwoord</button>
+    </form>
+  </section>
+
+  <section class="mb-5">
+    <h2>Overal uitloggen</h2>
+    <p>Log uit op al je toestellen, ook op dit toestel. Handig als je een toestel kwijt bent.</p>
+    <button type="button" class="btn btn-outline-danger" (click)="signOutEverywhere()">Log overal uit</button>
+  </section>
+}

@@ -73,6 +73,14 @@ export class AuthStore {
     location.reload();
   }
 
+  /** After the person changed their name: shows the new name right away, also after a reload. */
+  updateName(firstName: string, lastName: string): void {
+    const session = this.session();
+    if (session?.user) {
+      this.setSession({ ...session, user: { ...session.user, firstName, lastName, fullName: `${firstName} ${lastName}` } });
+    }
+  }
+
   /** Makes every token of the person stop working, on every device (not in the UI yet). */
   signOutEverywhere(): Observable<void> {
     return this.api.delete('/me/tokens').pipe(tap(() => this.logout('USER_EVENT')));
