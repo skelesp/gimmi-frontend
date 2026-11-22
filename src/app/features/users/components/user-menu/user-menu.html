@@ -6,6 +6,7 @@
     </button>
     <div ngbDropdownMenu class="dropdown-menu dropdown-menu-end">
         <a ngbDropdownItem [routerLink]="['/people', currentUser().id]">Mijn wensenlijst</a>
+        <a ngbDropdownItem [routerLink]="['/users', currentUser().id]">Mijn gegevens</a>
         <div class="dropdown-divider"></div>
         <gimmi-logout-button></gimmi-logout-button>
     </div>

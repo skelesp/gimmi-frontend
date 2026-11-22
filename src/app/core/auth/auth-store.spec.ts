@@ -84,6 +84,22 @@ describe('AuthStore', () => {
     });
   });
 
+  describe('updateName', () => {
+    it('shows the new name and keeps it in the stored session', () => {
+      stored();
+      create();
+      store.updateName('Ria', 'Ontvanger');
+      expect(store.user()?.fullName).toBe('Ria Ontvanger');
+      expect(JSON.parse(localStorage.getItem('currentUser')!).user.lastName).toBe('Ontvanger');
+    });
+
+    it('does nothing when nobody is logged in', () => {
+      create();
+      store.updateName('Ria', 'Ontvanger');
+      expect(store.user()).toBeNull();
+    });
+  });
+
   describe('login', () => {
     it('exchanges the credentials for a token, loads /me with it and keeps both', () => {
       create();
