@@ -2,6 +2,7 @@ import type { Mock } from 'vitest';
 import { provideRouter } from '@angular/router';
 import { NO_ERRORS_SCHEMA, Signal, WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -96,6 +97,11 @@ describe('WishPage', () => {
         const back = el.querySelector('a.text-bg-secondary');
         expect(back.textContent).toContain('Terug naar lijst');
         expect(back.getAttribute('href')).toBe('/people/ria');
+    });
+
+    it('sets the tab title to the title of the wish', async () => {
+        await show(makeWish({ viewer: 'rob' }));
+        expect(TestBed.inject(Title).getTitle()).toContain('| Fiets');
     });
 
     it('open wish of someone else: date, creator, not reserved yet; empty fields hidden', async () => {
