@@ -100,6 +100,47 @@ describe('AuthStore', () => {
     });
   });
 
+  describe('deleteAccount', () => {
+    it('logs in again for a fresh token, deletes the account, forgets the session and goes home', () => {
+      stored();
+      create();
+      const goHome = vi.spyOn(store as unknown as { goHome: () => void }, 'goHome').mockReturnValue(undefined);
+      let done = false;
+      store.deleteAccount('secret').subscribe(() => done = true);
+
+      const tokenRequest = http.expectOne(environment.apiV2Url + 'auth/token');
+      expect(tokenRequest.request.body).toEqual({ email: 'ria@gimmi.be', password: 'secret' });
+      tokenRequest.flush({ token: 'fresh', tokenType: 'Bearer', expiresAt: expiresIn(7 * day) });
+      http.expectOne(environment.apiV2Url + 'me').flush(account);
+      const deletion = http.expectOne(environment.apiV2Url + 'me');
+      expect(deletion.request.method).toBe('DELETE');
+      deletion.flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(done).toBe(true);
+      expect(store.user()).toBeNull();
+      expect(localStorage.getItem('currentUser')).toBeNull();
+      expect(notifications.showNotification).toHaveBeenCalledWith(expect.stringContaining('verwijderd'), 'info', 'Account verwijderd');
+      expect(goHome).toHaveBeenCalled();
+    });
+
+    it('a wrong password deletes nothing and keeps the session', () => {
+      stored();
+      create();
+      let error: unknown;
+      store.deleteAccount('wrong').subscribe({ error: e => error = e });
+      http.expectOne(environment.apiV2Url + 'auth/token').flush(
+        { title: 'Invalid credentials', status: 401, code: 'invalid-credentials' }, problemResponse);
+      expect((error as ApiProblem).code).toBe('invalid-credentials');
+    });
+
+    it('fails when nobody is logged in', () => {
+      create();
+      let error: unknown;
+      store.deleteAccount('secret').subscribe({ error: e => error = e });
+      expect(error).toBeInstanceOf(Error);
+    });
+  });
+
   describe('login', () => {
     it('exchanges the credentials for a token, loads /me with it and keeps both', () => {
       create();

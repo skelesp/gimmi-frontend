@@ -25,7 +25,6 @@ export const visibilityOptions: { value: Visibility; label: string }[] = [
 @Component({
     selector: 'gimmi-user-dashboard',
     templateUrl: './user-dashboard.html',
-    styleUrls: ['./user-dashboard.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgbAlert, FormField, PasswordField]
 })
@@ -104,6 +103,37 @@ export class UserDashboard {
           this.passwordError.set(problemMessage(error));
         } else {
           this.showError(error, 'Wachtwoord wijzigen lukt nu niet. Probeer het straks opnieuw.');
+        }
+      }
+    });
+  }
+
+  /** The confirmation of deleting the account is shown only after the first click. */
+  protected readonly confirmingDelete = signal(false);
+  protected readonly deletion = signal({ password: '' });
+  protected readonly deletionForm = form(this.deletion, path => {
+    required(path.password, { message: 'Geef je wachtwoord in om te bevestigen.' });
+  });
+  protected readonly deletionError = signal('');
+
+  protected cancelDelete(): void {
+    this.confirmingDelete.set(false);
+    this.deletionError.set('');
+    this.deletionForm().reset({ password: '' });
+  }
+
+  protected deleteAccount(event: Event): Promise<boolean> {
+    event.preventDefault();
+    return submit(this.deletionForm, async () => {
+      this.deletionError.set('');
+      try {
+        // On success the app starts again on the landing page.
+        await firstValueFrom(this.auth.deleteAccount(this.deletion().password));
+      } catch (error) {
+        if (error instanceof ApiProblem && error.code === 'invalid-credentials') {
+          this.deletionError.set('Dat wachtwoord klopt niet.');
+        } else {
+          this.showError(error, 'Je account verwijderen lukt nu niet. Probeer het straks opnieuw.');
         }
       }
     });

@@ -86,6 +86,27 @@ export class AuthStore {
     return this.api.delete('/me/tokens').pipe(tap(() => this.logout('USER_EVENT')));
   }
 
+  /**
+   * Deletes the account for good. The password is asked again: the logging in gives a fresh token, which the server
+   * wants for this (a token older than 10 minutes is refused with 403 `reauthentication-required`). A wrong password
+   * arrives as `ApiProblem` `invalid-credentials`.
+   */
+  deleteAccount(password: string): Observable<void> {
+    const user = this.user();
+    if (!user) {
+      return throwError(() => new Error('Nobody is logged in'));
+    }
+    return this.login(user.email, password).pipe(
+      switchMap(() => this.api.delete('/me')),
+      tap(() => {
+        this.clearSession();
+        this.notifications.showNotification('Je account en al je gegevens zijn verwijderd.', 'info', 'Account verwijderd');
+        this.goHome();
+      }),
+      map((): void => undefined)
+    );
+  }
+
   /** At startup: swaps a token older than a day for a fresh one. Another failure leaves the session as it is. */
   renewIfNeeded(): Observable<void> {
     const session = this.session();
@@ -128,6 +149,11 @@ export class AuthStore {
     console.info(`[AuthStore] User is redirected to ${redirectUrl}`);
     this.router.navigateByUrl(redirectUrl);
     this.attemptedUrl = null;
+  }
+
+  /** To the landing page with a clean start, so nothing of the deleted person stays in the app. */
+  private goHome(): void {
+    location.assign('/');
   }
 
   private setSession(session: Session): void {

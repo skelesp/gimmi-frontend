@@ -7,60 +7,87 @@
 } @else if (!profile()) {
   <ngb-alert type="warning">We kunnen je gegevens nu niet laden. Probeer het straks opnieuw.</ngb-alert>
 } @else {
-  <section class="mb-5">
-    <h2>Gegevens</h2>
-    <p class="text-muted">Je e-mailadres: {{ user()?.email }}</p>
-    <form (submit)="saveDetails($event)" novalidate>
-      <div class="mb-3 required">
-        <label for="firstName" class="form-control-label">Voornaam</label>
-        <input type="text" class="form-control" id="firstName" [formField]="detailsForm.firstName" />
-        @if (detailsForm.firstName().touched() && detailsForm.firstName().invalid()) {
-          <small class="text-danger">{{ detailsForm.firstName().errors()[0].message }}</small>
-        }
-      </div>
-      <div class="mb-3 required">
-        <label for="lastName" class="form-control-label">Achternaam</label>
-        <input type="text" class="form-control" id="lastName" [formField]="detailsForm.lastName" />
-        @if (detailsForm.lastName().touched() && detailsForm.lastName().invalid()) {
-          <small class="text-danger">{{ detailsForm.lastName().errors()[0].message }}</small>
-        }
-      </div>
-      <div class="mb-3">
-        <label for="birthday" class="form-control-label">Verjaardag</label>
-        <input type="date" class="form-control" id="birthday" [formField]="detailsForm.birthday" />
-        @if (detailsForm.birthday().invalid()) {
-          <small class="text-danger">{{ detailsForm.birthday().errors()[0].message }}</small>
-        }
-      </div>
-      <div class="mb-3">
-        <label for="birthdayVisibility" class="form-control-label">Wat zien anderen van je verjaardag?</label>
-        <select class="form-select" id="birthdayVisibility" [formField]="detailsForm.birthdayVisibility">
-          @for (option of visibilityOptions; track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
+  <div class="row g-4">
+    <section class="col-12 col-lg-4">
+      <h2>Gegevens</h2>
+      <p class="text-muted">Je e-mailadres: {{ user()?.email }}</p>
+      <form (submit)="saveDetails($event)" novalidate>
+        <div class="mb-3 required">
+          <label for="firstName" class="form-control-label">Voornaam</label>
+          <input type="text" class="form-control" id="firstName" [formField]="detailsForm.firstName" />
+          @if (detailsForm.firstName().touched() && detailsForm.firstName().invalid()) {
+            <small class="text-danger">{{ detailsForm.firstName().errors()[0].message }}</small>
           }
-        </select>
-      </div>
-      <button type="submit" class="btn btn-danger" [disabled]="detailsForm().invalid()">Bewaar</button>
-    </form>
-  </section>
+        </div>
+        <div class="mb-3 required">
+          <label for="lastName" class="form-control-label">Achternaam</label>
+          <input type="text" class="form-control" id="lastName" [formField]="detailsForm.lastName" />
+          @if (detailsForm.lastName().touched() && detailsForm.lastName().invalid()) {
+            <small class="text-danger">{{ detailsForm.lastName().errors()[0].message }}</small>
+          }
+        </div>
+        <div class="mb-3">
+          <label for="birthday" class="form-control-label">Verjaardag</label>
+          <input type="date" class="form-control" id="birthday" [formField]="detailsForm.birthday" />
+          @if (detailsForm.birthday().invalid()) {
+            <small class="text-danger">{{ detailsForm.birthday().errors()[0].message }}</small>
+          }
+        </div>
+        <div class="mb-3">
+          <label for="birthdayVisibility" class="form-control-label">Wat zien anderen van je verjaardag?</label>
+          <select class="form-select" id="birthdayVisibility" [formField]="detailsForm.birthdayVisibility">
+            @for (option of visibilityOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+        <button type="submit" class="btn btn-danger" [disabled]="detailsForm().invalid()">Bewaar</button>
+      </form>
+    </section>
 
-  <section class="mb-5">
-    <h2>Wachtwoord wijzigen</h2>
-    <form (submit)="savePassword($event)" novalidate>
-      <gimmi-password-field [field]="passwordForm.currentPassword" label="Huidig wachtwoord" placeholder="Huidig wachtwoord" />
-      <gimmi-password-field [field]="passwordForm.password" label="Nieuw wachtwoord" placeholder="Nieuw wachtwoord" />
-      @if (passwordError()) {
-        <div id="passwordError" class="form-text text-danger"><small>{{ passwordError() }}</small></div>
+    <section class="col-12 col-lg-4">
+      <h2>Wachtwoord wijzigen</h2>
+      <form (submit)="savePassword($event)" novalidate>
+        <gimmi-password-field [field]="passwordForm.currentPassword" label="Huidig wachtwoord" placeholder="Huidig wachtwoord" />
+        <gimmi-password-field [field]="passwordForm.password" label="Nieuw wachtwoord" placeholder="Nieuw wachtwoord" />
+        @if (passwordError()) {
+          <div id="passwordError" class="form-text text-danger"><small>{{ passwordError() }}</small></div>
+        }
+        <gimmi-password-field [field]="passwordForm.passwordCheck" label="Nieuw wachtwoord nogmaals"
+          placeholder="Geef het nieuwe wachtwoord nogmaals in" />
+        <button type="submit" class="btn btn-danger mt-3" [disabled]="passwordForm().invalid()">Wijzig wachtwoord</button>
+      </form>
+    </section>
+
+    <section class="col-12 col-lg-4">
+      <h2>Overal uitloggen</h2>
+      <p>Log uit op al je toestellen, ook op dit toestel. Handig als je een toestel kwijt bent.</p>
+      <button type="button" id="signOutEverywhere" class="btn btn-outline-danger" (click)="signOutEverywhere()">Log overal uit</button>
+
+      <hr class="my-4" />
+
+      <h2>Account verwijderen</h2>
+      @if (!confirmingDelete()) {
+        <p>Verwijder je account en al je gegevens voorgoed.</p>
+        <button type="button" id="startDelete" class="btn btn-outline-danger" (click)="confirmingDelete.set(true)">Verwijder mijn account</button>
+      } @else {
+        <ngb-alert type="danger" [dismissible]="false">
+          <p><strong>Dit kan niet ongedaan gemaakt worden.</strong> Dit verdwijnt:</p>
+          <ul>
+            <li>je wensenlijst met alle wensen, ook de reservaties van anderen erop;</li>
+            <li>de ideeën die je op lijsten van anderen zette;</li>
+            <li>je eigen reservaties op wensen van anderen worden geannuleerd.</li>
+          </ul>
+        </ngb-alert>
+        <form (submit)="deleteAccount($event)" novalidate>
+          <gimmi-password-field [field]="deletionForm.password" label="Bevestig met je wachtwoord" placeholder="Wachtwoord" />
+          @if (deletionError()) {
+            <div id="deletionError" class="form-text text-danger"><small>{{ deletionError() }}</small></div>
+          }
+          <button type="submit" class="btn btn-danger mt-3 me-2" [disabled]="deletionForm().invalid()">Ja, verwijder alles</button>
+          <button type="button" id="cancelDelete" class="btn btn-link mt-3" (click)="cancelDelete()">Annuleren</button>
+        </form>
       }
-      <gimmi-password-field [field]="passwordForm.passwordCheck" label="Nieuw wachtwoord nogmaals"
-        placeholder="Geef het nieuwe wachtwoord nogmaals in" />
-      <button type="submit" class="btn btn-danger mt-3" [disabled]="passwordForm().invalid()">Wijzig wachtwoord</button>
-    </form>
-  </section>
-
-  <section class="mb-5">
-    <h2>Overal uitloggen</h2>
-    <p>Log uit op al je toestellen, ook op dit toestel. Handig als je een toestel kwijt bent.</p>
-    <button type="button" class="btn btn-outline-danger" (click)="signOutEverywhere()">Log overal uit</button>
-  </section>
+    </section>
+  </div>
 }
