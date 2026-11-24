@@ -32,6 +32,8 @@ export class Login implements OnDestroy {
   });
 
   readonly authenticationError = signal(false);
+  /** Minutes to wait after too many attempts (429); stays on the form, unlike a toast (sc-3576). */
+  readonly rateLimitedMinutes = signal<number | null>(null);
   protected readonly loggedInUser = this.auth.user;
   // Only used to show where the person goes after logging in.
   readonly redirectUrl = this.auth.attemptedUrl ? environment.rootSiteUrl + this.auth.attemptedUrl : null;
@@ -40,6 +42,7 @@ export class Login implements OnDestroy {
     event.preventDefault();
     return submit(this.loginForm, async () => {
       const { email, password } = this.credentials();
+      this.rateLimitedMinutes.set(null);
       try {
         await firstValueFrom(this.auth.login(email, password));
       } catch (error) {
@@ -56,6 +59,9 @@ export class Login implements OnDestroy {
   private showError(error: unknown): void {
     if (error instanceof ApiProblem && error.code === 'invalid-credentials') {
       this.authenticationError.set(true);
+    } else if (error instanceof ApiProblem && error.code === 'rate-limited') {
+      this.authenticationError.set(false);
+      this.rateLimitedMinutes.set(Math.max(1, Math.ceil((error.retryAfter ?? 60) / 60)));
     } else if (error instanceof ApiProblem) {
       this.authenticationError.set(false);
       this.problems.show(error);
