@@ -96,8 +96,27 @@ describe('Login', () => {
         expect(auth.redirectAfterAuthentication).not.toHaveBeenCalled();
     });
 
-    it('another problem (too many attempts): a toast, not the credentials message', async () => {
-        const problem = new ApiProblem({ status: 429, code: 'rate-limited' });
+    it('too many attempts: a message on the form with the minutes to wait, gone at the next attempt (sc-3576)', async () => {
+        auth.login.mockReturnValue(throwError(() => new ApiProblem({ status: 429, code: 'rate-limited' }, 475)));
+        await create();
+        await fillIn('ria@gimmi.be', 'secret');
+        await submit();
+        expect(text()).toContain('Te veel aanmeldpogingen. Probeer het over 8 minuten opnieuw.');
+        expect(problems.show).not.toHaveBeenCalled();
+        expect(fixture.componentInstance.authenticationError()).toBe(false);
+
+        auth.login.mockReturnValue(throwError(() => new ApiProblem({ status: 429, code: 'rate-limited' }, 30)));
+        await submit();
+        expect(text()).toContain('Probeer het over 1 minuut opnieuw.');
+
+        auth.login.mockReturnValue(throwError(() => new ApiProblem({ status: 401, code: 'invalid-credentials' })));
+        await submit();
+        expect(text()).not.toContain('Te veel aanmeldpogingen');
+        expect(text()).toContain('De combinatie emailadres / wachtwoord is niet correct');
+    });
+
+    it('another problem: a toast, not the credentials message', async () => {
+        const problem = new ApiProblem({ status: 503, code: 'unavailable' });
         auth.login.mockReturnValue(throwError(() => problem));
         await create();
         await fillIn('ria@gimmi.be', 'secret');
