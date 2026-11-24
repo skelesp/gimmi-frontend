@@ -127,9 +127,63 @@ describe('UserDashboard', () => {
   it('logs out everywhere', async () => {
     auth.signOutEverywhere.mockReturnValue(of(undefined));
     await show();
-    el().querySelector<HTMLButtonElement>('button.btn-outline-danger')!.click();
+    el().querySelector<HTMLButtonElement>('#signOutEverywhere')!.click();
     await fixture.whenStable();
     expect(auth.signOutEverywhere).toHaveBeenCalled();
+  });
+
+  describe('deleting the account (sc-3565)', () => {
+    function click(selector: string) { el().querySelector<HTMLButtonElement>(selector)!.click(); }
+
+    async function confirmWith(password: string) {
+      await show();
+      click('#startDelete');
+      await fixture.whenStable();
+      const form = el().querySelectorAll('form')[2];
+      const input = form.querySelector<HTMLInputElement>('input')!;
+      input.value = password;
+      input.dispatchEvent(new Event('input'));
+      form.dispatchEvent(new Event('submit'));
+      await fixture.whenStable();
+    }
+
+    it('asks for confirmation first, and cancelling goes back', async () => {
+      await show();
+      expect(el().querySelectorAll('form').length).toBe(2);
+      click('#startDelete');
+      await fixture.whenStable();
+      expect(el().querySelectorAll('form').length).toBe(3);
+      expect(el().querySelector('ngb-alert')!.textContent).toContain('niet ongedaan');
+      click('#cancelDelete');
+      await fixture.whenStable();
+      expect(el().querySelectorAll('form').length).toBe(2);
+      expect(auth.deleteAccount).not.toHaveBeenCalled();
+    });
+
+    it('deletes the account with the password', async () => {
+      auth.deleteAccount.mockReturnValue(of(undefined));
+      await confirmWith('geheim-wachtwoord');
+      expect(auth.deleteAccount).toHaveBeenCalledWith('geheim-wachtwoord');
+    });
+
+    it('does not delete without a password', async () => {
+      await confirmWith('');
+      expect(auth.deleteAccount).not.toHaveBeenCalled();
+    });
+
+    it('a wrong password is said so, without a general error', async () => {
+      auth.deleteAccount.mockReturnValue(throwError(() => new ApiProblem({ status: 401, code: 'invalid-credentials', title: 'Invalid credentials' })));
+      await confirmWith('fout');
+      expect(el().querySelector('#deletionError')!.textContent).toContain('klopt niet');
+      expect(problems.show).not.toHaveBeenCalled();
+    });
+
+    it('another failure goes to the problem notifier', async () => {
+      const problem = new ApiProblem({ status: 500, title: 'Internal error' });
+      auth.deleteAccount.mockReturnValue(throwError(() => problem));
+      await confirmWith('geheim-wachtwoord');
+      expect(problems.show).toHaveBeenCalledWith(problem);
+    });
   });
 
   it('without a profile: a notice instead of the forms', async () => {

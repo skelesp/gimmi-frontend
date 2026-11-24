@@ -13,6 +13,7 @@ export function fakeAuthStore(user: CurrentUser | null = null) {
     attemptedUrl: null as string | null,
     login: vi.fn().mockName('AuthStore.login'),
     updateName: vi.fn().mockName('AuthStore.updateName'),
+    deleteAccount: vi.fn().mockName('AuthStore.deleteAccount'),
     signOutEverywhere: vi.fn().mockName('AuthStore.signOutEverywhere'),
     logout: vi.fn().mockName('AuthStore.logout'),
     showAuthenticationConfirmation: vi.fn().mockName('AuthStore.showAuthenticationConfirmation'),
