@@ -22,6 +22,8 @@ interface Session {
 // using the app is not logged out every week.
 const renewBelowMs = 6 * 24 * 60 * 60 * 1000;
 const storageKey = 'currentUser';
+// Set just before the reload after deleting the account, so the new page can say it went well.
+const accountDeletedKey = 'accountDeleted';
 
 /**
  * The login session: the (opaque) token of API v2 and the person it belongs to. The session is kept in
@@ -42,6 +44,10 @@ export class AuthStore {
 
   /** Where the person wanted to go before being sent to the login. */
   attemptedUrl: string | null = null;
+
+  constructor() {
+    this.showAccountDeletedNotice();
+  }
 
   /** Logs in and loads the person behind the token (`GET /me`). Errors arrive as `ApiProblem`. */
   login(email: string, password: string): Observable<CurrentUser> {
@@ -100,7 +106,11 @@ export class AuthStore {
       switchMap(() => this.api.delete('/me')),
       tap(() => {
         this.clearSession();
-        this.notifications.showNotification('Je account en al je gegevens zijn verwijderd.', 'info', 'Account verwijderd');
+        try {
+          sessionStorage.setItem(accountDeletedKey, '1');
+        } catch {
+          // No storage: the landing page opens without the notice.
+        }
         this.goHome();
       }),
       map((): void => undefined)
@@ -149,6 +159,19 @@ export class AuthStore {
     console.info(`[AuthStore] User is redirected to ${redirectUrl}`);
     this.router.navigateByUrl(redirectUrl);
     this.attemptedUrl = null;
+  }
+
+  /** After the reload that follows deleting the account: says that it went well, once. */
+  private showAccountDeletedNotice(): void {
+    try {
+      if (!sessionStorage.getItem(accountDeletedKey)) {
+        return;
+      }
+      sessionStorage.removeItem(accountDeletedKey);
+    } catch {
+      return;
+    }
+    this.notifications.showNotification('Je account en al je gegevens zijn verwijderd.', 'info', 'Account verwijderd');
   }
 
   /** To the landing page with a clean start, so nothing of the deleted person stays in the app. */
