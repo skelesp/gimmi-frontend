@@ -1,0 +1,14 @@
+/*
+ * Every field is a label, a control and the same space below it (the password field has that built in), so the
+ * fields line up across the cards. The buttons sit at the bottom of their card.
+ */
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.actions {
+  margin-top: auto;
+}
