@@ -52,6 +52,7 @@ describe('AuthStore', () => {
   afterEach(() => {
     http.verify();
     localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('accountDeleted');
   });
 
   describe('at startup', () => {
@@ -119,8 +120,20 @@ describe('AuthStore', () => {
       expect(done).toBe(true);
       expect(store.user()).toBeNull();
       expect(localStorage.getItem('currentUser')).toBeNull();
-      expect(notifications.showNotification).toHaveBeenCalledWith(expect.stringContaining('verwijderd'), 'info', 'Account verwijderd');
+      expect(sessionStorage.getItem('accountDeleted')).toBe('1');
       expect(goHome).toHaveBeenCalled();
+    });
+
+    it('after the reload: says once that the account is deleted', () => {
+      sessionStorage.setItem('accountDeleted', '1');
+      create();
+      expect(notifications.showNotification).toHaveBeenCalledWith('Je account en al je gegevens zijn verwijderd.', 'info', 'Account verwijderd');
+      expect(sessionStorage.getItem('accountDeleted')).toBeNull();
+    });
+
+    it('a normal start says nothing about a deleted account', () => {
+      create();
+      expect(notifications.showNotification).not.toHaveBeenCalled();
     });
 
     it('a wrong password deletes nothing and keeps the session', () => {
