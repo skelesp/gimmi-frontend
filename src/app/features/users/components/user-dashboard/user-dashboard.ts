@@ -25,6 +25,7 @@ export const visibilityOptions: { value: Visibility; label: string }[] = [
 @Component({
     selector: 'gimmi-user-dashboard',
     templateUrl: './user-dashboard.html',
+    styleUrl: './user-dashboard.css',
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgbAlert, FormField, PasswordField]
 })
