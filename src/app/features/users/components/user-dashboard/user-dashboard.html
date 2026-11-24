@@ -1,0 +1,125 @@
+<header class="mb-4">
+  <h1 class="mb-1">Mijn gegevens</h1>
+  @if (user(); as account) {
+    <p class="text-muted mb-0">Ingelogd als {{ account.email }}</p>
+  }
+</header>
+
+@if (loading()) {
+  <div class="spinner-border text-danger" role="status">
+    <span class="visually-hidden">Laden...</span>
+  </div>
+} @else if (!profile()) {
+  <ngb-alert type="warning">We kunnen je gegevens nu niet laden. Probeer het straks opnieuw.</ngb-alert>
+} @else {
+  <div class="row g-4">
+    <div class="col-12 col-lg-4">
+      <section class="card h-100">
+        <div class="card-body d-flex flex-column">
+          <h2 class="h5 card-title mb-3">Gegevens</h2>
+          <form class="d-flex flex-column flex-grow-1" (submit)="saveDetails($event)" novalidate>
+            <div class="fields">
+              <div>
+                <label for="firstName">Voornaam</label>
+                <input type="text" class="form-control mb-2" id="firstName" [formField]="detailsForm.firstName" />
+                @if (detailsForm.firstName().touched() && detailsForm.firstName().invalid()) {
+                  <small class="text-danger">{{ detailsForm.firstName().errors()[0].message }}</small>
+                }
+              </div>
+              <div>
+                <label for="lastName">Achternaam</label>
+                <input type="text" class="form-control mb-2" id="lastName" [formField]="detailsForm.lastName" />
+                @if (detailsForm.lastName().touched() && detailsForm.lastName().invalid()) {
+                  <small class="text-danger">{{ detailsForm.lastName().errors()[0].message }}</small>
+                }
+              </div>
+              <div>
+                <label for="birthday">Verjaardag</label>
+                <input type="date" class="form-control mb-2" id="birthday" [formField]="detailsForm.birthday" />
+                @if (detailsForm.birthday().invalid()) {
+                  <small class="text-danger">{{ detailsForm.birthday().errors()[0].message }}</small>
+                }
+              </div>
+              <div>
+                <label for="birthdayVisibility">Wat zien anderen van je verjaardag?</label>
+                <select class="form-select mb-2" id="birthdayVisibility" [formField]="detailsForm.birthdayVisibility">
+                  @for (option of visibilityOptions; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn btn-danger" [disabled]="detailsForm().invalid()">Bewaar</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <section class="card h-100">
+        <div class="card-body d-flex flex-column">
+          <h2 class="h5 card-title mb-3">Wachtwoord wijzigen</h2>
+          <form class="d-flex flex-column flex-grow-1" (submit)="savePassword($event)" novalidate>
+            <div class="fields">
+              <gimmi-password-field [field]="passwordForm.currentPassword" label="Huidig wachtwoord" placeholder="Huidig wachtwoord" />
+              <gimmi-password-field [field]="passwordForm.password" label="Nieuw wachtwoord" placeholder="Nieuw wachtwoord" />
+              <gimmi-password-field [field]="passwordForm.passwordCheck" label="Nieuw wachtwoord nogmaals"
+                placeholder="Nieuw wachtwoord nogmaals" />
+              @if (passwordError()) {
+                <div id="passwordError" class="form-text text-danger mt-0"><small>{{ passwordError() }}</small></div>
+              }
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn btn-danger" [disabled]="passwordForm().invalid()">Wijzig wachtwoord</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-lg-4 d-flex flex-column gap-4">
+      <section class="card">
+        <div class="card-body">
+          <h2 class="h5 card-title mb-3">Overal uitloggen</h2>
+          <p>Log uit op al je toestellen, ook op dit toestel. Handig als je een toestel kwijt bent.</p>
+          <button type="button" id="signOutEverywhere" class="btn btn-outline-danger" (click)="signOutEverywhere()">Log overal uit</button>
+        </div>
+      </section>
+
+      <section class="card border-danger flex-grow-1">
+        <div class="card-body d-flex flex-column">
+          <h2 class="h5 card-title text-danger mb-3">Account verwijderen</h2>
+          @if (!confirmingDelete()) {
+            <p>Verwijder je account en al je gegevens voorgoed.</p>
+            <div class="actions">
+              <button type="button" id="startDelete" class="btn btn-outline-danger" (click)="confirmingDelete.set(true)">Verwijder mijn account</button>
+            </div>
+          } @else {
+            <ngb-alert type="danger" [dismissible]="false" class="small">
+              <p class="mb-1"><strong>Dit kan niet ongedaan gemaakt worden.</strong> Dit verdwijnt:</p>
+              <ul class="mb-0 ps-3">
+                <li>je wensenlijst met alle wensen, ook de reservaties van anderen erop;</li>
+                <li>de ideeën die je op lijsten van anderen zette;</li>
+                <li>je eigen reservaties op wensen van anderen worden geannuleerd.</li>
+              </ul>
+            </ngb-alert>
+            <form class="d-flex flex-column flex-grow-1" (submit)="deleteAccount($event)" novalidate>
+              <div class="fields">
+                <gimmi-password-field [field]="deletionForm.password" label="Bevestig met je wachtwoord" placeholder="Wachtwoord" />
+                @if (deletionError()) {
+                  <div id="deletionError" class="form-text text-danger mt-0"><small>{{ deletionError() }}</small></div>
+                }
+              </div>
+              <div class="actions d-flex gap-2">
+                <button type="submit" class="btn btn-danger" [disabled]="deletionForm().invalid()">Ja, verwijder alles</button>
+                <button type="button" id="cancelDelete" class="btn btn-outline-secondary" (click)="cancelDelete()">Annuleren</button>
+              </div>
+            </form>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+}

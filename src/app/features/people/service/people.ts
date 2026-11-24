@@ -35,6 +35,11 @@ export class People {
     return this.api.patch('/people/{personId}', { path: { personId }, body: preferences });
   }
 
+  /** Changes name, birthday or who sees the birthday (only the own profile); only the fields that are given change. */
+  updateDetails(personId: string, details: Schema<'PersonUpdate'>): Observable<PersonProfile> {
+    return this.api.patch('/people/{personId}', { path: { personId }, body: details });
+  }
+
   /** Asks the server to mail an invitation. Always accepted; the text is fixed by the server. */
   invite(email: string): Observable<void> {
     return this.api.post('/invitations', { body: { email } });

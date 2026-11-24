@@ -5,6 +5,6 @@ import { Invite } from './components/invite/invite';
 import { PersonDashboard } from './components/person-dashboard/person-dashboard';
 
 export const routes: Routes = [
-  { path: 'invite', component: Invite, canActivate: [authGuard, modalsClosedGuard] },
-  { path: ':personId', component: PersonDashboard, canActivate: [authGuard, modalsClosedGuard] }
+  { path: 'invite', title: 'Iemand uitnodigen', component: Invite, canActivate: [authGuard, modalsClosedGuard] },
+  { path: ':personId', title: 'Wensenlijst', component: PersonDashboard, canActivate: [authGuard, modalsClosedGuard] }
 ];

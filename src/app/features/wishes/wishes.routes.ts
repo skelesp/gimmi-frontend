@@ -4,5 +4,5 @@ import { authGuard } from '../users/guards/auth-guard';
 import { WishPage } from './components/wish-item/wish-page/wish-page';
 
 export const routes: Routes = [
-  { path: ':wishId', component: WishPage, canActivate: [authGuard, modalsClosedGuard] }
+  { path: ':wishId', title: 'Wens', component: WishPage, canActivate: [authGuard, modalsClosedGuard] }
 ];

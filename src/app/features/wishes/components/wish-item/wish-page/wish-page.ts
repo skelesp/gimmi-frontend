@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faCalendarPlus, faCheck, faComment, faExpand, faExternalLinkAlt, faGift, faListAlt, faPaintBrush, faUser } from '@fortawesome/free-solid-svg-icons';
 
+import { PageTitle } from 'src/app/core/page-title';
 import { WishItem } from '../wish-item';
 import { CursorPointer } from '../../../../../shared/directives/cursor-pointer';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -27,6 +28,7 @@ import { wishUrl } from '../../../wish';
 export class WishPage extends WishItem {
   protected route = inject(ActivatedRoute);
   private changeDetector = inject(ChangeDetectorRef);
+  private pageTitle = inject(PageTitle);
 
   wishID: string;
   get url(): string | null { return wishUrl(this.wish); }
@@ -50,6 +52,9 @@ export class WishPage extends WishItem {
     effect(() => {
       this.wish = this.wishService.selectedWish();
       this.defineWishActions();
+      if (this.wish) {
+        this.pageTitle.set(this.wish.title);
+      }
       this.changeDetector.markForCheck();
     });
   }

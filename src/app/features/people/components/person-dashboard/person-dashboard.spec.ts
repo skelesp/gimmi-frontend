@@ -1,6 +1,7 @@
 import { convertToParamMap, provideRouter } from '@angular/router';
 import { DebugElement, NO_ERRORS_SCHEMA, WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -94,6 +95,13 @@ describe('PersonDashboard', () => {
         expect((el().querySelector('a.badge') as HTMLElement).hidden).toBe(true);
         expect(fixture.componentInstance.personIsUser()).toBe(true);
         expect(kind('gimmi-extra-info').nativeElement.canEdit).toBe(true);
+    });
+
+    it('sets the tab title: the name of the person, or "Mijn wensenlijst" on the own list', async () => {
+        await show(ria(), ilse);
+        expect(TestBed.inject(Title).getTitle()).toContain('Wensenlijst van Ria Receiver');
+        await show(ria(true), ilse);
+        expect(TestBed.inject(Title).getTitle()).toContain('Mijn wensenlijst');
     });
 
     it('not logged in: no link to an own list', async () => {
