@@ -10,9 +10,9 @@
 @media (min-width: 576px) {
   .jumbotron { padding: 4rem 2rem; }
   .card-columns { column-gap: 1.25rem; orphans: 1; widows: 1; }
-  .card-columns .card { display: inline-block; width: 100%; }
 }
-.card-columns .card { margin-bottom: .75rem; }
+/* Also on a small screen: the wish list has columns there too, and a card without a width shrinks to its content (sc-1877). */
+.card-columns .card { display: inline-block; width: 100%; margin-bottom: .75rem; }
 
 /* Uiterlijk van Bootstrap 4 behouden (sc-3279): lettertype en links. */
 :root {

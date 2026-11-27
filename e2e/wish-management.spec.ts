@@ -136,6 +136,49 @@ test.describe('wish management and navigation', () => {
     await context.close();
   });
 
+  // The list now has wishes with and without an image, one of them the 16x16 photo above.
+  // One login for both checks: the test API allows a limited number of logins per address and IP.
+  test('hovering over a wish card moves nothing (sc-792); on a small screen every card is as wide as its column (sc-1877)', async ({ browser }) => {
+    const { context, page } = await newUserPage(browser);
+    await login(page, owner);
+    await expect(wishCard(page, 'Smoke foto')).toBeVisible();
+    const cards = page.locator('.card-columns .card');
+    const boxes = () => cards.evaluateAll(all => all.map(card => JSON.stringify(card.getBoundingClientRect())));
+    // A late image changes the height of its card: start from a layout that holds for a second.
+    let before: string[] = [];
+    await expect.poll(async () => {
+      const previous = before;
+      before = await boxes();
+      return JSON.stringify(before) === JSON.stringify(previous);
+    }, { intervals: [1_000], timeout: 20_000 }).toBe(true);
+    // The overlay with the banner lies on top of the image.
+    for (const part of ['gimmi-wish-call-to-action-button', 'a.wish-card-title', '.card-img-overlay']) {
+      await wishCard(page, wishA).locator(part).first().hover();
+      expect(await boxes(), `hover over ${part}`).toEqual(before);
+    }
+
+    await page.setViewportSize({ width: 375, height: 812 });
+    const widths = await cards.evaluateAll(all => all.map(card => Math.round(card.getBoundingClientRect().width)));
+    expect(widths.length).toBeGreaterThan(3);
+    expect(new Set(widths).size, `card widths ${widths.join(', ')}`).toBe(1);
+    await context.close();
+  });
+
+  test('touch screen: one tap on save adds a wish with only a title (sc-1875)', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    await login(page, owner);
+    await page.getByText('Voeg wens toe').tap();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByRole('heading', { name: 'Voeg een wens toe' })).toBeVisible();
+    await dialog.locator('#wishTitle').tap();
+    await page.keyboard.type('Smoke tik');
+    await dialog.getByRole('button', { name: 'Wens toevoegen' }).tap();
+    await expect(dialog).toBeHidden();
+    await expect(wishCard(page, 'Smoke tik')).toBeVisible();
+    await context.close();
+  });
+
   test('closing the wish popup also closes the picker (sc-1391)', async ({ browser }) => {
     const { context, page } = await newUserPage(browser);
     await login(page, owner);

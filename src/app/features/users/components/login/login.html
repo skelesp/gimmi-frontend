@@ -31,6 +31,11 @@
           </gimmi-forgot-password-link>
         </div>
       }
+      @if (rateLimitedMinutes(); as minutes) {
+        <div class="alert alert-danger" role="alert">
+          Te veel aanmeldpogingen. Probeer het over {{minutes}} {{minutes === 1 ? 'minuut' : 'minuten'}} opnieuw.
+        </div>
+      }
 
       <form (submit)="login($event)" novalidate>
         <gimmi-email-field [field]="loginForm.email" />
